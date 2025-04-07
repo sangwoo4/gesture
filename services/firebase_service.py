@@ -2,7 +2,7 @@ import os
 import time
 from config import bucket
 
-CACHE_DIR = "./models"
+CACHE_DIR = "./basic_models"
 CACHE_EXPIRATION = 24 * 60 * 60
 
 def is_cached(file_path: str) -> bool:
@@ -44,7 +44,7 @@ def list_files_in_firebase():
     print("Firebase Storage에 있는 파일 목록:", file_list)
 
 def upload_model_to_firebase(local_model_path: str, model_name: str) -> str:
-    blob = bucket.blob(f"models/{model_name}")
+    blob = bucket.blob(f"basic_models/{model_name}")
     blob.upload_from_filename(local_model_path)
     blob.make_public()
     return blob.public_url

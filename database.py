@@ -17,5 +17,4 @@ def get_db():
 
 def init_db():
     """DB 테이블 자동 생성"""
-    from models import File  # 모델 임포트
     Base.metadata.create_all(bind=engine)

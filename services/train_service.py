@@ -7,16 +7,18 @@ from sklearn.model_selection import train_test_split
 import time
 import numpy as np
 import tensorflow as tf
+import json
+from collections import Counter
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.models import load_model, Sequential
-from tensorflow.keras.layers import Dense
+from tensorflow.keras.layers import Dense, Conv2D, Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
+from sklearn.utils import class_weight
 
 from services.firebase_service import get_cached_or_download, list_files_in_firebase
 
 CACHE_DIR = "./downloads"
-BASE_DIR = "./models/"
 
 
 def get_model_info(model_code: str, db: Session) -> File:
@@ -44,187 +46,215 @@ def download_model(model_info: File) -> tuple[str, np.ndarray, np.ndarray]:
     return basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA
 
 
-def new_convert_to_npy() -> tuple[np.ndarray, np.ndarray]:
-    CSV_PATH = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/models/basic_hand_landmarks.csv"
+def new_convert_to_npy() -> tuple[np.ndarray]:
+    CSV_PATH = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models/update_hand_landmarks.csv"
 
-    # ✅ CSV 데이터 불러오기
-    CSV_DATA = pd.read_csv(CSV_PATH)
+    print(f"[로컬 모드] CSV 파일 로드 중: {CSV_PATH}")
+    server_df = pd.read_csv(CSV_PATH)
+    server_labels = server_df["label"].to_numpy(dtype=str)
+    server_features = server_df.drop(columns=["label"]).to_numpy(dtype=np.float32)
+    server_np_data = np.hstack((server_features, server_labels.reshape(-1, 1)))
+    NPY_DATA = server_np_data  # 저장하지 않고 변수로만 유지
 
-    # ✅ CSV 데이터 변환
-    labels = CSV_DATA["label"].to_numpy()  # 라벨 컬럼 분리
-    features = CSV_DATA.drop(columns=["label"]).to_numpy()  # 랜드마크 데이터
-    DATA = np.hstack((features, labels.reshape(-1, 1)))
+    print(f"[변수 모드] NPY 데이터 준비 완료 (저장 안함)")
+    print(f" shape: {NPY_DATA.shape}")
+    return NPY_DATA
 
-    # 데이터 분리 (랜드마크 / 라벨)
-    X = np.array([row[:-1].astype(np.float32) for row in DATA])
-    y = np.array([row[-1] for row in DATA])
+def new_split_landmarks(NPY_DATA: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    SAVE_DIR = "./new_models"
+    data = NPY_DATA.copy()
+
+    X = np.array([row[:-1].astype(np.float32) for row in data])
+    y = np.array([row[-1] for row in data], dtype=str)
 
     # 데이터셋 분할 (8 대 2)
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
-    # 분할된 데이터를 변수로 저장
     TRAIN_DATA_UPDATE = np.column_stack((X_train, y_train))
     TEST_DATA_UPDATE = np.column_stack((X_test, y_test))
+
+    np.save(os.path.join(SAVE_DIR, "update_train_hand_landmarks.npy"), TRAIN_DATA_UPDATE)
+    np.save(os.path.join(SAVE_DIR, "update_test_hand_landmarks.npy"), TEST_DATA_UPDATE)
+    print("[로컬 모드] 데이터 저장 완료!")
+
+    print("데이터 분할 완료!")
+    print(f"Train 데이터 크기: {X_train.shape[0]}")
+    print(f"Test 데이터 크기: {X_test.shape[0]}")
 
     return TRAIN_DATA_UPDATE, TEST_DATA_UPDATE
 
 
-
 def train_new_model_service(model_code: str, landmarks: list, db: Session) -> str:
+    BASE_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models"
+    NEW_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/new_models"
+
 
     model_info = get_model_info(model_code, db)
     basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA = download_model(model_info)
-    UPDATE_TRAIN_DATA, UPDATE_TEST_DATA = new_convert_to_npy()
+    NPY_DATA = new_convert_to_npy()
+    UPDATE_TRAIN_DATA, UPDATE_TEST_DATA = new_split_landmarks(NPY_DATA)
+
+    MODEL_PATH = os.path.join(BASE_DIR, "basic_gesture_model_cnn.h5")
+    UPDATED_MODEL_PATH = os.path.join(NEW_DIR, "update_gesture_model_cnn.h5")
+    UPDATED_TFLITE_PATH = os.path.join(NEW_DIR, "update_gesture_model_cnn.tflite")
+
+
+    BASIC_TRAIN_DATA = np.load(os.path.join(BASE_DIR, "basic_train_hand_landmarks.npy"), allow_pickle=True)
+    BASIC_TEST_DATA = np.load(os.path.join(BASE_DIR, "basic_test_hand_landmarks.npy"), allow_pickle=True)
+    UPDATA_LABEL_INDEX_MAP = os.path.join(BASE_DIR, "updated_label_index_map.json")
+    # COMBINE_TRAIN_DATA = os.path.join(BASE_DIR, "combine_train_data.npy")
+    # COMBINE_TEST_DATA = os.path.join(BASE_DIR, "combine_test_data.npy")
+    USER_MODEL = load_model(MODEL_PATH)
 
     X_basic_train = BASIC_TRAIN_DATA[:, :-1].astype(np.float32)
+    y_basic_train = BASIC_TRAIN_DATA[:, -1].astype(str)
     X_basic_test = BASIC_TEST_DATA[:, :-1].astype(np.float32)
+    y_basic_test = BASIC_TEST_DATA[:, -1].astype(str)
+
     X_update_train = UPDATE_TRAIN_DATA[:, :-1].astype(np.float32)
+    y_update_train = UPDATE_TRAIN_DATA[:, -1].astype(str)
     X_update_test = UPDATE_TEST_DATA[:, :-1].astype(np.float32)
+    y_update_test = UPDATE_TEST_DATA[:, -1].astype(str)
 
-    # y_basic_train = BASIC_TRAIN_DATA[:, -1].astype(np.float32)
-    # y_basic_test = BASIC_TEST_DATA[:, -1]
-    # y_update_train = UPDATE_TRAIN_DATA[:, -1].astype(np.float32)
-    # y_update_test = UPDATE_TEST_DATA[:, -1]
-    label_encoder = LabelEncoder()
+    def calculate_duplicate_ratio(X_existing, y_existing, X_new, y_new):
+        unique_classes = sorted(set(y_new))
+        class_duplicate_ratios = {}
+        for cls in unique_classes:
+            X_existing_cls = X_existing[y_existing == cls]
+            X_new_cls = X_new[y_new == cls]
+            duplicate_count = sum(
+                any(np.allclose(landmark, existing) for existing in X_existing_cls)
+                for landmark in X_new_cls
+            )
+            ratio = (duplicate_count / len(X_new_cls) * 100) if len(X_new_cls) > 0 else 0
+            class_duplicate_ratios[cls] = ratio
+        return class_duplicate_ratios
 
-    y_basic_train = label_encoder.fit_transform(BASIC_TRAIN_DATA[:, -1])
-    y_update_train = label_encoder.transform(UPDATE_TRAIN_DATA[:, -1])
+    train_dup_ratios = calculate_duplicate_ratio(X_basic_train, y_basic_train, X_update_train, y_update_train)
+    test_dup_ratios = calculate_duplicate_ratio(X_basic_test, y_basic_test, X_update_test, y_update_test)
 
-    y_basic_test = label_encoder.transform(BASIC_TEST_DATA[:, -1])
-    y_update_test = label_encoder.transform(UPDATE_TEST_DATA[:, -1])
+    for cls, ratio in train_dup_ratios.items():
+        print(f"클래스 {cls} 학습 중복: {ratio:.2f}%")
+    for cls, ratio in test_dup_ratios.items():
+        print(f"클래스 {cls} 테스트 중복: {ratio:.2f}%")
 
-
-
-    def get_unique_labels(existing_labels, new_labels):
-        # 기존 라벨이 문자열이면 그대로 사용, 숫자라면 문자열로 변환하여 set 생성
-        existing_labels = np.array(existing_labels)
-
-        # 기존 라벨 매핑 생성
-        unique_existing_labels = sorted(set(existing_labels))  # 정렬하여 일정한 인덱스 유지
-        label_mapping = {label: idx for idx, label in enumerate(unique_existing_labels)}
-
-        # 새로운 라벨을 숫자로 변환
-        new_labels_mapped = []
-        max_label = len(label_mapping)  # 새로운 라벨 추가할 때 사용할 인덱스
-
-        for label in new_labels:
-            label = str(label)  # 문자열 변환 후 비교
-            if label not in label_mapping:
-                # 새로운 라벨이면 매핑 추가
-                label_mapping[label] = max_label
-                max_label += 1
-            new_labels_mapped.append(label_mapping[label])
-
-        return np.array(new_labels_mapped), label_mapping
-
-    # 기존 라벨과 중복된 라벨이 있는지 확인하고, UPDATE 데이터의 라벨 변경
-    y_update_train, _ = get_unique_labels(y_basic_train, y_update_train)
-    y_update_test, _ = get_unique_labels(y_basic_test, y_update_test)
-
-    print("중복 라벨 검출 및 변경 완료.")
-
-    # 중복 검사 함수 (랜드마크 숫자 그대로 비교)
-    def calculate_duplicate_ratio(X_existing, X_new):
-        duplicate_count = 0
-        total_new_count = len(X_new)
-
-        for landmark in X_new:
-            if any(np.allclose(landmark, existing) for existing in X_existing):
-                duplicate_count += 1
-
-        duplicate_ratio = (duplicate_count / total_new_count) * 100 if total_new_count > 0 else 0
-        return duplicate_ratio
-
-    # 기존 데이터와 새로운 데이터 간 중복 비율 계산
-    train_duplicate_ratio = calculate_duplicate_ratio(X_basic_train, X_update_train)
-    test_duplicate_ratio = calculate_duplicate_ratio(X_basic_test, X_update_test)
-
-    # 평균 중복 비율 계산
-    avg_duplicate_ratio = (train_duplicate_ratio + test_duplicate_ratio) / 2
-    print(f"기존 데이터와 새로운 데이터 간 중복 비율: {avg_duplicate_ratio:.2f}%")
-
-    # 95% 이상 중복되면 학습 중단
-    if avg_duplicate_ratio >= 95:
-        print("중복된 데이터가 95% 이상입니다. 전이 학습을 중단합니다.")
+    if any(r >= 30 for r in train_dup_ratios.values()) or any(r >= 30 for r in test_dup_ratios.values()):
+        print("중복 비율이 높은 클래스가 있어 학습을 중단합니다.")
         exit(1)
 
-    print("새로운 데이터가 충분히 포함됨. 학습을 계속 진행합니다.")
-
-    # 데이터 병합
+    # 병합 및 라벨 인코딩
     X_train = np.concatenate((X_basic_train, X_update_train), axis=0)
     X_test = np.concatenate((X_basic_test, X_update_test), axis=0)
     y_train = np.concatenate((y_basic_train, y_update_train), axis=0)
     y_test = np.concatenate((y_basic_test, y_update_test), axis=0)
 
-    print("y_train shape:", y_train.shape)
-    print("y_test shape:", y_test.shape)
+    # 라벨 인덱스 생성
+    label_to_index = {}
+    index_to_label = {}
 
-    # 최종 데이터
-    COMBINE_TRAIN_DATA = np.column_stack((X_train, y_train))
-    COMBINE_TEST_DATA = np.column_stack((X_test, y_test))
+    # 1. 기존 라벨 먼저 등록
+    for label in list(y_basic_train) + list(y_basic_test):
+        if label not in label_to_index:
+            idx = len(label_to_index)
+            label_to_index[label] = idx
+            index_to_label[idx] = label
 
-    # 원-핫 인코딩 변환
-    num_classes = len(set(y_train))
-    y_train = to_categorical(y_train, num_classes=num_classes)
-    y_test = to_categorical(y_test, num_classes=num_classes)
+    # 2. 새로운 라벨 등록
+    for label in list(y_update_train) + list(y_update_test):
+        if label not in label_to_index:
+            idx = len(label_to_index)
+            label_to_index[label] = idx
+            index_to_label[idx] = label
 
-    # 데이터 변환 (Conv1D 입력 형태로 맞춤)
-    X_train = X_train.reshape(-1, X_train.shape[1], 1)
-    X_test = X_test.reshape(-1, X_test.shape[1], 1)
+    # JSON 저장 시에는 추가된 라벨만 추려서 저장
+    unique_labels = sorted(set(y_update_train.tolist() + y_update_test.tolist()))
+    added_label_to_index = {label: label_to_index[label] for label in unique_labels}
+    added_index_to_label = {idx: label for label, idx in added_label_to_index.items()}
 
-    # 기존 모델 불러오기 (변수에서 로드)
-    base_model = load_model(basic_model_path)
+    with open(UPDATA_LABEL_INDEX_MAP, "w") as f:
+        json.dump(added_index_to_label, f)
+    print(f"✅ 추가 학습 라벨만 저장 완료: {UPDATA_LABEL_INDEX_MAP}")
 
-    # 로드 확인
-    print(base_model.summary())
+    # 전체 라벨 매핑을 사용하는 코드로 수정
+    y_train = to_categorical([label_to_index[l] for l in y_train], num_classes=len(label_to_index))
+    y_test = to_categorical([label_to_index[l] for l in y_test], num_classes=len(label_to_index))
 
-    # 기존 모델의 레이어 개수 확인
-    layer_index = len(base_model.layers)
+    # 입력 형태 변환
+    X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
+    X_test = X_test[:, :63].reshape(-1, 21, 3, 1)
 
-    # 기존 모델의 출력층을 제거하고 새로운 출력층 추가
+    # Conv2D 입력으로 변경
+    X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
+    X_test = X_test[:, :63].reshape(-1, 21, 3, 1)
+
+    # 동적 라벨 기반 이름 생성
+    label_ids = sorted(label_to_index.values())
+    label_str = "_".join(map(str, label_ids))
+    dense_name = f"dense_cls_{label_str}"
+    output_name = f"output_cls_{label_str}"
+
+    # 기존: Conv2D까지만 재사용
     new_model = Sequential()
-    for layer in base_model.layers[:-1]:
-        layer.trainable = False
-        new_model.add(layer)
+    for layer in USER_MODEL.layers:
+        if isinstance(layer, Conv2D):
+            layer.trainable = False
+            new_model.add(layer)
+        else:
+            break
 
-    # 새로운 출력층 추가
-    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=f"dynamic_dense_{layer_index}"))
-    new_model.add(Dense(num_classes, activation='softmax', name=f"dynamic_output_{layer_index + 1}"))
+    # Dense 레이어 개선
+    new_model.add(Flatten())
+    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name))
+    new_model.add(Dense(len(label_to_index), activation='softmax', name=output_name))
 
-    # 모델 컴파일
     new_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
-    # Early Stopping 설정
-    early_stopping = EarlyStopping(monitor='val_accuracy', patience=10, restore_best_weights=True)
+    # 학습 시작
+    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
-    # 모델 학습
-    start_time = time.time()
-    new_model.fit(X_train, y_train, epochs=1000, batch_size=32, validation_data=(X_test, y_test),
-                  callbacks=[early_stopping])
-    end_time = time.time()
+    # 클래스 불균형 완화
+    y_train_idx = np.argmax(y_train, axis=1)
+    class_weights = class_weight.compute_class_weight(
+        class_weight='balanced',
+        classes=np.unique(y_train_idx),
+        y=y_train_idx
+    )
+    class_weight_dict = {i: w for i, w in enumerate(class_weights)}
 
-    # 모델 평가
+    start = time.time()
+
+    # 학습
+    new_model.fit(
+        X_train, y_train,
+        epochs=1000,
+        batch_size=32,
+        validation_data=(X_test, y_test),
+        callbacks=[early_stopping],
+        class_weight=class_weight_dict
+    )
+    end = time.time()
+
+    # 평가 및 저장
     loss, acc = new_model.evaluate(X_test, y_test, verbose=0)
-    print(f"모델 학습 완료 - 정확도: {acc:.4f}, 손실: {loss:.4f}, 학습 시간: {end_time - start_time:.2f} 초")
+    print(f"학습 완료 - acc: {acc:.4f}, loss: {loss:.4f}, 시간: {end - start:.2f}초")
+    print("✅ 학습 클래스 분포:", Counter(y_train_idx))
 
-    # 학습된 모델을 변수로 저장
-    H5_MODEL = new_model
+    # 학습 세부내용
+    y_pred = np.argmax(new_model.predict(X_test), axis=1)
+    y_true = np.argmax(y_test, axis=1)
 
-    # TFLite 변환
-    converter = tf.lite.TFLiteConverter.from_keras_model(H5_MODEL)
+    used_label_indices = sorted(set(y_true))
+    used_target_names = [index_to_label[i] for i in used_label_indices]
+
+    new_model.save(UPDATED_MODEL_PATH)
+    converter = tf.lite.TFLiteConverter.from_keras_model(new_model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
-    TFLITE_MODEL = converter.convert()
+    tflite_model = converter.convert()
+    with open(UPDATED_TFLITE_PATH, "wb") as f:
+        f.write(tflite_model)
+    print(f"모델 저장 완료: {UPDATED_MODEL_PATH}")
+    print(f"TFLite 저장 완료: {UPDATED_TFLITE_PATH}")
 
-    print("TFLite 모델 변환 완료!")
 
-    # 반환할 데이터
-    RESULTS = {
-        "h5_model": H5_MODEL,  # 학습된 Keras 모델
-        "tflite_model": TFLITE_MODEL,  # 변환된 TFLite 모델
-        "combine_train_data": COMBINE_TRAIN_DATA,  # 통합된 학습 데이터
-        "combine_test_data": COMBINE_TEST_DATA  # 통합된 테스트 데이터
-    }
-
-    return model_info
