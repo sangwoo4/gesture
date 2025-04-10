@@ -8,6 +8,7 @@ import time
 import numpy as np
 import tensorflow as tf
 import json
+from config import BASE_DIR, NEW_DIR
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder
 from tensorflow.keras.models import load_model, Sequential
@@ -23,11 +24,16 @@ CACHE_DIR = "./downloads"
 
 def get_model_info(model_code: str, db: Session) -> File:
     model_info = db.query(File).filter(File.id == model_code).first()
-
     if not model_info:
         raise HTTPException(status_code=404, detail="Model not found")
 
     return model_info
+
+def generate_model_filename(prefix="gesture"):
+    import time, uuid
+    timestamp = int(time.time())
+    uid = uuid.uuid4().hex[:8]
+    return f"{prefix}_{timestamp}_{uid}"
 
 def download_model(model_info: File) -> tuple[str, np.ndarray, np.ndarray]:
     os.makedirs(CACHE_DIR, exist_ok=True)
@@ -46,7 +52,7 @@ def download_model(model_info: File) -> tuple[str, np.ndarray, np.ndarray]:
     return basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA
 
 
-def new_convert_to_npy() -> tuple[np.ndarray]:
+def new_convert_to_npy() -> np.ndarray:
     CSV_PATH = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models/update_hand_landmarks.csv"
 
     print(f"[로컬 모드] CSV 파일 로드 중: {CSV_PATH}")
@@ -56,12 +62,9 @@ def new_convert_to_npy() -> tuple[np.ndarray]:
     server_np_data = np.hstack((server_features, server_labels.reshape(-1, 1)))
     NPY_DATA = server_np_data  # 저장하지 않고 변수로만 유지
 
-    print(f"[변수 모드] NPY 데이터 준비 완료 (저장 안함)")
-    print(f" shape: {NPY_DATA.shape}")
     return NPY_DATA
 
-def new_split_landmarks(NPY_DATA: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
-    SAVE_DIR = "./new_models"
+def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_name: str) -> tuple[np.ndarray, np.ndarray]:
     data = NPY_DATA.copy()
 
     X = np.array([row[:-1].astype(np.float32) for row in data])
@@ -73,8 +76,8 @@ def new_split_landmarks(NPY_DATA: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     TRAIN_DATA_UPDATE = np.column_stack((X_train, y_train))
     TEST_DATA_UPDATE = np.column_stack((X_test, y_test))
 
-    np.save(os.path.join(SAVE_DIR, "update_train_hand_landmarks.npy"), TRAIN_DATA_UPDATE)
-    np.save(os.path.join(SAVE_DIR, "update_test_hand_landmarks.npy"), TEST_DATA_UPDATE)
+    np.save(os.path.join(NEW_DIR, train_data_name), TRAIN_DATA_UPDATE)
+    np.save(os.path.join(NEW_DIR, test_data_name), TEST_DATA_UPDATE)
     print("[로컬 모드] 데이터 저장 완료!")
 
     print("데이터 분할 완료!")
@@ -84,27 +87,30 @@ def new_split_landmarks(NPY_DATA: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     return TRAIN_DATA_UPDATE, TEST_DATA_UPDATE
 
 
-def train_new_model_service(model_code: str, landmarks: list, db: Session) -> str:
-    BASE_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models"
-    NEW_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/new_models"
+def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> str:
 
+    model_file_name = generate_model_filename(prefix=gesture)
+
+    updated_train_data_name = f"update_{model_file_name}_train_hand_landmarks.npy"
+    updated_test_data_name = f"update_{model_file_name}_test_hand_landmarks.npy"
+    updated_model_name = f"update_{model_file_name}_model_cnn.h5"
+    updated_tflite_name = f"update_{model_file_name}_cnn.tflite"
+    updated_label_map_name = f"update_{model_file_name}_label_index_map.json"
 
     model_info = get_model_info(model_code, db)
-    basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA = download_model(model_info)
+    download_model(model_info)
     NPY_DATA = new_convert_to_npy()
-    UPDATE_TRAIN_DATA, UPDATE_TEST_DATA = new_split_landmarks(NPY_DATA)
 
-    MODEL_PATH = os.path.join(BASE_DIR, "basic_gesture_model_cnn.h5")
-    UPDATED_MODEL_PATH = os.path.join(NEW_DIR, "update_gesture_model_cnn.h5")
-    UPDATED_TFLITE_PATH = os.path.join(NEW_DIR, "update_gesture_model_cnn.tflite")
+    BASIC_TRAIN_DATA = np.load(os.path.join(BASE_DIR, model_info.Train_Data), allow_pickle=True)
+    BASIC_TEST_DATA = np.load(os.path.join(BASE_DIR, model_info.Test_Data), allow_pickle=True)
+    BASE_MODEL_PATH = os.path.join(BASE_DIR, model_info.Model)
+    USER_MODEL = load_model(BASE_MODEL_PATH)
 
+    UPDATE_TRAIN_DATA, UPDATE_TEST_DATA = new_split_landmarks(NPY_DATA, updated_train_data_name, updated_test_data_name)
+    UPDATE_LABEL_INDEX_MAP = os.path.join(BASE_DIR, updated_label_map_name)
+    UPDATED_MODEL_PATH = os.path.join(NEW_DIR, updated_model_name)
+    UPDATED_TFLITE_PATH = os.path.join(NEW_DIR, updated_tflite_name)
 
-    BASIC_TRAIN_DATA = np.load(os.path.join(BASE_DIR, "basic_train_hand_landmarks.npy"), allow_pickle=True)
-    BASIC_TEST_DATA = np.load(os.path.join(BASE_DIR, "basic_test_hand_landmarks.npy"), allow_pickle=True)
-    UPDATA_LABEL_INDEX_MAP = os.path.join(BASE_DIR, "updated_label_index_map.json")
-    # COMBINE_TRAIN_DATA = os.path.join(BASE_DIR, "combine_train_data.npy")
-    # COMBINE_TEST_DATA = os.path.join(BASE_DIR, "combine_test_data.npy")
-    USER_MODEL = load_model(MODEL_PATH)
 
     X_basic_train = BASIC_TRAIN_DATA[:, :-1].astype(np.float32)
     y_basic_train = BASIC_TRAIN_DATA[:, -1].astype(str)
@@ -171,9 +177,9 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session) -> st
     added_label_to_index = {label: label_to_index[label] for label in unique_labels}
     added_index_to_label = {idx: label for label, idx in added_label_to_index.items()}
 
-    with open(UPDATA_LABEL_INDEX_MAP, "w") as f:
+    with open(UPDATE_LABEL_INDEX_MAP, "w") as f:
         json.dump(added_index_to_label, f)
-    print(f"✅ 추가 학습 라벨만 저장 완료: {UPDATA_LABEL_INDEX_MAP}")
+    print(f"✅ 추가 학습 라벨만 저장 완료: {UPDATE_LABEL_INDEX_MAP}")
 
     # 전체 라벨 매핑을 사용하는 코드로 수정
     y_train = to_categorical([label_to_index[l] for l in y_train], num_classes=len(label_to_index))

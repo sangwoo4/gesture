@@ -19,7 +19,6 @@ def is_cached(file_path: str) -> bool:
 
 def get_cached_or_download(file_name: str, firebase_path: str) -> str:
     local_path = os.path.join(CACHE_DIR, file_name)
-    print(local_path)
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
     if not is_cached(local_path):  # 캐시가 없거나 만료된 경우
@@ -43,9 +42,9 @@ def list_files_in_firebase():
     file_list = [blob.name for blob in blobs]
     print("Firebase Storage에 있는 파일 목록:", file_list)
 
-def upload_model_to_firebase(local_model_path: str, model_name: str) -> str:
+def upload_model_to_firebase(local_BASE_MODEL_PATH: str, model_name: str) -> str:
     blob = bucket.blob(f"basic_models/{model_name}")
-    blob.upload_from_filename(local_model_path)
+    blob.upload_from_filename(local_BASE_MODEL_PATH)
     blob.make_public()
     return blob.public_url
 

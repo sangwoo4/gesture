@@ -22,3 +22,6 @@ if not firebase_admin._apps:
 # Firebase 스토리지 버킷 가져오기
 bucket = storage.bucket()
 print(f"✅ Firebase 연결됨: {bucket.name}")
+
+BASE_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models"
+NEW_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/new_models"
