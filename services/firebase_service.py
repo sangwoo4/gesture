@@ -1,7 +1,10 @@
 import os
 import time
-from config import bucket
 
+import numpy as np
+
+from config import bucket
+from config import BASE_DIR, NEW_DIR
 CACHE_DIR = "./basic_models"
 CACHE_EXPIRATION = 24 * 60 * 60
 
@@ -36,16 +39,36 @@ def download_from_firebase(firebase_path: str, local_path: str):
     blob.download_to_filename(local_path)
 
     print(f"Downloaded {firebase_path} to {local_path}")
+#
+# def list_files_in_firebase():
+#     blobs = bucket.list_blobs()
+#     file_list = [blob.name for blob in blobs]
+#     print("Firebase Storage에 있는 파일 목록:", file_list)
 
-def list_files_in_firebase():
-    blobs = bucket.list_blobs()
-    file_list = [blob.name for blob in blobs]
-    print("Firebase Storage에 있는 파일 목록:", file_list)
+def upload_model_to_firebase(
+        UPDATE_TRAIN_DATA: str,
+        UPDATE_TEST_DATA: str,
+        UPDATED_MODEL_PATH: str,
+        UPDATED_TFLITE_PATH: str,
+        firebase_folder: str = "new_models"
+) -> str:
+    upload_files = [UPDATE_TRAIN_DATA, UPDATE_TEST_DATA, UPDATED_MODEL_PATH, UPDATED_TFLITE_PATH]
 
-def upload_model_to_firebase(local_BASE_MODEL_PATH: str, model_name: str) -> str:
-    blob = bucket.blob(f"basic_models/{model_name}")
-    blob.upload_from_filename(local_BASE_MODEL_PATH)
-    blob.make_public()
-    return blob.public_url
+    tflite_url = ""
+
+    for file_path in upload_files:
+        file_name = os.path.basename(file_path)
+        blob = bucket.blob(f"{firebase_folder}/{file_name}")
+        blob.upload_from_filename(file_path)
+        blob.make_public()
+
+        print(f"[업로드 완료] {file_name} → {blob.public_url}")
+
+        # TFLite URL만 저장
+        if file_path == UPDATED_TFLITE_PATH:
+            tflite_url = blob.public_url
+
+    return tflite_url
+
 
 

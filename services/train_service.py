@@ -8,6 +8,8 @@ import time
 import numpy as np
 import tensorflow as tf
 import json
+from services.firebase_service import upload_model_to_firebase
+
 from config import BASE_DIR, NEW_DIR
 from collections import Counter
 from sklearn.preprocessing import LabelEncoder
@@ -17,9 +19,10 @@ from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.utils import class_weight
 
-from services.firebase_service import get_cached_or_download, list_files_in_firebase
+from services.firebase_service import get_cached_or_download
 
 CACHE_DIR = "./downloads"
+
 
 
 def get_model_info(model_code: str, db: Session) -> File:
@@ -64,7 +67,7 @@ def new_convert_to_npy() -> np.ndarray:
 
     return NPY_DATA
 
-def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_name: str) -> tuple[np.ndarray, np.ndarray]:
+def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_name: str) -> tuple[str, str]:
     data = NPY_DATA.copy()
 
     X = np.array([row[:-1].astype(np.float32) for row in data])
@@ -75,16 +78,21 @@ def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_na
 
     TRAIN_DATA_UPDATE = np.column_stack((X_train, y_train))
     TEST_DATA_UPDATE = np.column_stack((X_test, y_test))
+    # np.save(os.path.join(NEW_DIR, train_data_name), TRAIN_DATA_UPDATE)
+    # np.save(os.path.join(NEW_DIR, test_data_name), TEST_DATA_UPDATE)
 
-    np.save(os.path.join(NEW_DIR, train_data_name), TRAIN_DATA_UPDATE)
-    np.save(os.path.join(NEW_DIR, test_data_name), TEST_DATA_UPDATE)
+    train_path = os.path.join(NEW_DIR, train_data_name)
+    test_path = os.path.join(NEW_DIR, test_data_name)
+    np.save(train_path, TRAIN_DATA_UPDATE)
+    np.save(test_path, TEST_DATA_UPDATE)
+
     print("[로컬 모드] 데이터 저장 완료!")
 
     print("데이터 분할 완료!")
     print(f"Train 데이터 크기: {X_train.shape[0]}")
     print(f"Test 데이터 크기: {X_test.shape[0]}")
 
-    return TRAIN_DATA_UPDATE, TEST_DATA_UPDATE
+    return train_path, test_path
 
 
 def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> str:
@@ -106,7 +114,10 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     BASE_MODEL_PATH = os.path.join(BASE_DIR, model_info.Model)
     USER_MODEL = load_model(BASE_MODEL_PATH)
 
-    UPDATE_TRAIN_DATA, UPDATE_TEST_DATA = new_split_landmarks(NPY_DATA, updated_train_data_name, updated_test_data_name)
+    UPDATE_TRAIN_DATA_PATH, UPDATE_TEST_DATA_PATH = new_split_landmarks(NPY_DATA, updated_train_data_name, updated_test_data_name)
+    UPDATE_TRAIN_DATA = np.load(os.path.join(NEW_DIR, UPDATE_TRAIN_DATA_PATH), allow_pickle=True)
+    UPDATE_TEST_DATA = np.load(os.path.join(NEW_DIR, UPDATE_TEST_DATA_PATH), allow_pickle=True)
+
     UPDATE_LABEL_INDEX_MAP = os.path.join(BASE_DIR, updated_label_map_name)
     UPDATED_MODEL_PATH = os.path.join(NEW_DIR, updated_model_name)
     UPDATED_TFLITE_PATH = os.path.join(NEW_DIR, updated_tflite_name)
@@ -262,5 +273,13 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
         f.write(tflite_model)
     print(f"모델 저장 완료: {UPDATED_MODEL_PATH}")
     print(f"TFLite 저장 완료: {UPDATED_TFLITE_PATH}")
+
+
+    new_tflite_url = upload_model_to_firebase(UPDATE_TRAIN_DATA_PATH,
+                                              UPDATE_TEST_DATA_PATH,
+                                              UPDATED_MODEL_PATH,
+                                              UPDATED_TFLITE_PATH)
+    print(new_tflite_url)
+
 
 
