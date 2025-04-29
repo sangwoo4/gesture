@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 from database import get_db
-from services.train_service import train_new_model_service
+from services.update_moddel_service import train_new_model_service
 router = APIRouter()
 
 class TrainData(BaseModel):
