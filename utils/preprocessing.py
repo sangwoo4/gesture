@@ -37,13 +37,27 @@ def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_na
 
     return train_path, test_path
 
-def find_duplicate_label_pairs_by_distance(X_existing, y_existing, X_new, y_new, threshold=0.02):
+
+def find_duplicate_label_pairs_by_distance(
+    X_existing,
+    y_existing,
+    X_new,
+    y_new,
+    threshold: float = 0.02
+) -> list[tuple[str, str]]:
+    """
+    기존 데이터와 신규 데이터 간의 유클리디안 거리 기반 중복 라벨 쌍을 반환합니다.
+
+    Returns:
+        list of tuple: (신규 라벨, 기존 라벨) 쌍의 리스트.
+    """
     duplicate_pairs = []
 
     for x_new, label_new in zip(X_new, y_new):
         for x_exist, label_exist in zip(X_existing, y_existing):
-            dist = np.linalg.norm(x_new - x_exist)
-            if dist < threshold:
-                duplicate_pairs.append((label_new, label_exist))
+            distance = np.linalg.norm(x_new - x_exist)
+            if distance < threshold:
+                duplicate_pairs.append((str(label_new), str(label_exist)))
                 break
+
     return duplicate_pairs
