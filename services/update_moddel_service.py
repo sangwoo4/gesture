@@ -3,6 +3,7 @@ import numpy as np
 import os
 import json
 import time
+import random
 
 from collections import Counter
 
@@ -15,11 +16,10 @@ from services.firebase_service import upload_model_to_firebase
 
 from sqlalchemy.orm import Session
 from tensorflow.keras.models import load_model, Sequential
-from tensorflow.keras.layers import Dense, Conv2D, Flatten
+from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.utils import class_weight
-
 
 
 def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> str:
@@ -29,7 +29,6 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     updated_test_data_name = f"update_{model_file_name}_test_hand_landmarks.npy"
     updated_model_name = f"update_{model_file_name}_model_cnn.h5"
     updated_tflite_name = f"update_{model_file_name}_cnn.tflite"
-    updated_label_map_name = f"update_{model_file_name}_label_index_map.json"
 
     model_info = get_model_info(model_code, db)
     download_model(model_info)
@@ -44,10 +43,8 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     UPDATE_TRAIN_DATA = np.load(os.path.join(NEW_DIR, UPDATE_TRAIN_DATA_PATH), allow_pickle=True)
     UPDATE_TEST_DATA = np.load(os.path.join(NEW_DIR, UPDATE_TEST_DATA_PATH), allow_pickle=True)
 
-    UPDATE_LABEL_INDEX_MAP = os.path.join(BASE_DIR, updated_label_map_name)
     UPDATED_MODEL_PATH = os.path.join(NEW_DIR, updated_model_name)
     UPDATED_TFLITE_PATH = os.path.join(NEW_DIR, updated_tflite_name)
-
 
     X_basic_train = BASIC_TRAIN_DATA[:, :-1].astype(np.float32)
     y_basic_train = BASIC_TRAIN_DATA[:, -1].astype(str)
@@ -124,10 +121,6 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     y_train = to_categorical([label_to_index[l] for l in y_train], num_classes=len(label_to_index))
     y_test = to_categorical([label_to_index[l] for l in y_test], num_classes=len(label_to_index))
 
-    # 입력 형태 변환
-    X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
-    X_test = X_test[:, :63].reshape(-1, 21, 3, 1)
-
     # Conv2D 입력으로 변경
     X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
     X_test = X_test[:, :63].reshape(-1, 21, 3, 1)
@@ -184,16 +177,21 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     print(f"학습 완료 - acc: {acc:.4f}, loss: {loss:.4f}, 시간: {end - start:.2f}초")
     print("✅ 학습 클래스 분포:", Counter(y_train_idx))
 
-    # 학습 세부내용
-    y_pred = np.argmax(new_model.predict(X_test), axis=1)
-    y_true = np.argmax(y_test, axis=1)
-
-    used_label_indices = sorted(set(y_true))
-    used_target_names = [index_to_label[i] for i in used_label_indices]
+        # 더 큰 범위의 샘플을 제공
+    def representative_dataset():
+        indices = list(range(len(X_train)))
+        random.shuffle(indices)
+        for i in indices[:500]:
+            yield [X_train[i:i+1].astype(np.float32)]
 
     new_model.save(UPDATED_MODEL_PATH)
     converter = tf.lite.TFLiteConverter.from_keras_model(new_model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.representative_dataset = representative_dataset
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter.inference_input_type = tf.uint8
+    converter.inference_output_type = tf.uint8
+
     tflite_model = converter.convert()
     with open(UPDATED_TFLITE_PATH, "wb") as f:
         f.write(tflite_model)
