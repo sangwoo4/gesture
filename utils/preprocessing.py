@@ -10,6 +10,14 @@ def generate_model_filename(prefix="gesture"):
     uid = uuid.uuid4().hex[:8]
     return f"{prefix}_{timestamp}_{uid}"
 
+def generate_file_names(model_code: str) -> dict:
+    return {
+        'train': f"update_{model_code}_train_hand_landmarks.npy",
+        'test': f"update_{model_code}_test_hand_landmarks.npy",
+        'model_h5': f"update_{model_code}_model_cnn.h5",
+        'model_tflite': f"update_{model_code}_cnn.tflite"
+    }
+
 def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_name: str) -> tuple[str, str]:
     data = NPY_DATA.copy()
 

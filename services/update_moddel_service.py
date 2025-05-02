@@ -6,8 +6,9 @@ import time
 from collections import Counter
 from config import BASE_DIR, NEW_DIR
 
-from utils.model_io import get_model_info, download_model
-from utils.preprocessing import generate_model_filename, new_split_landmarks, find_duplicate_label_pairs_by_distance
+from utils.model_io import get_model_info, download_model, save_model_info
+from utils.preprocessing import generate_model_filename, new_split_landmarks, find_duplicate_label_pairs_by_distance, \
+    generate_file_names
 from utils.model_builder import new_convert_to_npy
 from services.firebase_service import upload_model_to_firebase
 
@@ -92,16 +93,43 @@ def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite):
         f.write(tflite_model)
 
 
-def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> str:
-    model_file_name = generate_model_filename(prefix=gesture)
-    updated_train_name = f"update_{model_file_name}_train_hand_landmarks.npy"
-    updated_test_name = f"update_{model_file_name}_test_hand_landmarks.npy"
-    updated_model_name = f"update_{model_file_name}_model_cnn.h5"
-    updated_tflite_name = f"update_{model_file_name}_cnn.tflite"
+def train_model(model, X_train, y_train, X_test, y_test):
+    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    y_train_idx = np.argmax(y_train, axis=1)
+    weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
+    class_weight_dict = dict(enumerate(weights))
+
+    model.fit(
+        X_train, y_train,
+        epochs=1000,
+        batch_size=16,
+        validation_data=(X_test, y_test),
+        callbacks=[early_stop],
+        class_weight=class_weight_dict
+    )
+
+def load_npy_data(file_path: str) -> np.ndarray:
+    return np.load(os.path.join(NEW_DIR, file_path), allow_pickle=True)
+
+def get_new_labels(base_train: np.ndarray, base_test: np.ndarray, y_train_all: list, y_test_all: list) -> set:
+    existing_labels = set(base_train[:, -1]) | set(base_test[:, -1])
+    all_labels = set(y_train_all) | set(y_test_all)
+    new_labels = all_labels - existing_labels
+
+    print(f"✅ 기존 라벨 수: {len(existing_labels)}")
+    print(f"✅ 전체 라벨 수: {len(all_labels)}")
+    print(f"🆕 새로 추가된 라벨: {new_labels}")
+    return new_labels
+
+def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> tuple[str, str, str]:
+    new_model_code = generate_model_filename(prefix=gesture)
+    updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
+    updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
+    updated_model_name = f"update_{new_model_code}_model_cnn.h5"
+    updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
 
     model_info = get_model_info(model_code, db)
     download_model(model_info)
-    new_convert_to_npy()
     basic_train, basic_test, base_model = prepare_datasets(model_info)
 
     update_train_path, update_test_path = new_split_landmarks(new_convert_to_npy(), updated_train_name, updated_test_name)
@@ -155,4 +183,14 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     print(f"✅ 전체 라벨 수: {len(all_labels)}")
     print(f"🆕 새로 추가된 라벨: {all_labels}")
 
-    return upload_model_to_firebase(update_train_path, update_test_path, h5_path, tflite_path)
+    save_model_info(
+        db=db,
+        new_model_code = new_model_code,
+        updated_train_name=updated_train_name,
+        updated_test_name=updated_test_name,
+        updated_model_name=updated_model_name
+    )
+
+    new_tflite_model_url = upload_model_to_firebase(update_train_path, update_test_path, h5_path, tflite_path)
+
+    return new_model_code, new_tflite_model_url, new_labels

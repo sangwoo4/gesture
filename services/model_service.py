@@ -13,3 +13,4 @@ def get_existing_model(model_name: str) -> str:
         print(f"{model_name} Firebase downloading...")
 
     return local_BASE_MODEL_PATH
+

@@ -1,3 +1,5 @@
+import uuid
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from models import File
@@ -27,3 +29,20 @@ def download_model(model_info: File) -> tuple[str, np.ndarray, np.ndarray]:
     BASIC_TEST_DATA = np.load(basic_test_path, allow_pickle=True)
 
     return basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA
+
+def save_model_info(
+        db: Session,
+        new_model_code: str,
+        updated_train_name: str,
+        updated_test_name: str,
+        updated_model_name: str) -> None:
+
+    new_model_info = File(
+        code = new_model_code,
+        Model=updated_model_name,
+        Train_Data=updated_train_name,
+        Test_Data=updated_test_name,
+    )
+    db.add(new_model_info)
+    db.commit()
+
