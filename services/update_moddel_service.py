@@ -102,7 +102,7 @@ def train_model(model, X_train, y_train, X_test, y_test):
     model.fit(
         X_train, y_train,
         epochs=1000,
-        batch_size=16,
+        batch_size=32,
         validation_data=(X_test, y_test),
         callbacks=[early_stop],
         class_weight=class_weight_dict
@@ -122,7 +122,7 @@ def get_new_labels(base_train: np.ndarray, base_test: np.ndarray, y_train_all: l
     return new_labels
 
 def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> tuple[str, str, str]:
-    new_model_code = generate_model_filename(prefix=gesture)
+    new_model_code = generate_model_filename()
     updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
     updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
     updated_model_name = f"update_{new_model_code}_model_cnn.h5"
@@ -155,7 +155,7 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
-    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
     y_train_idx = np.argmax(y_train, axis=1)
     weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
