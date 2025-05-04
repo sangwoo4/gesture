@@ -1,9 +1,10 @@
 import asyncio
+from datetime import time
 
 import tensorflow as tf
 import numpy as np
 import os
-
+import time
 from config import BASE_DIR, NEW_DIR
 
 from utils.model_io import get_model_info, download_model, save_model_info
@@ -19,12 +20,6 @@ from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.utils import class_weight
 
 from concurrent.futures import ThreadPoolExecutor
-
-executor = ThreadPoolExecutor(max_workers=4)
-
-async def async_run_in_thread(fn, *args):
-    loop = asyncio.get_event_loop()
-    return await loop.run_in_executor(executor, fn, *args)
 
 def prepare_datasets(model_info):
     train_data = np.load(os.path.join(BASE_DIR, model_info.Train_Data), allow_pickle=True)
@@ -220,17 +215,26 @@ async def train_new_model_service_async(model_code: str, landmarks: list, db: Se
     updated_model_name = f"update_{new_model_code}_model_cnn.h5"
     updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
 
-    # 모델 정보 가져오기 및 다운로드
-    model_info = await async_run_in_thread(get_model_info, model_code, db)
-    await async_run_in_thread(download_model, model_info)
+    start1 = time.time()
+    model_info = get_model_info(model_code, db)
+    # 2. 모델 및 데이터 다운로드 (비동기 병렬 다운로드)
+    await download_model(model_info)
+    end1 = time.time()
 
+    print(f"다운로드 총시간={end1 - start1:.2f}초")
     # 데이터셋 준비
+
+    start2 = time.time()
     basic_train, basic_test, base_model = await async_run_in_thread(prepare_datasets, model_info)
 
     # 새 landmark 저장 및 로딩
     update_train_path, update_test_path = new_split_landmarks(new_convert_to_npy(), updated_train_name, updated_test_name)
     update_train = np.load(os.path.join(NEW_DIR, update_train_path), allow_pickle=True)
     update_test = np.load(os.path.join(NEW_DIR, update_test_path), allow_pickle=True)
+    await download_model(model_info)
+    end2 = time.time()
+
+    print(f"모델 로드 총시간={end2 - start2:.2f}초")
 
     # 중복 검사 (병렬)
     await async_run_in_thread(check_duplicates, {'train': basic_train, 'test': basic_test}, {'train': update_train, 'test': update_test})

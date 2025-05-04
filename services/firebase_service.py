@@ -9,6 +9,9 @@ from config import BASE_DIR, NEW_DIR
 CACHE_DIR = "./basic_models"
 CACHE_EXPIRATION = 24 * 60 * 60
 
+executor = ThreadPoolExecutor(max_workers=3)
+
+
 def is_cached(file_path: str) -> bool:
     if not os.path.exists(file_path):
         return False
@@ -40,11 +43,6 @@ def download_from_firebase(firebase_path: str, local_path: str):
     blob.download_to_filename(local_path)
 
     print(f"Downloaded {firebase_path} to {local_path}")
-#
-# def list_files_in_firebase():
-#     blobs = bucket.list_blobs()
-#     file_list = [blob.name for blob in blobs]
-#     print("Firebase Storage에 있는 파일 목록:", file_list)
 
 # def upload_model_to_firebase(
 #         UPDATE_TRAIN_DATA: str,
@@ -71,7 +69,6 @@ def download_from_firebase(firebase_path: str, local_path: str):
 #
 #     return tflite_url
 
-executor = ThreadPoolExecutor(max_workers=2)
 
 def upload_single_file(file_path, firebase_folder):
     file_name = os.path.basename(file_path)
