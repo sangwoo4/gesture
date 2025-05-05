@@ -1,3 +1,4 @@
+import random
 from datetime import time
 
 import tensorflow as tf
@@ -85,11 +86,21 @@ def check_duplicates(base_data, update_data, threshold=70.0):
         print(f"중복률이 {threshold:.1f}% 이상입니다. 학습 중단.")
         exit(1)
 
+def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite, X_train):
+    def representative_dataset():
+        indices = list(range(len(X_train)))
+        random.shuffle(indices)
+        for i in indices[:500]:
+            yield [X_train[i:i + 1].astype(np.float32)]
 
-def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite):
     model.save(save_path_h5)
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
+    converter.representative_dataset = representative_dataset
+    converter.target_spec.supported_ops = [tf.lite.OpsSet.TFLITE_BUILTINS_INT8]
+    converter.inference_input_type = tf.uint8
+    converter.inference_output_type = tf.uint8
+
     tflite_model = converter.convert()
     with open(save_path_tflite, 'wb') as f:
         f.write(tflite_model)
@@ -186,7 +197,7 @@ async def train_new_model_service(model_code: str, landmarks: list, db: Session,
     h5_path = os.path.join(NEW_DIR, updated_model_name)
     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
 
-    save_model_and_convert_tflite(model, h5_path, tflite_path)
+    save_model_and_convert_tflite(model, h5_path, tflite_path, X_train)
 
 
     existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
