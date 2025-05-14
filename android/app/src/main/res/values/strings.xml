@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">AirCommand</string>
+    <!--    <string name="air_command">Air Command</string>-->
+    <string name="using">사용 중</string>
+    <string name="description_1">에어 커맨드를 활용해 핸드폰을 터치 없이 제어할 수 있습니다.</string>
+    <string name="description_2">• 제스처 설정을 통해 커스터마이징 할 수 있습니다.</string>
+    <string name="description_3">• 새로운 제스처를 등록하여 사용할 수 있습니다.</string>
+    <string name="description_4">• 터치가 힘든 상황에서 손쉽게 제어가 가능합니다.</string>
+    <string name="description_5">• 사용할 기능만 골라 설정할 수 있습니다.</string>
+    <string name="camera_permission">백그라운드 카메라 권한</string>
+    <string name="gesture_setting">제스처 기능 설정</string>
+    <string name="gesture_setting_info">기본 내장된 제스처 목록입니다. 새로운 제스처를 원하시면 하단 제스처 등록을 먼저 설정하세요.</string>
+    <string name="user_gesture">사용자 제스처 등록</string>
+    <string name="user_gesture_info">새로운 제스처를 등록할 수 있습니다.</string>
+    <string name="background_auto_off">백그라운드 자동 꺼짐</string>
+
+    <string-array name="scissor_options">
+        <item>화면 밝게</item>
+        <item>화면 끄기</item>
+        <item>전화 받기</item>
+    </string-array>
+
+    <string-array name="fist_options">
+        <item>음소거</item>
+        <item>볼륨 높게</item>
+        <item>전화 받기</item>
+    </string-array>
+
+    <string-array name="gesture_name_list">
+        <item>가위 제스처</item>
+        <item>주먹 제스처</item>
+    </string-array>
+
+
+
+</resources>

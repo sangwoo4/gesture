@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/airCommandFragment">
+
+    <!-- AirCommand Fragment -->
+    <fragment
+        android:id="@+id/airCommandFragment"
+        android:name="com.square.aircommand.screens.AirCommandFragment"
+        android:label="Air Command">
+
+        <!-- Gesture Setting 이동 -->
+        <action
+            android:id="@+id/action_airCommand_to_gestureSetting"
+            app:destination="@id/gestureSettingFragment" />
+
+        <!-- User Gesture 이동 -->
+        <action
+            android:id="@+id/action_airCommand_to_userGesture"
+            app:destination="@id/userGestureFragment" />
+
+        <!-- 테스트 페이지로 이동: 나중에 삭제-->
+        <action
+            android:id="@+id/action_airCommand_to_testFragment"
+            app:destination="@id/testFragment" />
+    </fragment>
+
+
+    <!-- GestureSetting Fragment -->
+    <fragment
+        android:id="@+id/gestureSettingFragment"
+        android:name="com.square.aircommand.screens.GestureSettingFragment"
+        android:label="제스처 기능 설정" />
+
+
+    <!-- UserGesture Fragment -->
+    <fragment
+        android:id="@+id/userGestureFragment"
+        android:name="com.square.aircommand.screens.UserGestureFragment"
+        android:label="사용자 제스처 등록">
+
+        <!-- GestureShootingFragment로 이동 -->
+        <action
+            android:id="@+id/action_userGestureFragment_to_gestureShootingFragment"
+            app:destination="@id/gestureShootingFragment" />
+    </fragment>
+
+
+    <!-- GestureShooting Fragment -->
+    <fragment
+        android:id="@+id/gestureShootingFragment"
+        android:name="com.square.aircommand.screens.GestureShootingFragment"
+        android:label="제스처 촬영"
+        tools:layout="@layout/fragment_gesture_shooting">
+
+        <!-- 여기에 액션 추가 -->
+        <action
+            android:id="@+id/action_gestureShooting_to_userGesture"
+            app:destination="@id/userGestureFragment" />
+    </fragment>
+
+    <!-- 테스트 프레그먼트. 나중에 삭제 -->
+    <fragment
+        android:id="@+id/testFragment"
+        android:name="com.square.aircommand.screens.TestFragment"
+        android:label="테스트"
+        tools:layout="@layout/fragment_test" />
+
+
+</navigation>
