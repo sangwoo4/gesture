@@ -91,35 +91,46 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     y_train = np.concatenate((y_basic_train, y_update_train), axis=0)
     y_test = np.concatenate((y_basic_test, y_update_test), axis=0)
 
-    # 라벨 인덱스 생성
-    label_to_index = {}
-    index_to_label = {}
+    # ✅ 라벨 매핑 처리
+    label_to_index = {"none": 0}  # 항상 0으로 고정
+    existing_labels = sorted(set(y_basic_train) | set(y_basic_test) - {"none"})
+    update_labels = sorted(set(y_update_train) | set(y_update_test) - {"none"})
 
-    # 1. 기존 라벨 먼저 등록
-    for label in list(y_basic_train) + list(y_basic_test):
-        if label not in label_to_index:
-            idx = len(label_to_index)
+    # 기존 라벨 인덱스 부여 (1부터 시작)
+    for idx, label in enumerate(existing_labels, start=1):
+        label_to_index[label] = idx
+
+    # 업데이트 라벨은 기존 max 인덱스 이후부터 부여
+    start_idx = max(label_to_index.values()) + 1
+    for idx, label in enumerate(update_labels, start=start_idx):
+        if label not in label_to_index:  # 중복 방지
             label_to_index[label] = idx
-            index_to_label[idx] = label
 
-    # 2. 새로운 라벨 등록
-    for label in list(y_update_train) + list(y_update_test):
-        if label not in label_to_index:
-            idx = len(label_to_index)
-            label_to_index[label] = idx
-            index_to_label[idx] = label
+    # 역매핑
+    index_to_label = {idx: label for label, idx in label_to_index.items()}
 
-    # JSON 저장 시에는 추가된 라벨만 추려서 저장
-    unique_labels = sorted(set(y_update_train.tolist() + y_update_test.tolist()))
-    added_label_to_index = {label: label_to_index[label] for label in unique_labels}
-    added_index_to_label = {idx: label for label, idx in added_label_to_index.items()}
+    # ✅ 디버깅 출력
+    print("\n✅ 라벨 매핑 (label_to_index):")
+    for label, idx in label_to_index.items():
+        print(f"  '{label}' → {idx}")
 
-    # 이 부분 추가 함
-    data_int = json.dumps(sorted(added_index_to_label.keys()))
+    print("\n✅ 라벨 매핑 (index_to_label):")
+    for idx, label in index_to_label.items():
+        print(f"  {idx} → '{label}'")
 
-    # 전체 라벨 매핑을 사용하는 코드로 수정
-    y_train = to_categorical([label_to_index[l] for l in y_train], num_classes=len(label_to_index))
-    y_test = to_categorical([label_to_index[l] for l in y_test], num_classes=len(label_to_index))
+    X_train_filtered = []
+    y_train_filtered = []
+    for x, label in zip(X_train, y_train_raw):
+        if label != "none":
+            X_train_filtered.append(x)
+            y_train_filtered.append(label_to_index[label])
+
+    num_classes = max(label_to_index.values()) + 1
+    X_train = np.array(X_train_filtered)
+    y_train = to_categorical(y_train_filtered, num_classes=num_classes)
+
+    y_test_idx = [label_to_index[label] for label in y_test_raw]
+    y_test = to_categorical(y_test_idx, num_classes=num_classes)
 
     # Conv2D 입력으로 변경
     X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
@@ -129,9 +140,9 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     label_ids = sorted(label_to_index.values())
     label_str = "_".join(map(str, label_ids))
     dense_name = f"dense_cls_{label_str}"
+    dropout_name = f"dropout_cls_{label_str}"
     output_name = f"output_cls_{label_str}"
 
-    # 기존: Conv2D까지만 재사용
     new_model = Sequential()
     for layer in USER_MODEL.layers:
         layer.trainable = False
@@ -139,25 +150,30 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
         if isinstance(layer, Flatten):
             break
 
-    # Dense 레이어 개선
-    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name))
-    new_model.add(Dense(len(label_to_index), activation='softmax', name=output_name))
+    new_model.add(Dense(128, activation='relu', kernel_initializer='he_normal', name=dense_name + "_1"))
+    new_model.add(Dropout(0.4, name=dropout_name + "_1"))
 
-    new_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
+    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name + "_2"))
+    new_model.add(Dropout(0.3, name=dropout_name + "_2"))
+
+    new_model.add(Dense(num_classes, activation='softmax', name=output_name))
+
+    new_model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
                       loss='categorical_crossentropy',
                       metrics=['accuracy'])
 
     # 학습 시작
-    early_stopping = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stopping = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
     # 클래스 불균형 완화
     y_train_idx = np.argmax(y_train, axis=1)
+    classes_used = np.unique(y_train_idx)
     class_weights = class_weight.compute_class_weight(
         class_weight='balanced',
-        classes=np.unique(y_train_idx),
+        classes=classes_used,
         y=y_train_idx
     )
-    class_weight_dict = {i: w for i, w in enumerate(class_weights)}
+    class_weight_dict = {i: class_weights[list(classes_used).index(i)] if i in classes_used else 0.0 for i in range(num_classes)}
 
     start = time.time()
 
@@ -165,7 +181,7 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     new_model.fit(
         X_train, y_train,
         epochs=1000,
-        batch_size=16,
+        batch_size=32,
         validation_data=(X_test, y_test),
         callbacks=[early_stopping],
         class_weight=class_weight_dict
