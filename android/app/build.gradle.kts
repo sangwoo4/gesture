@@ -5,7 +5,7 @@ plugins {
 }
 
 // QNN SDK 경로
-val qnnSdkPath = "/Users/hansung/Desktop/25-1/web_capstone/qairt/2.32.6.250402"
+val qnnSdkPath = "C:/Users/ehdbs/Downloads/v2.34.0.250424(Direct)/qairt/2.34.0.250424"
 
 // QNN .so & Skel 복사 작업
 tasks.register<Copy>("copyQnnLibs") {
@@ -16,15 +16,28 @@ tasks.register<Copy>("copyQnnLibs") {
             "libQnnHtpPrepare.so",
             "libQnnSystem.so",
             "libQnnSaver.so",
-            "libQnnHtpV79Stub.so"
+            "libQnnHtpV79Stub.so",
+            "libcdsprpc.so"
         )
     }) {
         into("build/jniLibs/arm64-v8a")
     }
 
-    // Skel 파일은 DSP가 읽을 수 있는 cdsp 디렉토리로
-    from("$qnnSdkPath/lib/hexagon-v79/unsigned/libQnnHtpV79Skel.so") {
-        into("build/cdsp")
+    // ✅ [추가] 사용자 정의 delegate .so 복사
+    from("main/assets/mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite.so") {
+        into("build/jniLibs/arm64-v8a")
+        rename {
+            // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
+            "libmediapipelandmark_delegate.so"
+        }
+    }
+
+    from("main/assets/mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite.so") {
+        into("build/jniLibs/arm64-v8a")
+        rename {
+            // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
+            "libmediapipehand_delegate.so"
+        }
     }
 
     into(layout.buildDirectory)
@@ -61,12 +74,12 @@ android {
             "String", "GESTURE_CLASSIFIER_MODEL",
             "\"${project.findProperty("gestureClassifierModelName") ?: "update_gesture_model_cnn_2.tflite"}\""
         )
+    }
 
-        buildConfigField(
-            "String",
-            "HAND_DETECTOR_MODEL",
-            "\"${project.findProperty("handDetectorModelName") ?: "mediapipe_hand-handdetector.tflite"}\""
-        )
+    sourceSets {
+        getByName("main") {
+            jniLibs.srcDirs("build/jniLibs")
+        }
     }
 
     buildTypes {
@@ -95,15 +108,11 @@ android {
         buildConfig = true // buildCongifField() 사용 위함
     }
 
-    // ✅ jniLibs 포함 (QNN .so 파일을 APK에 넣기 위함)
-    sourceSets {
-        getByName("main") {
-            jniLibs.srcDirs("build/jniLibs")
-        }
-    }
-
     // ✅ META-INF 충돌 방지 설정
     packaging {
+        jniLibs {
+            useLegacyPackaging = true // ✅ QNN용 필수 설정
+        }
         resources {
             pickFirsts += listOf(
                 "META-INF/versions/9/OSGI-INF/MANIFEST.MF"

@@ -144,7 +144,6 @@ object TFLiteHelpers {
         }
     }
 
-    // QNN NPU delegate를 생성함 (HTP fallback 포함)
     private fun CreateQNN_NPUDelegate(
         nativeLibraryDir: String,
         cacheDir: String,
@@ -156,29 +155,21 @@ object TFLiteHelpers {
             setCacheDir(cacheDir)
             setModelToken(modelIdentifier)
 
-            if (QnnDelegate.checkCapability(QnnDelegate.Capability.DSP_RUNTIME)) {
-                // DSP backend 설정함
-                setBackendType(QnnDelegate.Options.BackendType.DSP_BACKEND)
-                setDspOptions(
-                    QnnDelegate.Options.DspPerformanceMode.DSP_PERFORMANCE_BURST,
-                    QnnDelegate.Options.DspPdSession.DSP_PD_SESSION_ADAPTIVE
-                )
-            } else {
-                // HTP fallback 설정함
-                val hasFP16 = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_FP16)
-                val hasQuant = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_QUANTIZED)
+            // ✅ DSP 제거, HTP만 시도
+            val hasFP16 = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_FP16)
+            val hasQuant = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_QUANTIZED)
 
-                if (!hasFP16 && !hasQuant) {
-                    Log.e(TAG, "QNN NPU backend를 지원하지 않음")
-                    return null
-                }
-
+            if (hasQuant || hasFP16) {
                 setBackendType(QnnDelegate.Options.BackendType.HTP_BACKEND)
                 setHtpUseConvHmx(QnnDelegate.Options.HtpUseConvHmx.HTP_CONV_HMX_ON)
                 setHtpPerformanceMode(QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_BURST)
                 if (hasFP16) {
                     setHtpPrecision(QnnDelegate.Options.HtpPrecision.HTP_PRECISION_FP16)
                 }
+                Log.i(TAG, "✅ HTP backend 사용")
+            } else {
+                Log.e(TAG, "❌ QNN NPU backend를 지원하지 않음")
+                return null
             }
         }
 
@@ -189,6 +180,7 @@ object TFLiteHelpers {
             null
         }
     }
+
 
     // GPUv2 delegate를 생성함
     private fun CreateGPUv2Delegate(cacheDir: String, modelIdentifier: String): Delegate? {
