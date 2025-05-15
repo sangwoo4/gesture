@@ -16,7 +16,7 @@ from services.firebase_service import upload_model_to_firebase
 
 from sqlalchemy.orm import Session
 from tensorflow.keras.models import load_model, Sequential
-from tensorflow.keras.layers import Dense, Flatten
+from tensorflow.keras.layers import Dense, Flatten, Dropout
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
 from sklearn.utils import class_weight
@@ -120,7 +120,7 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
 
     X_train_filtered = []
     y_train_filtered = []
-    for x, label in zip(X_train, y_train_raw):
+    for x, label in zip(X_train, y_train):
         if label != "none":
             X_train_filtered.append(x)
             y_train_filtered.append(label_to_index[label])
@@ -129,9 +129,15 @@ def train_new_model_service(model_code: str, landmarks: list, db: Session, gestu
     X_train = np.array(X_train_filtered)
     y_train = to_categorical(y_train_filtered, num_classes=num_classes)
 
-    y_test_idx = [label_to_index[label] for label in y_test_raw]
+    y_test_idx = [label_to_index[label] for label in y_test]
     y_test = to_categorical(y_test_idx, num_classes=num_classes)
 
+    unique_labels = sorted(set(y_update_train.tolist() + y_update_test.tolist()))
+    added_label_to_index = {label: label_to_index[label] for label in unique_labels}
+    added_index_to_label = {idx: label for label, idx in added_label_to_index.items()}
+
+    data_int = json.dumps(sorted(added_index_to_label.keys()))
+    
     # Conv2D 입력으로 변경
     X_train = X_train[:, :63].reshape(-1, 21, 3, 1)
     X_test = X_test[:, :63].reshape(-1, 21, 3, 1)
