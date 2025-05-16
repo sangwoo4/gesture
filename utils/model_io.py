@@ -18,21 +18,6 @@ def get_model_info(model_code: str, db: Session) -> File:
 
     return model_info
 
-# def download_model(model_info: File) -> tuple[str, np.ndarray, np.ndarray]:
-#     #os.makedirs(CACHE_DIR, exist_ok=True)
-#
-#     # 모델 파일 다운로드
-#     basic_model_path = get_cached_or_download(model_info.Model, f"{model_info.Model}")
-#     # 학습 데이터 다운로드
-#     basic_train_path = get_cached_or_download(model_info.Train_Data, f"{model_info.Train_Data}")
-#     basic_test_path = get_cached_or_download(model_info.Test_Data, f"{model_info.Test_Data}")
-#
-#     # ✅ Firebase에서 받은 데이터만 사용하도록 변경
-#     BASIC_TRAIN_DATA = np.load(basic_train_path, allow_pickle=True)
-#     BASIC_TEST_DATA = np.load(basic_test_path, allow_pickle=True)
-#
-#     return basic_model_path, BASIC_TRAIN_DATA, BASIC_TEST_DATA
-
 # ⬇️ 비동기 병렬 다운로드를 위한 래퍼 함수
 import asyncio
 

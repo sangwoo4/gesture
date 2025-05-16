@@ -37,18 +37,18 @@ def merge_datasets(basic_data, update_data):
     return np.concatenate([X1, X2]), np.concatenate([y1, y2])
 
 
-def create_label_maps(y_train, y_test):
-    label_to_index = {}
-    index_to_label = {}
-
-    # 기존 라벨을 처리
-    for label in list(y_train) + list(y_test):
-        if label not in label_to_index:
-            idx = len(label_to_index)
-            label_to_index[label] = idx
-            index_to_label[idx] = label
-
-    return label_to_index, index_to_label
+# def create_label_maps(y_train, y_test):
+#     label_to_index = {}
+#     index_to_label = {}
+#
+#     # 기존 라벨을 처리
+#     for label in list(y_train) + list(y_test):
+#         if label not in label_to_index:
+#             idx = len(label_to_index)
+#             label_to_index[label] = idx
+#             index_to_label[idx] = label
+#
+#     return label_to_index, index_to_label
 
 def prepare_inputs(X, y, label_to_index):
     X = X[:, :63].reshape(-1, 21, 3, 1)
@@ -121,6 +121,28 @@ def train_model(model, X_train, y_train, X_test, y_test):
         class_weight=class_weight_dict
     )
 
+def create_label_maps(
+    y_basic_train, y_basic_test, y_update_train, y_update_test
+) -> tuple[dict, dict]:
+    label_to_index = {"none": 0}
+    index_to_label = {0: "none"}
+
+    # 기존 라벨
+    existing_labels = sorted(set(y_basic_train) | set(y_basic_test) - {"none"})
+    for idx, label in enumerate(existing_labels, start=1):
+        label_to_index[label] = idx
+        index_to_label[idx] = label
+
+    # 업데이트 라벨
+    update_labels = sorted(set(y_update_train) | set(y_update_test) - {"none"})
+    start_idx = max(label_to_index.values()) + 1
+    for idx, label in enumerate(update_labels, start=start_idx):
+        if label not in label_to_index:
+            label_to_index[label] = idx
+            index_to_label[idx] = label
+
+    return label_to_index, index_to_label
+
 def load_npy_data(file_path: str) -> np.ndarray:
     return np.load(os.path.join(NEW_DIR, file_path), allow_pickle=True)
 
@@ -141,41 +163,54 @@ async def async_run_in_thread(fn, *args):
 
 executor = ThreadPoolExecutor(max_workers=4)
 
-async def train_new_model_service(model_code: str, landmarks: list, db: Session, gesture: str) -> tuple[str, str, str]:
+async def train_new_model_service(model_code: str, csv_path: str, db: Session, gesture: str) -> tuple[str, str, str]:
     new_model_code = generate_model_filename()
     updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
     updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
     updated_model_name = f"update_{new_model_code}_model_cnn.h5"
     updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
 
-    start1 = time.time()
+    # 1. 기존 모델 정보 및 데이터 로딩
     model_info = get_model_info(model_code, db)
-    # 2. 모델 및 데이터 다운로드 (비동기 병렬 다운로드)
     await download_model(model_info)
-    end1 = time.time()
-
-    print(f"다운로드 총시간={end1 - start1:.2f}초")
-
     basic_train, basic_test, base_model = prepare_datasets(model_info)
 
-    update_train_path, update_test_path = new_split_landmarks(new_convert_to_npy(), updated_train_name, updated_test_name)
+    # 2. 신규 CSV → NPY 변환 및 분할
+    update_train_path, update_test_path = new_split_landmarks(
+        new_convert_to_npy(csv_path),
+        updated_train_name,
+        updated_test_name
+    )
     update_train = np.load(os.path.join(NEW_DIR, update_train_path), allow_pickle=True)
     update_test = np.load(os.path.join(NEW_DIR, update_test_path), allow_pickle=True)
 
+    # 3. 중복 제거
     check_duplicates(
         base_data={'train': basic_train, 'test': basic_test},
         update_data={'train': update_train, 'test': update_test}
     )
 
+    # 4. 전체 데이터 병합
     X_train_all, y_train_all = merge_datasets(basic_train, update_train)
     X_test_all, y_test_all = merge_datasets(basic_test, update_test)
 
-    label_to_index, index_to_label = create_label_maps(y_train_all, y_test_all)
+    # 5. 라벨 매핑 생성 (업데이트 학습 방식)
+    label_to_index, index_to_label = create_label_maps(
+        y_basic_train=basic_train[:, -1],
+        y_basic_test=basic_test[:, -1],
+        y_update_train=update_train[:, -1],
+        y_update_test=update_test[:, -1]
+    )
+
+    print("label_to_index", label_to_index)
+    print("index_to_label", index_to_label)
     label_ids = sorted(label_to_index.values())
 
+    # 6. 학습용 입력 데이터 준비
     X_train, y_train = prepare_inputs(X_train_all, y_train_all, label_to_index)
     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
 
+    # 7. 모델 생성 및 학습
     model = build_transfer_model(base_model, len(label_to_index), label_ids)
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
                   loss='categorical_crossentropy',
@@ -194,18 +229,18 @@ async def train_new_model_service(model_code: str, landmarks: list, db: Session,
               callbacks=[early_stop],
               class_weight=class_weight_dict)
 
+    # 8. 모델 저장 및 TFLite 변환
     h5_path = os.path.join(NEW_DIR, updated_model_name)
     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
-
     save_model_and_convert_tflite(model, h5_path, tflite_path, X_train)
 
-
+    # 9. 신규 클래스 정보 추출
     existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
     updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
     all_labels = set(y_train_all) | set(y_test_all)
     new_labels = all_labels - existing_labels
 
-    # Firebase 업로드 (스레드에서)
+    # 10. Firebase 업로드
     new_tflite_model_url = await upload_model_to_firebase_async(
         update_train_path,
         update_test_path,
@@ -213,6 +248,7 @@ async def train_new_model_service(model_code: str, landmarks: list, db: Session,
         tflite_path
     )
 
+    # 11. DB 저장
     await async_run_in_thread(
         save_model_info,
         db,
@@ -223,85 +259,3 @@ async def train_new_model_service(model_code: str, landmarks: list, db: Session,
     )
 
     return new_model_code, new_tflite_model_url, new_labels
-
-
-
-# 비동기 학습 전체 파이프라인
-# async def train_new_model_service_async(model_code: str, landmarks: list, db: Session, gesture: str) -> tuple[str, str, set]:
-#     new_model_code = generate_model_filename()
-#     updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
-#     updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
-#     updated_model_name = f"update_{new_model_code}_model_cnn.h5"
-#     updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
-#
-#     start1 = time.time()
-#     model_info = get_model_info(model_code, db)
-#     # 2. 모델 및 데이터 다운로드 (비동기 병렬 다운로드)
-#     await download_model(model_info)
-#     end1 = time.time()
-#
-#     print(f"다운로드 총시간={end1 - start1:.2f}초")
-#     # 데이터셋 준비
-#
-#     start2 = time.time()
-#     basic_train, basic_test, base_model = await async_run_in_thread(prepare_datasets, model_info)
-#
-#     # 새 landmark 저장 및 로딩
-#     update_train_path, update_test_path = new_split_landmarks(new_convert_to_npy(), updated_train_name, updated_test_name)
-#     update_train = np.load(os.path.join(NEW_DIR, update_train_path), allow_pickle=True)
-#     update_test = np.load(os.path.join(NEW_DIR, update_test_path), allow_pickle=True)
-#     await download_model(model_info)
-#     end2 = time.time()
-#
-#     print(f"모델 로드 총시간={end2 - start2:.2f}초")
-#
-#     # 중복 검사 (병렬)
-#     await async_run_in_thread(check_duplicates, {'train': basic_train, 'test': basic_test}, {'train': update_train, 'test': update_test})
-#
-#     # 병합 및 전처리
-#     X_train_all, y_train_all = merge_datasets(basic_train, update_train)
-#     X_test_all, y_test_all = merge_datasets(basic_test, update_test)
-#
-#     label_to_index, index_to_label = create_label_maps(y_train_all, y_test_all)
-#     label_ids = sorted(label_to_index.values())
-#
-#     X_train, y_train = prepare_inputs(X_train_all, y_train_all, label_to_index)
-#     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
-#
-#     model = build_transfer_model(base_model, len(label_to_index), label_ids)
-#     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
-#                   loss='categorical_crossentropy',
-#                   metrics=['accuracy'])
-#
-#     # 학습 (스레드에서)
-#     await async_run_in_thread(train_model, model, X_train, y_train, X_test, y_test)
-#
-#     # 모델 저장 및 TFLite 변환 (스레드에서)
-#     h5_path = os.path.join(NEW_DIR, updated_model_name)
-#     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
-#     await async_run_in_thread(save_model_and_convert_tflite, model, h5_path, tflite_path)
-#
-#     # Firebase 업로드 (스레드에서)
-#     new_tflite_model_url = await upload_model_to_firebase_async(
-#         update_train_path,
-#         update_test_path,
-#         h5_path,
-#         tflite_path
-#     )
-#
-#     # 새 라벨 확인 및 DB 저장
-#     existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
-#     updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
-#     all_labels = set(y_train_all) | set(y_test_all)
-#     new_labels = all_labels - existing_labels
-#
-#     await async_run_in_thread(
-#         save_model_info,
-#         db,
-#         new_model_code,
-#         updated_train_name,
-#         updated_test_name,
-#         updated_model_name
-#     )
-#
-#     return new_model_code, new_tflite_model_url, new_labels

@@ -1,8 +1,8 @@
 import numpy as np
 import pandas as pd
 
-def new_convert_to_npy() -> np.ndarray:
-    CSV_PATH = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models/update_hand_landmarks.csv"
+def new_convert_to_npy(csv_path: str) -> np.ndarray:
+    CSV_PATH = csv_path
 
     print(f"[로컬 모드] CSV 파일 로드 중: {CSV_PATH}")
     server_df = pd.read_csv(CSV_PATH)
