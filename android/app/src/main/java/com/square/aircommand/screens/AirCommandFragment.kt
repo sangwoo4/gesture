@@ -15,7 +15,7 @@ class AirCommandFragment : Fragment() {
     private var _binding: FragmentAirCommandBinding? = null
     private val binding get() = _binding!!
 
-    private val timeOptions = listOf("설정 안 함", "1시간", "2시간", "4시간", "끄지 않음")
+    private val timeOptions = listOf("끄지 않음", "1시간", "2시간", "4시간")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

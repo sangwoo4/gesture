@@ -5,7 +5,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
+import android.widget.ArrayAdapter
 import androidx.fragment.app.Fragment
+import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 
 class GestureSettingFragment : Fragment() {
@@ -23,6 +25,15 @@ class GestureSettingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val gestureOptions = resources.getStringArray(R.array.scissor_options)
+        val adapter = ArrayAdapter(requireContext(), R.layout.spinner_text, gestureOptions)
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
+
+        binding.spinner1.adapter = adapter
+        binding.spinner2.adapter = adapter
+
+
 
         val prefs = requireContext().getSharedPreferences("gesture_prefs", 0)
 
@@ -52,7 +63,6 @@ class GestureSettingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()

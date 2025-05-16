@@ -24,7 +24,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="사용자 제스처 등록"
-        android:textSize="20sp"
+        android:textSize="25sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
         app:layout_constraintStart_toEndOf="@id/backButton"
@@ -52,7 +52,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="새롭게 등록할 제스처의 이름을 설정해주세요."
-        android:textSize="15sp"
+        android:textSize="17sp"
         android:textColor="#777777"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
@@ -78,6 +78,7 @@
             android:layout_height="wrap_content"
             android:layout_weight="1"
             android:hint="제스처 이름을 적어주세요"
+            android:textColor="@android:color/black"
             android:background="@android:color/transparent"
             android:inputType="text" />
 
@@ -129,7 +130,7 @@
         android:text="등록됨"
         android:textStyle="bold"
         android:textColor="@android:color/black"
-        android:textSize="15sp"
+        android:textSize="17sp"
         app:layout_constraintTop_toBottomOf="@id/btnStartGestureShooting"
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="20dp" />
@@ -152,8 +153,9 @@
             android:layout_height="wrap_content"
             android:layout_marginLeft="10dp"
             android:text="가위 제스처"
+            android:textColor="@android:color/black"
             android:layout_weight="1"
-            android:textSize="16sp" />
+            android:textSize="20sp" />
     </LinearLayout>
 
     <!-- 두 번째 제스처 -->
@@ -173,9 +175,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="주먹 제스처"
+            android:textColor="@android:color/black"
             android:layout_marginLeft="10dp"
             android:layout_weight="1"
-            android:textSize="16sp" />
+            android:textSize="20sp" />
     </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

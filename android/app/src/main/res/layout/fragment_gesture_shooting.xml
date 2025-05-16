@@ -53,7 +53,7 @@
         android:layout_height="wrap_content"
         android:text="프레임 안에 제스처를 취한 후, 등록 버튼을 누르세요.\n지시사항에 따라 등록을 완료하세요."
         android:textSize="15sp"
-        android:textColor="#777777"
+        android:textColor="@color/black"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
