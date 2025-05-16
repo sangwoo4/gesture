@@ -12,20 +12,6 @@ class TrainData(BaseModel):
     model_code: str
     gesture: str
     landmarks: list
-    label: str
-
-# @router.post("/train_model/")
-# async def train_model(request: TrainData, db: Session = Depends(get_db)):
-#     start = time.time()
-#     model_code = request.model_code
-#     gesture = request.gesture
-#     landmarks = request.landmarks
-#     new_model_code = await train_new_model_service_async(model_code, landmarks, db, gesture)
-#     end = time.time()
-#     print(f"총시간={end - start:.2f}초")
-#
-#     return {"new_model_code": new_model_code}
-
 
 @router.post("/train_model/")
 async def train_model(request: TrainData, db: Session = Depends(get_db)):
@@ -33,9 +19,8 @@ async def train_model(request: TrainData, db: Session = Depends(get_db)):
     model_code = request.model_code
     gesture = request.gesture
     landmarks = request.landmarks
-    label = request.label
-    csv_path = convert_landmarks_to_csv(landmarks, label)
-    new_model_code = await train_new_model_service(model_code, csv_path, db, gesture)
+    csv_path = convert_landmarks_to_csv(landmarks, gesture)
+    new_model_code = await train_new_model_service(model_code, csv_path, db)
     end = time.time()
     print(f"총시간={end - start:.2f}초")
 

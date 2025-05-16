@@ -5,6 +5,9 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+
+from keras.src.layers import Dropout
+
 from config import BASE_DIR, NEW_DIR
 
 from utils.model_io import get_model_info, download_model, save_model_info
@@ -63,9 +66,18 @@ def build_transfer_model(base_model, num_classes, label_ids):
         new_model.add(layer)
         if isinstance(layer, Flatten):
             break
+
     dense_name = f"dense_cls_{'_'.join(map(str, label_ids))}"
     output_name = f"output_cls_{'_'.join(map(str, label_ids))}"
-    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name))
+    label_str = "_".join(map(str, label_ids))
+    dropout_name = f"dropout_cls_{label_str}"
+
+    new_model.add(Dense(128, activation='relu', kernel_initializer='he_normal', name=dense_name + "_1"))
+    new_model.add(Dropout(0.4, name=dropout_name + "_1"))
+
+    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name + "_2"))
+    new_model.add(Dropout(0.3, name=dropout_name + "_2"))
+
     new_model.add(Dense(num_classes, activation='softmax', name=output_name))
     return new_model
 
@@ -107,10 +119,15 @@ def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite, X_train
 
 
 def train_model(model, X_train, y_train, X_test, y_test):
-    early_stop = EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+    early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     y_train_idx = np.argmax(y_train, axis=1)
-    weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
-    class_weight_dict = dict(enumerate(weights))
+    classes_used = np.unique(y_train_idx)
+    class_weights = class_weight.compute_class_weight(
+        'balanced',
+        classes=classes_used,
+        y=y_train_idx
+    )
+    class_weight_dict = {i: class_weights[list(classes_used).index(i)] if i in classes_used else 0.0 for i in range(num_classes)}
 
     model.fit(
         X_train, y_train,
@@ -163,7 +180,7 @@ async def async_run_in_thread(fn, *args):
 
 executor = ThreadPoolExecutor(max_workers=4)
 
-async def train_new_model_service(model_code: str, csv_path: str, db: Session, gesture: str) -> tuple[str, str, str]:
+async def train_new_model_service(model_code: str, csv_path: str, db: Session) -> tuple[str, str, str]:
     new_model_code = generate_model_filename()
     updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
     updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
@@ -206,13 +223,14 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session, g
     print("index_to_label", index_to_label)
     label_ids = sorted(label_to_index.values())
 
+
     # 6. 학습용 입력 데이터 준비
     X_train, y_train = prepare_inputs(X_train_all, y_train_all, label_to_index)
     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
 
     # 7. 모델 생성 및 학습
     model = build_transfer_model(base_model, len(label_to_index), label_ids)
-    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0005),
+    model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
@@ -222,12 +240,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session, g
     weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
     class_weight_dict = dict(enumerate(weights))
 
-    model.fit(X_train, y_train,
-              epochs=1000,
-              batch_size=16,
-              validation_data=(X_test, y_test),
-              callbacks=[early_stop],
-              class_weight=class_weight_dict)
+    train_model(model, X_train, y_train, X_test, y_test)
 
     # 8. 모델 저장 및 TFLite 변환
     h5_path = os.path.join(NEW_DIR, updated_model_name)
