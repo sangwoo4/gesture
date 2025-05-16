@@ -21,7 +21,8 @@ object TFLiteHelpers {
     // Delegate 타입을 정의함
     enum class DelegateType {
         GPUv2,
-        QNN_NPU
+        QNN_NPU_FP16,
+        QNN_NPU_QUANTIZED
     }
 
     // delegate 우선순위를 기준으로 interpreter와 delegate들을 생성함
@@ -34,6 +35,12 @@ object TFLiteHelpers {
         modelIdentifier: String
     ): Pair<Interpreter, Map<DelegateType, Delegate>> {
         val delegates = mutableMapOf<DelegateType, Delegate>()
+        val modelCachePath = "$cacheDir/$modelIdentifier.htp_cache"
+        val cacheFile = java.io.File(modelCachePath)
+        if (cacheFile.exists()) {
+            Log.w(TAG, "⚠️ QNN 캐시 존재함: $modelCachePath → 삭제 후 재생성 시도")
+            cacheFile.delete()
+        }
         val attemptedDelegates = mutableSetOf<DelegateType>()
 
         // delegate 조합별로 순차적으로 시도함
@@ -80,22 +87,37 @@ object TFLiteHelpers {
             delegates.forEach { (type, delegate) ->
                 if (delegate != null) {
                     Log.i(TAG, "✅ [$type] delegate가 정상적으로 추가됨")
+
                     addDelegate(delegate)
                 } else {
                     Log.w(TAG, "⚠️ [$type] delegate가 null이라 추가되지 않음")
                 }
             }
         }
+        val enabledList = delegates.map { it.first.name }
+        Log.i(TAG, "🧩 시도된 delegate 조합: ${enabledList.joinToString(" + ")}")
 
         return try {
             Interpreter(tfLiteModel, options).apply {
                 allocateTensors()
+                // 📥 입력 텐서 정보 로그
+                for (i in 0 until inputTensorCount) {
+                    val t = getInputTensor(i)
+                    Log.i(TAG, "📥 입력[$i] name=${t.name()}, dtype=${t.dataType()}, shape=${t.shape().contentToString()}")
+                }
+
+                // 📤 출력 텐서 정보 로그
+                for (i in 0 until outputTensorCount) {
+                    val t = getOutputTensor(i)
+                    Log.i(TAG, "📤 출력[$i] name=${t.name()}, dtype=${t.dataType()}, shape=${t.shape().contentToString()}")
+                }
                 Log.i(TAG, "🎯 Interpreter 생성 성공함. 사용된 delegate: ${
                     delegates.map { it.first }.joinToString(", ")
                 }")
             }
         } catch (e: Exception) {
-            val enabledDelegates = delegates.mapNotNull { it.first.name }.toMutableList().apply { add("XNNPack") }
+            val enabledDelegates = delegates.map { it.first.name }.toMutableList().apply { add("XNNPack") }
+            Log.w(TAG, "⚠️ 모든 delegate 실패. XNNPack (CPU fallback) 사용 가능성 있음.")
             Log.e(TAG, "❌ Interpreter 생성 실패함. 시도된 delegate: ${enabledDelegates.joinToString(", ")} | 오류: ${e.message}")
             null
         }
@@ -128,6 +150,7 @@ object TFLiteHelpers {
             }
             hash = digest.digest().joinToString("") { "%02x".format(it) }
         }
+        Log.i(TAG, "📦 모델 로드 완료 - 파일명: $modelFilename | MD5 해시: $hash")
         return Pair(buffer, hash)
     }
 
@@ -139,15 +162,29 @@ object TFLiteHelpers {
         modelIdentifier: String
     ): Delegate? {
         return when (delegateType) {
-            DelegateType.GPUv2 -> CreateGPUv2Delegate(cacheDir, modelIdentifier)
-            DelegateType.QNN_NPU -> CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier)
+            DelegateType.GPUv2 -> {
+                val d = CreateGPUv2Delegate(cacheDir, modelIdentifier)
+                if (d != null) Log.i(TAG, "✅ GPUv2 delegate 생성 완료") else Log.w(TAG, "⚠️ GPUv2 delegate 생성 실패")
+                d
+            }
+            DelegateType.QNN_NPU_FP16 -> {
+                val d = CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier, true)
+                if (d != null) Log.i(TAG, "✅ QNN_NPU_FP16 delegate 생성 완료") else Log.w(TAG, "⚠️ QNN_NPU_FP16 delegate 생성 실패")
+                d
+            }
+            DelegateType.QNN_NPU_QUANTIZED -> {
+                val d = CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier, false)
+                if (d != null) Log.i(TAG, "✅ QNN_NPU_QUANTIZED delegate 생성 완료") else Log.w(TAG, "⚠️ QNN_NPU_QUANTIZED delegate 생성 실패")
+                d
+            }
         }
     }
 
     private fun CreateQNN_NPUDelegate(
         nativeLibraryDir: String,
         cacheDir: String,
-        modelIdentifier: String
+        modelIdentifier: String,
+        useFP16: Boolean // ✅ 새 인자
     ): Delegate? {
         val options = QnnDelegate.Options().apply {
             setSkelLibraryDir(nativeLibraryDir)
@@ -155,22 +192,32 @@ object TFLiteHelpers {
             setCacheDir(cacheDir)
             setModelToken(modelIdentifier)
 
-            // ✅ DSP 제거, HTP만 시도
             val hasFP16 = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_FP16)
             val hasQuant = QnnDelegate.checkCapability(QnnDelegate.Capability.HTP_RUNTIME_QUANTIZED)
 
-            if (hasQuant || hasFP16) {
-                setBackendType(QnnDelegate.Options.BackendType.HTP_BACKEND)
-                setHtpUseConvHmx(QnnDelegate.Options.HtpUseConvHmx.HTP_CONV_HMX_ON)
-                setHtpPerformanceMode(QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_BURST)
-                if (hasFP16) {
-                    setHtpPrecision(QnnDelegate.Options.HtpPrecision.HTP_PRECISION_FP16)
+            Log.i(TAG, "🔍 QNN Delegate 활성화 여부 - HTP_FP16: $hasFP16, HTP_QUANTIZED: $hasQuant")
+
+            setBackendType(QnnDelegate.Options.BackendType.HTP_BACKEND)
+            setHtpUseConvHmx(QnnDelegate.Options.HtpUseConvHmx.HTP_CONV_HMX_ON)
+            setHtpPerformanceMode(QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_BURST)
+
+            if (useFP16) {
+                if (!hasFP16) {
+                    Log.e(TAG, "❌ FP16 delegate 사용 요청했지만 디바이스에서 지원하지 않음")
+                    return null
                 }
-                Log.i(TAG, "✅ HTP backend 사용")
+                setHtpPrecision(QnnDelegate.Options.HtpPrecision.HTP_PRECISION_FP16)
+                Log.i(TAG, "⚙️ QNN Delegate 설정: FP16 precision 모드 사용")
             } else {
-                Log.e(TAG, "❌ QNN NPU backend를 지원하지 않음")
-                return null
+                if (!hasQuant) {
+                    Log.e(TAG, "❌ Quantized delegate 사용 요청했지만 디바이스에서 지원하지 않음")
+                    return null
+                }
+                // setHtpPrecision 생략 시 INT8이 기본 적용됨
+                Log.i(TAG, "⚙️ QNN Delegate 설정: Quantized precision (INT8) 모드 사용")
             }
+
+            Log.i(TAG, "✅ QNN HTP Delegate 옵션 설정 완료")
         }
 
         return try {
@@ -197,4 +244,37 @@ object TFLiteHelpers {
             null
         }
     }
+
+    fun getModelInputType(tfLiteModel: MappedByteBuffer): org.tensorflow.lite.DataType {
+        return try {
+            val interpreter = Interpreter(tfLiteModel)
+            val inputTensor = interpreter.getInputTensor(0)
+            val inputType = inputTensor.dataType()
+            interpreter.close()
+            inputType
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ 입력 타입 확인 실패: ${e.message}")
+            org.tensorflow.lite.DataType.FLOAT32 // 기본값 fallback
+        }
+    }
+
+    fun getDelegatePriorityOrderFromInputType(inputType: org.tensorflow.lite.DataType): Array<Array<DelegateType>> {
+        return when (inputType) {
+            org.tensorflow.lite.DataType.FLOAT32 -> arrayOf(
+                arrayOf(DelegateType.QNN_NPU_FP16, DelegateType.GPUv2),
+                arrayOf(DelegateType.GPUv2),
+                arrayOf()
+            )
+            org.tensorflow.lite.DataType.UINT8 -> arrayOf(
+                arrayOf(DelegateType.QNN_NPU_QUANTIZED, DelegateType.GPUv2),
+                arrayOf(DelegateType.GPUv2),
+                arrayOf()
+            )
+            else -> {
+                Log.w(TAG, "⚠️ 알 수 없는 입력 타입 $inputType, fallback to CPU")
+                arrayOf()
+            }
+        }
+    }
+
 }

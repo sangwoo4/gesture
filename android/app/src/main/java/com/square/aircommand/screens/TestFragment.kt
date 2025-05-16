@@ -62,7 +62,8 @@ class TestFragment : Fragment() {
 
     private fun initModels() {
         val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
+            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_FP16),
+            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_QUANTIZED),
             arrayOf(TFLiteHelpers.DelegateType.GPUv2),
             arrayOf() // CPU fallback
         )

@@ -17,7 +17,11 @@ tasks.register<Copy>("copyQnnLibs") {
             "libQnnSystem.so",
             "libQnnSaver.so",
             "libQnnHtpV79Stub.so",
-            "libcdsprpc.so"
+            "libcdsprpc.so",
+            "libQnnHtpV79Skel.so",
+            "libdspqueue_rpc_skel.so",
+            "libQnnLog.so",
+            "libpenguin.so"
         )
     }) {
         into("build/jniLibs/arm64-v8a")

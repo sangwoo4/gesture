@@ -19,6 +19,8 @@
         <uses-native-library
             android:name="libcdsprpc.so"
             android:required="false" />
+        <uses-native-library android:name="mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite" android:required="false" />
+        <uses-native-library android:name="mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite" android:required="false" />
         <activity
             android:name=".MainActivity"
             android:exported="true"
