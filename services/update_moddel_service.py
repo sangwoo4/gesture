@@ -118,7 +118,7 @@ def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite, X_train
         f.write(tflite_model)
 
 
-def train_model(model, X_train, y_train, X_test, y_test):
+def train_model(model, X_train, y_train, X_test, y_test, class_len):
     early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
     y_train_idx = np.argmax(y_train, axis=1)
     classes_used = np.unique(y_train_idx)
@@ -127,7 +127,7 @@ def train_model(model, X_train, y_train, X_test, y_test):
         classes=classes_used,
         y=y_train_idx
     )
-    class_weight_dict = {i: class_weights[list(classes_used).index(i)] if i in classes_used else 0.0 for i in range(num_classes)}
+    class_weight_dict = {i: class_weights[list(classes_used).index(i)] if i in classes_used else 0.0 for i in range(class_len)}
 
     model.fit(
         X_train, y_train,
@@ -223,7 +223,6 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     print("index_to_label", index_to_label)
     label_ids = sorted(label_to_index.values())
 
-
     # 6. 학습용 입력 데이터 준비
     X_train, y_train = prepare_inputs(X_train_all, y_train_all, label_to_index)
     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
@@ -240,7 +239,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
     class_weight_dict = dict(enumerate(weights))
 
-    train_model(model, X_train, y_train, X_test, y_test)
+    train_model(model, X_train, y_train, X_test, y_test, len(label_to_index))
 
     # 8. 모델 저장 및 TFLite 변환
     h5_path = os.path.join(NEW_DIR, updated_model_name)

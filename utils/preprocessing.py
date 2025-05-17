@@ -8,7 +8,7 @@ def generate_model_filename(prefix="gesture"):
     import time, uuid
     timestamp = int(time.time())
     uid = uuid.uuid4().hex[:8]
-    return f"{prefix}_{timestamp}_{uid}"
+    return f"{timestamp}_{uid}"
 
 
 

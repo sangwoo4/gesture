@@ -28,9 +28,12 @@ def get_cached_or_download(file_name: str, firebase_path: str) -> str:
     local_path = os.path.join(CACHE_DIR, file_name)
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
+    # Firebase 내 경로를 new_models/ 하위로 고정
+    full_firebase_path = f"new_models/{firebase_path}"
+
     if not is_cached(local_path):  # 캐시가 없거나 만료된 경우
         print(f"Downloading {file_name} from Firebase...")
-        download_from_firebase(firebase_path, local_path)
+        download_from_firebase(full_firebase_path, local_path)
     else:
         print(f"Using cached {file_name} from {local_path}")
 

@@ -12,7 +12,7 @@ import numpy as np
 executor = ThreadPoolExecutor(max_workers=10)
 
 def get_model_info(model_code: str, db: Session) -> File:
-    model_info = db.query(File).filter(File.id == model_code).first()
+    model_info = db.query(File).filter(File.code == model_code).first()
     if not model_info:
         raise HTTPException(status_code=404, detail="Model not found")
 
