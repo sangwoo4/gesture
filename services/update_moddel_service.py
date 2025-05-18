@@ -1,6 +1,6 @@
 import random
-from datetime import time
-
+from http.client import HTTPException
+from fastapi import HTTPException
 import tensorflow as tf
 import numpy as np
 import os
@@ -95,8 +95,10 @@ def check_duplicates(base_data, update_data, threshold=70.0):
     train_ratio = (len(pairs_train) / len(update_data['train'])) * 100 if len(update_data['train']) else 0
     test_ratio = (len(pairs_test) / len(update_data['test'])) * 100 if len(update_data['test']) else 0
     if train_ratio >= threshold or test_ratio >= threshold:
-        print(f"중복률이 {threshold:.1f}% 이상입니다. 학습 중단.")
-        exit(1)
+        raise HTTPException(
+            status_code = 400,
+            detail=f"제스처 중복입니다 다른 제스처를 등록해주세요"
+        )
 
 def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite, X_train):
     def representative_dataset():
@@ -233,7 +235,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
-    early_stop = EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
+    EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
 
     y_train_idx = np.argmax(y_train, axis=1)
     weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
@@ -257,7 +259,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
         update_train_path,
         update_test_path,
         h5_path,
-        tflite_path
+        tflite_path,
     )
 
     # 11. DB 저장
