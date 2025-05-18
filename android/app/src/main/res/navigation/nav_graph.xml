@@ -3,7 +3,17 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/nav_graph"
-    app:startDestination="@id/airCommandFragment">
+    app:startDestination="@id/introSceneFragment">
+
+    <fragment
+        android:id="@+id/introSceneFragment"
+        android:name="com.square.aircommand.screens.IntroSceneFragment"
+        android:label="Intro Scene" >
+
+    <action
+        android:id="@+id/action_introSceneFragment_to_airCommandFragment"
+        app:destination="@id/airCommandFragment" />
+    </fragment>
 
     <!-- AirCommand Fragment -->
     <fragment
