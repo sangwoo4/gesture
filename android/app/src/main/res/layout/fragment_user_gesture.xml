@@ -128,6 +128,8 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/duplicateCheckResultText" />
 
+        <!--  TODO: 하드코딩 해 놓은 곳임 나중에 삭제도 되게 해야하고, -->
+        <!--  TODO: 초기 사용자는 가위, 바위, 보, 하나 제스처가 디폴트로 존재해야함  -->
         <!-- 등록됨 레이블 -->
         <TextView
             android:id="@+id/installedLabel"

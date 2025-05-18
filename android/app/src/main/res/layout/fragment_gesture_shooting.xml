@@ -53,7 +53,7 @@
         android:layout_height="wrap_content"
         android:text="프레임 안에 제스처를 취한 후, 등록 버튼을 누르세요.\n지시사항에 따라 등록을 완료하세요."
         android:textSize="15sp"
-        android:textColor="@color/black"
+        android:textColor="#777777"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
@@ -77,8 +77,8 @@
     <!-- 카메라 프리뷰 프레임 -->
     <FrameLayout
         android:id="@+id/cameraPreviewFrame"
-        android:layout_width="300dp"
-        android:layout_height="300dp"
+        android:layout_width="400dp"
+        android:layout_height="450dp"
         android:background="@android:color/white"
         android:layout_marginTop="8dp"
         app:layout_constraintTop_toBottomOf="@id/statusMessage"
@@ -103,7 +103,17 @@
             android:layout_height="1dp"
             android:layout_gravity="center_vertical"
             android:background="@drawable/dotted_line_horizontal" />
+
+        <!-- 🖌 Compose 기반 랜드마크 오버레이 (추가됨) -->
+        <androidx.compose.ui.platform.ComposeView
+            android:id="@+id/landmarkOverlay"
+            android:layout_width="400dp"
+            android:layout_height="450dp"
+            android:layout_gravity="center"
+            android:background="@android:color/transparent" />
+
     </FrameLayout>
+
 
     <!-- 다시촬영 버튼 -->
     <Button

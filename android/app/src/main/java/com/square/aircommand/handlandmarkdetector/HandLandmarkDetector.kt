@@ -125,6 +125,7 @@ class HandLandmarkDetector(
         return Triple(outputLandmarks, outputScores[0], outputLR[0])
     }
 
+    // TODO:
     private fun extractLandmarks(landmarks: Array<Array<FloatArray>>, imgW: Int, imgH: Int) {
         for (i in 0 until 21) {
             val (fx, fy, fz) = landmarks[0][i]

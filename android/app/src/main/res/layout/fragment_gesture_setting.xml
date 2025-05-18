@@ -51,9 +51,9 @@
         android:id="@+id/descriptionText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="오프라인 상태에서 사용하시려면 제스처를 다운로드하세요."
+        android:text="오프라인 상태에서 사용할 제스처를 골라주세요."
         android:textSize="17sp"
-        android:textColor="@color/black"
+        android:textColor="#777777"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -64,7 +64,7 @@
         android:id="@+id/installedLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="설치됨"
+        android:text="제스처 목록"
         android:textColor="@color/black"
         android:textStyle="bold"
         android:textSize="22sp"
@@ -72,10 +72,9 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="16dp" />
 
-
-    <!-- 첫 번째 제스처 (가위 제스처) -->
+    <!-- PAPER -->
     <LinearLayout
-        android:id="@+id/gesture1"
+        android:id="@+id/gesturePaper"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -89,30 +88,29 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="가위 제스처"
-            android:textColor="@color/black"
             android:layout_weight="1"
+            android:text="보 제스처"
+            android:textColor="@color/black"
             android:textSize="20sp" />
 
         <Spinner
-            android:id="@+id/spinner1"
+            android:id="@+id/spinnerPaper"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:entries="@array/scissor_options"
+            android:entries="@array/gesture_action_options"
             android:spinnerMode="dropdown"
             android:popupBackground="@drawable/spinner_background"
-            android:popupTheme="@style/SpinnerItemStyle"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- 두 번째 제스처 (주먹 제스처) -->
+    <!-- ROCK -->
     <LinearLayout
-        android:id="@+id/gesture2"
+        android:id="@+id/gestureRock"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/gesture1"
+        app:layout_constraintTop_toBottomOf="@id/gesturePaper"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:paddingStart="16dp"
@@ -121,86 +119,80 @@
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_weight="1"
             android:text="주먹 제스처"
             android:textColor="@color/black"
-            android:layout_weight="1"
             android:textSize="20sp" />
 
         <Spinner
-            android:id="@+id/spinner2"
+            android:id="@+id/spinnerRock"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:entries="@array/scissor_options"
+            android:entries="@array/gesture_action_options"
             android:spinnerMode="dropdown"
             android:popupBackground="@drawable/spinner_background"
-            android:popupTheme="@style/SpinnerItemStyle"
             android:layout_marginStart="8dp" />
     </LinearLayout>
 
-
-    <!-- 다운로드 가능 레이블 -->
-    <TextView
-        android:id="@+id/downloadableLabel"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="다운로드 가능"
-        android:textColor="@color/black"
-        android:textStyle="bold"
-        android:textSize="22sp"
-        app:layout_constraintTop_toBottomOf="@id/gesture2"
-        app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="24dp" />
-
-    <!-- 다운로드 제스처 1 -->
+    <!-- SCISSORS -->
     <LinearLayout
-        android:id="@+id/downloadGesture1"
+        android:id="@+id/gestureScissors"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/downloadableLabel"
+        app:layout_constraintTop_toBottomOf="@id/gestureRock"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="검지손가락 제스처"
+            android:text="가위 제스처"
             android:textColor="@color/black"
             android:textSize="20sp" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/downloadicon"
-            android:contentDescription="다운로드" />
+        <Spinner
+            android:id="@+id/spinnerScissors"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/gesture_action_options"
+            android:spinnerMode="dropdown"
+            android:popupBackground="@drawable/spinner_background"
+            android:layout_marginStart="8dp" />
     </LinearLayout>
 
-    <!-- 다운로드 제스처 2 -->
+    <!-- ONE -->
     <LinearLayout
-        android:id="@+id/downloadGesture2"
+        android:id="@+id/gestureOne"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/downloadGesture1"
+        app:layout_constraintTop_toBottomOf="@id/gestureScissors"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent">
+        app:layout_constraintEnd_toEndOf="parent"
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="OK 제스처"
+            android:text="하나 제스처"
             android:textColor="@color/black"
             android:textSize="20sp" />
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@drawable/downloadicon"
-            android:contentDescription="다운로드" />
+        <Spinner
+            android:id="@+id/spinnerOne"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:entries="@array/gesture_action_options"
+            android:spinnerMode="dropdown"
+            android:popupBackground="@drawable/spinner_background"
+            android:layout_marginStart="8dp" />
     </LinearLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>
