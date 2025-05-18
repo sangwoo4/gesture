@@ -10,26 +10,23 @@ val qnnSdkPath = "C:/Users/ehdbs/Downloads/v2.34.0.250424(Direct)/qairt/2.34.0.2
 // QNN .so & Skel 복사 작업
 tasks.register<Copy>("copyQnnLibs") {
     // .so 파일 복사 (Skel 포함)
-    from(fileTree("$qnnSdkPath/lib/aarch64-android") {
+    from(fileTree("$qnnSdkPath/mediapipe") {
         include(
             "libQnnHtp.so",
             "libQnnHtpPrepare.so",
             "libQnnSystem.so",
             "libQnnSaver.so",
             "libQnnHtpV79Stub.so",
-            "libcdsprpc.so",
             "libQnnHtpV79Skel.so",
-            "libdspqueue_rpc_skel.so",
-            "libQnnLog.so",
-            "libpenguin.so"
+            "libcdsprpc.so",
         )
     }) {
-        into("build/jniLibs/arm64-v8a")
+        into("build/jniLibs")
     }
 
     // ✅ [추가] 사용자 정의 delegate .so 복사
     from("main/assets/mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite.so") {
-        into("build/jniLibs/arm64-v8a")
+        into("build/jniLibs")
         rename {
             // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
             "libmediapipelandmark_delegate.so"
@@ -37,7 +34,7 @@ tasks.register<Copy>("copyQnnLibs") {
     }
 
     from("main/assets/mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite.so") {
-        into("build/jniLibs/arm64-v8a")
+        into("build/jniLibs")
         rename {
             // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
             "libmediapipehand_delegate.so"
@@ -76,7 +73,7 @@ android {
         )
         buildConfigField(
             "String", "GESTURE_CLASSIFIER_MODEL",
-            "\"${project.findProperty("gestureClassifierModelName") ?: "update_gesture_model_cnn_2.tflite"}\""
+            "\"${project.findProperty("gestureClassifierModelName") ?: "update_gesture_model_cnn.tflite"}\""
         )
     }
 

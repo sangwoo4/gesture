@@ -5,6 +5,7 @@ import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
 import com.square.aircommand.utils.ThrottledLogger
 import org.json.JSONObject
+import org.tensorflow.lite.DataType
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
 import java.nio.ByteBuffer
@@ -58,12 +59,16 @@ class GestureClassifier(
         delegateStore = delegates
 
         val inputTensor = interpreter.getInputTensor(0)
-        inputScale = inputTensor.quantizationParams().scale
-        inputZeroPoint = inputTensor.quantizationParams().zeroPoint
+        require(inputTensor.dataType() == DataType.UINT8) { "GestureClassifier는 UINT8 양자화 모델만 지원됩니다." }
+
+        val inputQuant = inputTensor.quantizationParams()
+        inputScale = inputQuant.scale
+        inputZeroPoint = inputQuant.zeroPoint
 
         val outputTensor = interpreter.getOutputTensor(0)
-        outputScale = outputTensor.quantizationParams().scale
-        outputZeroPoint = outputTensor.quantizationParams().zeroPoint
+        val outputQuant = outputTensor.quantizationParams()
+        outputScale = outputQuant.scale
+        outputZeroPoint = outputQuant.zeroPoint
         numClasses = outputTensor.shape()[1]
     }
 
