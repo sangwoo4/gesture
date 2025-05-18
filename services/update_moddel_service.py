@@ -39,19 +39,27 @@ def merge_datasets(basic_data, update_data):
     X2, y2 = update_data[:, :-1].astype(np.float32), update_data[:, -1].astype(str)
     return np.concatenate([X1, X2]), np.concatenate([y1, y2])
 
+def create_label_maps(y_basic_train, y_basic_test, y_update_train, y_update_test):
+    label_to_index = {"none": 0}
+    index_to_label = {0: "none"}
 
-# def create_label_maps(y_train, y_test):
-#     label_to_index = {}
-#     index_to_label = {}
-#
-#     # 기존 라벨을 처리
-#     for label in list(y_train) + list(y_test):
-#         if label not in label_to_index:
-#             idx = len(label_to_index)
-#             label_to_index[label] = idx
-#             index_to_label[idx] = label
-#
-#     return label_to_index, index_to_label
+    # 기존 라벨
+    existing_labels = sorted(set(y_basic_train) | set(y_basic_test) - {"none"})
+    for idx, label in enumerate(existing_labels, start=1):
+        label_to_index[label] = idx
+        index_to_label[idx] = label
+
+    print("existing labels: ", existing_labels)
+    # 신규 라벨 중 기존에 없는 라벨 추가
+    update_labels = sorted(set(y_update_train) | set(y_update_test) - {"none"})
+    start_idx = max(label_to_index.values()) + 1
+    for label in update_labels:
+        if label not in label_to_index:
+            label_to_index[label] = start_idx
+            index_to_label[start_idx] = label
+            start_idx += 1
+
+    return label_to_index, index_to_label
 
 def prepare_inputs(X, y, label_to_index):
     X = X[:, :63].reshape(-1, 21, 3, 1)
@@ -80,6 +88,23 @@ def build_transfer_model(base_model, num_classes, label_ids):
 
     new_model.add(Dense(num_classes, activation='softmax', name=output_name))
     return new_model
+
+# def build_transfer_model(base_model, num_classes, label_ids):
+#     new_model = Sequential()
+#     # base_model의 레이어 중 Flatten 까지 추가하고 Freeze
+#     for layer in base_model.layers:
+#         layer.trainable = False
+#         new_model.add(layer)
+#         if isinstance(layer, Flatten):
+#             break
+#
+#     # 새 출력층 구성 (Dense + Dropout + Output)
+#     new_model.add(Dense(128, activation='relu', kernel_initializer='he_normal', name="dense_1"))
+#     new_model.add(Dropout(0.4, name="dropout_1"))
+#     new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name="dense_2"))
+#     new_model.add(Dropout(0.4, name="dropout_1_v2"))
+#     new_model.add(Dense(num_classes, activation='softmax', name="output"))
+#     return new_model
 
 
 def check_duplicates(base_data, update_data, threshold=70.0):
@@ -140,40 +165,18 @@ def train_model(model, X_train, y_train, X_test, y_test, class_len):
         class_weight=class_weight_dict
     )
 
-def create_label_maps(
-    y_basic_train, y_basic_test, y_update_train, y_update_test
-) -> tuple[dict, dict]:
-    label_to_index = {"none": 0}
-    index_to_label = {0: "none"}
+# def load_npy_data(file_path: str) -> np.ndarray:
+#     return np.load(os.path.join(NEW_DIR, file_path), allow_pickle=True)
 
-    # 기존 라벨
-    existing_labels = sorted(set(y_basic_train) | set(y_basic_test) - {"none"})
-    for idx, label in enumerate(existing_labels, start=1):
-        label_to_index[label] = idx
-        index_to_label[idx] = label
-
-    # 업데이트 라벨
-    update_labels = sorted(set(y_update_train) | set(y_update_test) - {"none"})
-    start_idx = max(label_to_index.values()) + 1
-    for idx, label in enumerate(update_labels, start=start_idx):
-        if label not in label_to_index:
-            label_to_index[label] = idx
-            index_to_label[idx] = label
-
-    return label_to_index, index_to_label
-
-def load_npy_data(file_path: str) -> np.ndarray:
-    return np.load(os.path.join(NEW_DIR, file_path), allow_pickle=True)
-
-def get_new_labels(base_train: np.ndarray, base_test: np.ndarray, y_train_all: list, y_test_all: list) -> set:
-    existing_labels = set(base_train[:, -1]) | set(base_test[:, -1])
-    all_labels = set(y_train_all) | set(y_test_all)
-    new_labels = all_labels - existing_labels
-
-    print(f"✅ 기존 라벨 수: {len(existing_labels)}")
-    print(f"✅ 전체 라벨 수: {len(all_labels)}")
-    print(f"🆕 새로 추가된 라벨: {new_labels}")
-    return new_labels
+# def get_new_labels(base_train: np.ndarray, base_test: np.ndarray, y_train_all: list, y_test_all: list) -> set:
+#     existing_labels = set(base_train[:, -1]) | set(base_test[:, -1])
+#     all_labels = set(y_train_all) | set(y_test_all)
+#     new_labels = all_labels - existing_labels
+#
+#     print(f"✅ 기존 라벨 수: {len(existing_labels)}")
+#     print(f"✅ 전체 라벨 수: {len(all_labels)}")
+#     print(f"🆕 새로 추가된 라벨: {new_labels}")
+#     return new_labels
 
 # 기존 동기 함수들을 비동기 wrapper로 감싸줍니다.
 async def async_run_in_thread(fn, *args):
@@ -188,6 +191,8 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
     updated_model_name = f"update_{new_model_code}_model_cnn.h5"
     updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
+    combined_train_name = f"combined_{new_model_code}_train_hand_landmarks.npy"
+    combined_test_name = f"combined_{new_model_code}_test_hand_landmarks.npy"
 
     # 1. 기존 모델 정보 및 데이터 로딩
     model_info = get_model_info(model_code, db)
@@ -248,6 +253,17 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
     save_model_and_convert_tflite(model, h5_path, tflite_path, X_train)
 
+    combined_train_data = np.column_stack((X_train_all, y_train_all))
+    combined_test_data = np.column_stack((X_test_all, y_test_all))
+
+    combined_train_path = os.path.join(NEW_DIR, combined_train_name)
+    combined_test_path = os.path.join(NEW_DIR, combined_test_name)
+
+    np.save(combined_train_path, combined_train_data)
+    np.save(combined_test_path, combined_test_data)
+
+
+
     # 9. 신규 클래스 정보 추출
     existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
     updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
@@ -256,8 +272,8 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
 
     # 10. Firebase 업로드
     new_tflite_model_url = await upload_model_to_firebase_async(
-        update_train_path,
-        update_test_path,
+        combined_train_path,
+        combined_test_path,
         h5_path,
         tflite_path,
     )
@@ -267,8 +283,8 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
         save_model_info,
         db,
         new_model_code,
-        updated_train_name,
-        updated_test_name,
+        combined_train_name,
+        combined_test_name,
         updated_model_name
     )
 

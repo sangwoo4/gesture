@@ -33,15 +33,15 @@ async def download_model(model_info: File):
 def save_model_info(
         db: Session,
         new_model_code: str,
-        updated_train_name: str,
-        updated_test_name: str,
+        combined_train_name: str,
+        combined_test_name: str,
         updated_model_name: str) -> None:
 
     new_model_info = File(
         code = new_model_code,
         Model=updated_model_name,
-        Train_Data=updated_train_name,
-        Test_Data=updated_test_name,
+        Train_Data=combined_train_name,
+        Test_Data=combined_test_name,
     )
     db.add(new_model_info)
     db.commit()
