@@ -35,13 +35,18 @@ def save_model_info(
         new_model_code: str,
         updated_train_name: str,
         updated_test_name: str,
-        updated_model_name: str) -> None:
+        updated_model_name: str,
+        combined_train_name: str = None,
+        combined_test_name: str = None
+        ) -> None:
 
     new_model_info = File(
         code = new_model_code,
         Model=updated_model_name,
         Train_Data=updated_train_name,
         Test_Data=updated_test_name,
+        Combined_Train_Data=combined_train_name,
+        Combined_Test_Data=combined_test_name
     )
     db.add(new_model_info)
     db.commit()

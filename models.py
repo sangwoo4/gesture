@@ -9,4 +9,6 @@ class File(Base):
     Model = Column(String(255), nullable=False)
     Train_Data = Column(String(255), nullable=False)
     Test_Data = Column(String(255), nullable=False)
+    Combined_Train_Data = Column(String(255), nullable=False)
+    Combined_Test_Data = Column(String(255), nullable=False)
 

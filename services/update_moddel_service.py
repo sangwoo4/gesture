@@ -246,6 +246,21 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
     save_model_and_convert_tflite(model, h5_path, tflite_path, X_train)
 
+# 📌 [8.5] 2combined 병합 파일 생성 및 저장
+    combined_train_data = np.column_stack((X_train_all, y_train_all))
+    combined_test_data = np.column_stack((X_test_all, y_test_all))
+
+    combined_train_name = f"combined_{new_model_code}_train_hand_landmarks.npy"
+    combined_test_name = f"combined_{new_model_code}_test_hand_landmarks.npy"
+
+    combined_train_path = os.path.join(NEW_DIR, combined_train_name)
+    combined_test_path = os.path.join(NEW_DIR, combined_test_name)
+
+    np.save(combined_train_path, combined_train_data)
+    np.save(combined_test_path, combined_test_data)
+
+    print(f"✅ combined 저장 완료: {combined_train_path}, {combined_test_path}")
+
     # 9. 신규 클래스 정보 추출
     existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
     updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
@@ -267,7 +282,9 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
         new_model_code,
         updated_train_name,
         updated_test_name,
-        updated_model_name
+        updated_model_name,
+        combined_train_name,
+        combined_test_name
     )
 
     return new_model_code, new_tflite_model_url, new_labels
