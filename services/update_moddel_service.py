@@ -1,5 +1,7 @@
 import random
 from http.client import HTTPException
+from typing import Any, Coroutine
+
 from fastapi import HTTPException
 import tensorflow as tf
 import numpy as np
@@ -89,22 +91,6 @@ def build_transfer_model(base_model, num_classes, label_ids):
     new_model.add(Dense(num_classes, activation='softmax', name=output_name))
     return new_model
 
-# def build_transfer_model(base_model, num_classes, label_ids):
-#     new_model = Sequential()
-#     # base_model의 레이어 중 Flatten 까지 추가하고 Freeze
-#     for layer in base_model.layers:
-#         layer.trainable = False
-#         new_model.add(layer)
-#         if isinstance(layer, Flatten):
-#             break
-#
-#     # 새 출력층 구성 (Dense + Dropout + Output)
-#     new_model.add(Dense(128, activation='relu', kernel_initializer='he_normal', name="dense_1"))
-#     new_model.add(Dropout(0.4, name="dropout_1"))
-#     new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name="dense_2"))
-#     new_model.add(Dropout(0.4, name="dropout_1_v2"))
-#     new_model.add(Dense(num_classes, activation='softmax', name="output"))
-#     return new_model
 
 
 def check_duplicates(base_data, update_data, threshold=70.0):
@@ -165,34 +151,18 @@ def train_model(model, X_train, y_train, X_test, y_test, class_len):
         class_weight=class_weight_dict
     )
 
-# def load_npy_data(file_path: str) -> np.ndarray:
-#     return np.load(os.path.join(NEW_DIR, file_path), allow_pickle=True)
-
-# def get_new_labels(base_train: np.ndarray, base_test: np.ndarray, y_train_all: list, y_test_all: list) -> set:
-#     existing_labels = set(base_train[:, -1]) | set(base_test[:, -1])
-#     all_labels = set(y_train_all) | set(y_test_all)
-#     new_labels = all_labels - existing_labels
-#
-#     print(f"✅ 기존 라벨 수: {len(existing_labels)}")
-#     print(f"✅ 전체 라벨 수: {len(all_labels)}")
-#     print(f"🆕 새로 추가된 라벨: {new_labels}")
-#     return new_labels
-
-# 기존 동기 함수들을 비동기 wrapper로 감싸줍니다.
 async def async_run_in_thread(fn, *args):
     loop = asyncio.get_event_loop()
     return await loop.run_in_executor(executor, fn, *args)
 
 executor = ThreadPoolExecutor(max_workers=4)
 
-async def train_new_model_service(model_code: str, csv_path: str, db: Session) -> tuple[str, str, str]:
+async def train_new_model_service(model_code: str, csv_path: str, db: Session) -> tuple[Any, str, set[Any]]:
     new_model_code = generate_model_filename()
-    updated_train_name = f"update_{new_model_code}_train_hand_landmarks.npy"
-    updated_test_name = f"update_{new_model_code}_test_hand_landmarks.npy"
-    updated_model_name = f"update_{new_model_code}_model_cnn.h5"
-    updated_tflite_name = f"update_{new_model_code}_cnn.tflite"
-    combined_train_name = f"combined_{new_model_code}_train_hand_landmarks.npy"
-    combined_test_name = f"combined_{new_model_code}_test_hand_landmarks.npy"
+    updated_model_name = f"{new_model_code}_model_cnn.h5"
+    updated_tflite_name = f"{new_model_code}_cnn.tflite"
+    combined_train_name = f"{new_model_code}_train_hand_landmarks.npy"
+    combined_test_name = f"{new_model_code}_test_hand_landmarks.npy"
 
     # 1. 기존 모델 정보 및 데이터 로딩
     model_info = get_model_info(model_code, db)
@@ -200,13 +170,9 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     basic_train, basic_test, base_model = prepare_datasets(model_info)
 
     # 2. 신규 CSV → NPY 변환 및 분할
-    update_train_path, update_test_path = new_split_landmarks(
-        new_convert_to_npy(csv_path),
-        updated_train_name,
-        updated_test_name
+    update_train, update_test = new_split_landmarks(
+        new_convert_to_npy(csv_path)
     )
-    update_train = np.load(os.path.join(NEW_DIR, update_train_path), allow_pickle=True)
-    update_test = np.load(os.path.join(NEW_DIR, update_test_path), allow_pickle=True)
 
     # 3. 중복 제거
     check_duplicates(

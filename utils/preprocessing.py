@@ -1,5 +1,9 @@
 import os
+from typing import Any
+
 import numpy as np
+from numpy import ndarray, dtype
+
 from config import BASE_DIR, NEW_DIR
 
 from sklearn.model_selection import train_test_split
@@ -12,7 +16,8 @@ def generate_model_filename(prefix="gesture"):
 
 
 
-def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_name: str) -> tuple[str, str]:
+def new_split_landmarks(NPY_DATA: np.ndarray) -> tuple[
+    ndarray[Any, dtype[Any]], ndarray[Any, dtype[Any]]]:
     data = NPY_DATA.copy()
 
     X = np.array([row[:-1].astype(np.float32) for row in data])
@@ -23,21 +28,15 @@ def new_split_landmarks(NPY_DATA: np.ndarray, train_data_name: str, test_data_na
 
     TRAIN_DATA_UPDATE = np.column_stack((X_train, y_train))
     TEST_DATA_UPDATE = np.column_stack((X_test, y_test))
-    # np.save(os.path.join(NEW_DIR, train_data_name), TRAIN_DATA_UPDATE)
-    # np.save(os.path.join(NEW_DIR, test_data_name), TEST_DATA_UPDATE)
 
-    train_path = os.path.join(NEW_DIR, train_data_name)
-    test_path = os.path.join(NEW_DIR, test_data_name)
-    np.save(train_path, TRAIN_DATA_UPDATE)
-    np.save(test_path, TEST_DATA_UPDATE)
 
-    print("[로컬 모드] 데이터 저장 완료!")
+    print("Train Data saving complete!")
 
     print("데이터 분할 완료!")
     print(f"Train 데이터 크기: {X_train.shape[0]}")
     print(f"Test 데이터 크기: {X_test.shape[0]}")
 
-    return train_path, test_path
+    return TRAIN_DATA_UPDATE, TEST_DATA_UPDATE
 
 
 def find_duplicate_label_pairs_by_distance(
