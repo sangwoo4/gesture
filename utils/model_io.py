@@ -2,32 +2,13 @@ from concurrent.futures import ThreadPoolExecutor
 
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
-from utils.models import File
+from models import File
 from services.firebase_service import get_cached_or_download
 import os
-import time
-import shutil
 import zipfile
-from utils.config import NEW_DIR, ZIP_DIR
+from config import NEW_DIR, ZIP_DIR
 
 executor = ThreadPoolExecutor(max_workers=10)
-
-def remove_folder_if_old(folder_path: str, max_age_seconds: int = 86400):
-    """
-    folder_path 폴더가 max_age_seconds 이상 되면 삭제
-    기본값: 24시간 (86400초)
-    """
-    if not os.path.exists(folder_path):
-        return  # 폴더가 없으면 아무것도 안 함
-
-    modified_time = os.path.getmtime(folder_path)
-    current_time = time.time()
-
-    if (current_time - modified_time) > max_age_seconds:
-        shutil.rmtree(folder_path)
-        print(f"🧹 '{folder_path}' 폴더가 24시간 초과되어 삭제됨")
-    else:
-        print(f"✅ '{folder_path}' 폴더는 아직 유효함")
 
 def get_model_info(user_code: int, db: Session) -> File:
     model_info = db.query(File).filter(File.id == user_code).first()

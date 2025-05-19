@@ -1,6 +1,6 @@
 import random
 from http.client import HTTPException
-from typing import Any
+from typing import Any, Coroutine
 
 from fastapi import HTTPException
 import tensorflow as tf
@@ -9,9 +9,9 @@ import os
 
 from keras.src.layers import Dropout
 
-from utils.config import NEW_DIR
+from config import NEW_DIR
 
-from utils.model_io import download_model, save_model_info
+from utils.model_io import get_model_info, download_model, save_model_info
 from utils.preprocessing import generate_model_filename, new_split_landmarks, find_duplicate_label_pairs_by_distance
 from utils.model_builder import new_convert_to_npy
 from services.firebase_service import upload_model_to_firebase_async
