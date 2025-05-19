@@ -1,14 +1,12 @@
 import os
-import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import zipfile
 import tempfile
-import shutil
-from config import NEW_DIR, ZIP_DIR
+from utils.config import ZIP_DIR
 
-from config import bucket
+from utils.config import bucket
 CACHE_EXPIRATION = 24 * 60 * 60
 
 executor = ThreadPoolExecutor(max_workers=3)
@@ -27,7 +25,7 @@ def is_cached(file_path: str) -> bool:
 
 
 def get_cached_or_download(file_name: str, firebase_path: str) -> str:
-    local_path = os.path.join(NEW_DIR, file_name)
+    local_path = os.path.join(ZIP_DIR, file_name)
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
     # Firebase 내 경로를 models/ 하위로 고정
@@ -55,12 +53,6 @@ def upload_single_file(file_path, firebase_folder):
     blob.upload_from_filename(file_path)
     blob.make_public()
     print(f"[백그라운드 업로드 완료] {file_name} → {blob.public_url}")
-
-# def upload_remaining_files(other_files, firebase_folder):
-#     for file_path in other_files:
-#         upload_single_file(file_path, firebase_folder)
-
-
 
 def upload_remaining_files(file_path: list[str], firebase_folder: str, new_model_code: str):
     try:

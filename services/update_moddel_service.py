@@ -1,6 +1,6 @@
 import random
 from http.client import HTTPException
-from typing import Any, Coroutine
+from typing import Any
 
 from fastapi import HTTPException
 import tensorflow as tf
@@ -9,9 +9,9 @@ import os
 
 from keras.src.layers import Dropout
 
-from config import NEW_DIR
+from utils.config import NEW_DIR
 
-from utils.model_io import get_model_info, download_model, save_model_info
+from utils.model_io import download_model, save_model_info
 from utils.preprocessing import generate_model_filename, new_split_landmarks, find_duplicate_label_pairs_by_distance
 from utils.model_builder import new_convert_to_npy
 from services.firebase_service import upload_model_to_firebase_async
@@ -27,11 +27,22 @@ from sklearn.utils import class_weight
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
-def prepare_datasets(model_info):
-    train_data = np.load(os.path.join(NEW_DIR, model_info.Train_Data), allow_pickle=True)
-    test_data = np.load(os.path.join(NEW_DIR, model_info.Test_Data), allow_pickle=True)
-    model_path = os.path.join(NEW_DIR, model_info.Model)
+# def prepare_datasets(model_info):
+#     train_data = np.load(os.path.join(NEW_DIR/model_info, model_info.Train_Data), allow_pickle=True)
+#     test_data = np.load(os.path.join(NEW_DIR, model_info.Test_Data), allow_pickle=True)
+#     model_path = os.path.join(NEW_DIR/model_info, model_info.Model)
+#     model = load_model(model_path)
+#     return train_data, test_data, model
+
+def prepare_datasets(model_code: str):
+    train_data_path = os.path.join(NEW_DIR, model_code, f"{model_code}_train_hand_landmarks.npy")
+    test_data_path = os.path.join(NEW_DIR, model_code, f"{model_code}_test_hand_landmarks.npy")
+    model_path = os.path.join(NEW_DIR, model_code, f"{model_code}_model_cnn.h5")
+
+    train_data = np.load(train_data_path, allow_pickle=True)
+    test_data = np.load(test_data_path, allow_pickle=True)
     model = load_model(model_path)
+
     return train_data, test_data, model
 
 
@@ -165,9 +176,11 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     combined_test_name = f"{new_model_code}_test_hand_landmarks.npy"
 
     # 1. 기존 모델 정보 및 데이터 로딩
-    model_info = get_model_info(model_code, db)
-    await download_model(model_info)
-    basic_train, basic_test, base_model = prepare_datasets(model_info)
+    #model_code = get_model_info(model_code, db)
+    print(model_code)
+    #await download_model(model_info)
+    await download_model(model_code)
+    basic_train, basic_test, base_model = prepare_datasets(model_code)
 
     # 2. 신규 CSV → NPY 변환 및 분할
     update_train, update_test = new_split_landmarks(new_convert_to_npy(csv_path))
@@ -202,21 +215,22 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
 
     train_model(model, X_train, y_train, X_test, y_test, len(label_to_index))
 
-    # 8. 모델 저장 및 TFLite 변환
-    h5_path = os.path.join(NEW_DIR, updated_model_name)
-    tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
-    model.save(h5_path)
-    convert_to_tflite(model, tflite_path, X_train)
-
     combined_train_data = np.column_stack((X_train_all, y_train_all))
     combined_test_data = np.column_stack((X_test_all, y_test_all))
 
-    combined_train_path = os.path.join(NEW_DIR, combined_train_name)
-    combined_test_path = os.path.join(NEW_DIR, combined_test_name)
+    # 8. 모델 저장 및 TFLite 변환
+    save_dir = os.path.join(NEW_DIR, new_model_code)
+    os.makedirs(save_dir, exist_ok=True)
 
+    h5_path = os.path.join(save_dir, updated_model_name)
+    tflite_path = os.path.join(save_dir, updated_tflite_name)
+    combined_train_path = os.path.join(save_dir, combined_train_name)
+    combined_test_path = os.path.join(save_dir, combined_test_name)
+
+    convert_to_tflite(model, tflite_path, X_train)
     np.save(combined_train_path, combined_train_data)
     np.save(combined_test_path, combined_test_data)
-
+    model.save(h5_path)
 
 
     # 9. 신규 클래스 정보 추출
