@@ -6,11 +6,10 @@ from fastapi import HTTPException
 import tensorflow as tf
 import numpy as np
 import os
-import time
 
 from keras.src.layers import Dropout
 
-from config import BASE_DIR, NEW_DIR
+from config import NEW_DIR
 
 from utils.model_io import get_model_info, download_model, save_model_info
 from utils.preprocessing import generate_model_filename, new_split_landmarks, find_duplicate_label_pairs_by_distance
@@ -29,9 +28,9 @@ import asyncio
 from concurrent.futures import ThreadPoolExecutor
 
 def prepare_datasets(model_info):
-    train_data = np.load(os.path.join(BASE_DIR, model_info.Train_Data), allow_pickle=True)
-    test_data = np.load(os.path.join(BASE_DIR, model_info.Test_Data), allow_pickle=True)
-    model_path = os.path.join(BASE_DIR, model_info.Model)
+    train_data = np.load(os.path.join(NEW_DIR, model_info.Train_Data), allow_pickle=True)
+    test_data = np.load(os.path.join(NEW_DIR, model_info.Test_Data), allow_pickle=True)
+    model_path = os.path.join(NEW_DIR, model_info.Model)
     model = load_model(model_path)
     return train_data, test_data, model
 
@@ -111,14 +110,14 @@ def check_duplicates(base_data, update_data, threshold=70.0):
             detail=f"제스처 중복입니다 다른 제스처를 등록해주세요"
         )
 
-def save_model_and_convert_tflite(model, save_path_h5, save_path_tflite, X_train):
+def convert_to_tflite(model, save_path_tflite, X_train):
     def representative_dataset():
         indices = list(range(len(X_train)))
         random.shuffle(indices)
         for i in indices[:500]:
             yield [X_train[i:i + 1].astype(np.float32)]
 
-    model.save(save_path_h5)
+
     converter = tf.lite.TFLiteConverter.from_keras_model(model)
     converter.optimizations = [tf.lite.Optimize.DEFAULT]
     converter.representative_dataset = representative_dataset
@@ -158,6 +157,7 @@ async def async_run_in_thread(fn, *args):
 executor = ThreadPoolExecutor(max_workers=4)
 
 async def train_new_model_service(model_code: str, csv_path: str, db: Session) -> tuple[Any, str, set[Any]]:
+    # 0. 모델 코드 생성
     new_model_code = generate_model_filename()
     updated_model_name = f"{new_model_code}_model_cnn.h5"
     updated_tflite_name = f"{new_model_code}_cnn.tflite"
@@ -170,9 +170,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
     basic_train, basic_test, base_model = prepare_datasets(model_info)
 
     # 2. 신규 CSV → NPY 변환 및 분할
-    update_train, update_test = new_split_landmarks(
-        new_convert_to_npy(csv_path)
-    )
+    update_train, update_test = new_split_landmarks(new_convert_to_npy(csv_path))
 
     # 3. 중복 제거
     check_duplicates(
@@ -192,32 +190,23 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
         y_update_test=update_test[:, -1]
     )
 
-    print("label_to_index", label_to_index)
-    print("index_to_label", index_to_label)
-    label_ids = sorted(label_to_index.values())
-
     # 6. 학습용 입력 데이터 준비
     X_train, y_train = prepare_inputs(X_train_all, y_train_all, label_to_index)
     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
 
     # 7. 모델 생성 및 학습
-    model = build_transfer_model(base_model, len(label_to_index), label_ids)
+    model = build_transfer_model(base_model, len(label_to_index), sorted(label_to_index.values()))
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
-
-    EarlyStopping(monitor='val_loss', patience=10, restore_best_weights=True)
-
-    y_train_idx = np.argmax(y_train, axis=1)
-    weights = class_weight.compute_class_weight('balanced', classes=np.unique(y_train_idx), y=y_train_idx)
-    class_weight_dict = dict(enumerate(weights))
 
     train_model(model, X_train, y_train, X_test, y_test, len(label_to_index))
 
     # 8. 모델 저장 및 TFLite 변환
     h5_path = os.path.join(NEW_DIR, updated_model_name)
     tflite_path = os.path.join(NEW_DIR, updated_tflite_name)
-    save_model_and_convert_tflite(model, h5_path, tflite_path, X_train)
+    model.save(h5_path)
+    convert_to_tflite(model, tflite_path, X_train)
 
     combined_train_data = np.column_stack((X_train_all, y_train_all))
     combined_test_data = np.column_stack((X_test_all, y_test_all))

@@ -4,7 +4,7 @@ from concurrent.futures import ThreadPoolExecutor
 import asyncio
 
 from config import bucket
-CACHE_DIR = "./basic_models"
+CACHE_DIR = "./models"
 CACHE_EXPIRATION = 24 * 60 * 60
 
 executor = ThreadPoolExecutor(max_workers=3)
@@ -26,8 +26,8 @@ def get_cached_or_download(file_name: str, firebase_path: str) -> str:
     local_path = os.path.join(CACHE_DIR, file_name)
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
-    # Firebase 내 경로를 new_models/ 하위로 고정
-    full_firebase_path = f"new_models/{firebase_path}"
+    # Firebase 내 경로를 models/ 하위로 고정
+    full_firebase_path = f"models/{firebase_path}"
 
     if not is_cached(local_path):  # 캐시가 없거나 만료된 경우
         print(f"Downloading {file_name} from Firebase...")
@@ -61,7 +61,7 @@ async def upload_model_to_firebase_async(
     UPDATE_TEST_DATA: str,
     UPDATED_MODEL_PATH: str,
     UPDATED_TFLITE_PATH: str,
-    firebase_folder: str = "new_models"
+    firebase_folder: str = "models"
 ) -> str:
     loop = asyncio.get_event_loop()
 

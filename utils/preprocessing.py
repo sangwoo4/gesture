@@ -4,8 +4,6 @@ from typing import Any
 import numpy as np
 from numpy import ndarray, dtype
 
-from config import BASE_DIR, NEW_DIR
-
 from sklearn.model_selection import train_test_split
 
 def generate_model_filename(prefix="gesture"):
