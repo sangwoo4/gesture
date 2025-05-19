@@ -1,7 +1,11 @@
 import os
+import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
+import zipfile
+import tempfile
+import shutil
 
 from config import bucket
 CACHE_DIR = "./models"
@@ -52,15 +56,37 @@ def upload_single_file(file_path, firebase_folder):
     blob.make_public()
     print(f"[백그라운드 업로드 완료] {file_name} → {blob.public_url}")
 
-def upload_remaining_files(other_files, firebase_folder):
-    for file_path in other_files:
-        upload_single_file(file_path, firebase_folder)
+# def upload_remaining_files(other_files, firebase_folder):
+#     for file_path in other_files:
+#         upload_single_file(file_path, firebase_folder)
+
+
+
+def upload_remaining_files(file_path: list[str], firebase_folder: str, new_model_code: str):
+    try:
+        with tempfile.TemporaryDirectory() as temp_dir:
+            zip_path = os.path.join(temp_dir, f"{new_model_code}.zip")  # ✅ 수정된 부분
+
+            with zipfile.ZipFile(zip_path, 'w') as zipf:
+                for path in file_path:
+                    arcname = os.path.basename(path)
+                    zipf.write(path, arcname)
+
+            zip_blob = bucket.blob(f"{firebase_folder}/{new_model_code}.zip")
+            zip_blob.upload_from_filename(zip_path)
+            zip_blob.make_public()
+            print(f"[Zip 업로드 완료] {new_model_code}.zip → {zip_blob.public_url}")
+
+    except Exception as e:
+        print("[Zip 업로드 실패]", e)
+
 
 async def upload_model_to_firebase_async(
     UPDATE_TRAIN_DATA: str,
     UPDATE_TEST_DATA: str,
     UPDATED_MODEL_PATH: str,
     UPDATED_TFLITE_PATH: str,
+    new_model_code: str,
     firebase_folder: str = "models"
 ) -> str:
     loop = asyncio.get_event_loop()
@@ -75,7 +101,7 @@ async def upload_model_to_firebase_async(
 
     # ✅ 2. 나머지 파일은 백그라운드에서 업로드
     other_files = [UPDATE_TRAIN_DATA, UPDATE_TEST_DATA, UPDATED_MODEL_PATH]
-    loop.run_in_executor(executor, upload_remaining_files, other_files, firebase_folder)
+    loop.run_in_executor(executor, upload_remaining_files, other_files, firebase_folder, new_model_code)
 
     # ✅ 3. 클라이언트에게 TFLite URL 즉시 반환
     return tflite_url

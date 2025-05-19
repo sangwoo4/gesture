@@ -231,6 +231,7 @@ async def train_new_model_service(model_code: str, csv_path: str, db: Session) -
         combined_test_path,
         h5_path,
         tflite_path,
+        new_model_code
     )
 
     # 11. DB 저장
