@@ -21,7 +21,7 @@ async def train_model(request: TrainData, db: Session = Depends(get_db)):
     landmarks = request.landmarks
 
     #csv_path = convert_landmarks_to_csv(landmarks, gesture)
-    csv_path = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/models/update_hand_landmarks.csv"
+    csv_path = "./cache_dir/models/update_hand_landmarks.csv"
     new_model_code = await train_new_model_service(model_code, csv_path, db)
     end = time.time()
     print(f"총시간={end - start:.2f}초")

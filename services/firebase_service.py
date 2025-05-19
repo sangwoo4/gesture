@@ -6,9 +6,9 @@ import asyncio
 import zipfile
 import tempfile
 import shutil
+from config import NEW_DIR, ZIP_DIR
 
 from config import bucket
-CACHE_DIR = "./models"
 CACHE_EXPIRATION = 24 * 60 * 60
 
 executor = ThreadPoolExecutor(max_workers=3)
@@ -27,7 +27,7 @@ def is_cached(file_path: str) -> bool:
 
 
 def get_cached_or_download(file_name: str, firebase_path: str) -> str:
-    local_path = os.path.join(CACHE_DIR, file_name)
+    local_path = os.path.join(NEW_DIR, file_name)
     os.makedirs(os.path.dirname(local_path), exist_ok=True)
 
     # Firebase 내 경로를 models/ 하위로 고정

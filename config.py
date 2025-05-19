@@ -23,5 +23,5 @@ if not firebase_admin._apps:
 bucket = storage.bucket()
 print(f"✅ Firebase 연결됨: {bucket.name}")
 
-#BASE_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/basic_models"
-NEW_DIR = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/models"
+ZIP_DIR = "cache_dir/models_zip"
+NEW_DIR = "cache_dir/models"
