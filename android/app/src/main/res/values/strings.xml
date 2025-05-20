@@ -20,7 +20,9 @@
         <item>볼륨 올리기</item>
         <item>볼륨 내리기</item>
         <item>오른쪽으로 스와이프</item>
-        <item>아래로 스와이프</item>
+        <item>아래쪽으로 스와이프</item>
+        <item>왼쪽으로 스와이프</item>
+        <item>위쪽으로 스와이프</item>
     </string-array>
 
     <!-- 제스처 이름 목록 -->
@@ -30,4 +32,6 @@
         <item>바위 제스처</item>
         <item>원 제스처</item>
     </string-array>
+
+    <string name="accessibility_description">제스처 제어를 위한 접근성 서비스</string>
 </resources>

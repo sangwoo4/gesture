@@ -20,9 +20,14 @@ object GestureActionExecutor {
         GestureAction.TOGGLE_FLASH to 1000L,
         GestureAction.SWIPE_RIGHT to 1000L,
         GestureAction.SWIPE_DOWN to 1000L,
-        GestureAction.VOLUME_UP to 500L,
-        GestureAction.VOLUME_DOWN to 500L,
-    )
+
+        GestureAction.SWIPE_LEFT to 1000L,
+        GestureAction.SWIPE_UP to 1000L,
+
+        GestureAction.VOLUME_UP to 1000L,
+        GestureAction.VOLUME_DOWN to 1000L,
+
+        )
 
     // 기본 쿨다운 시간
     private const val DEFAULT_COOLDOWN_MS = 1000L
@@ -48,6 +53,10 @@ object GestureActionExecutor {
             GestureAction.TOGGLE_FLASH -> toggleFlash(context)
             GestureAction.SWIPE_RIGHT -> swipeRight()
             GestureAction.SWIPE_DOWN -> swipeDown()
+
+            GestureAction.SWIPE_LEFT -> swipeLeft()
+            GestureAction.SWIPE_UP -> swipeUp()
+
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
     }
@@ -99,30 +108,63 @@ object GestureActionExecutor {
     // 플래시 상태 기억용
     private var flashState: Boolean? = null
 
+
     /**
-     * 시스템 오른쪽 스와이프 명령 실행
+     * 👉 오른쪽으로 스와이프 제스처 실행
+     * - X축으로 더 긴 이동 거리와 긴 duration 설정
      */
     private fun swipeRight() {
-        try {
-            val command = "input swipe 300 500 1000 500"
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", command))
-            Log.d("GestureAction", "👉 오른쪽으로 스와이프 실행됨")
-        } catch (e: Exception) {
-            Log.e("GestureAction", "❌ 오른쪽 스와이프 실패: ${e.message}", e)
-        }
+        GestureAccessibilityService.swipeGesture(
+            startXRatio = 0.2f,
+            startYRatio = 0.5f,
+            endXRatio = 0.8f,
+            endYRatio = 0.5f,
+            durationMs = 500L // 이전보다 긴 지속 시간
+        )
+        ThrottledLogger.log("GestureAction", "👉 오른쪽으로 스와이프 실행 요청")
     }
 
     /**
-     * 시스템 아래쪽 스와이프 명령 실행
+     * 👇 아래로 스와이프 제스처 실행
+     * - Y축으로 더 긴 이동 거리와 긴 duration 설정
      */
     private fun swipeDown() {
-        try {
-            val command = "input swipe 500 300 500 1200"
-            Runtime.getRuntime().exec(arrayOf("sh", "-c", command))
-            Log.d("GestureAction", "👇 아래로 스와이프 실행됨")
-        } catch (e: Exception) {
-            Log.e("GestureAction", "❌ 아래로 스와이프 실패: ${e.message}", e)
-        }
+        GestureAccessibilityService.swipeGesture(
+            startXRatio = 0.5f,
+            startYRatio = 0.2f,
+            endXRatio = 0.5f,
+            endYRatio = 0.8f,
+            durationMs = 500L // 이전보다 긴 지속 시간
+        )
+        ThrottledLogger.log("GestureAction", "👇 아래로 스와이프 실행 요청")
+    }
+
+    /**
+     * 👈 왼쪽 스와이프
+     */
+    private fun swipeLeft() {
+        GestureAccessibilityService.swipeGesture(
+            startXRatio = 0.8f,
+            startYRatio = 0.5f,
+            endXRatio = 0.2f,
+            endYRatio = 0.5f,
+            durationMs = 500L
+        )
+        ThrottledLogger.log("GestureAction", "👈 왼쪽으로 스와이프 실행 요청")
+    }
+
+    /**
+     * 👆 위로 스와이프
+     */
+    private fun swipeUp() {
+        GestureAccessibilityService.swipeGesture(
+            startXRatio = 0.5f,
+            startYRatio = 0.8f,
+            endXRatio = 0.5f,
+            endYRatio = 0.2f,
+            durationMs = 500L
+        )
+        ThrottledLogger.log("GestureAction", "👆 위로 스와이프 실행 요청")
     }
 }
 

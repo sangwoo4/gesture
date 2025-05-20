@@ -5,9 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
-import android.widget.Spinner
 import android.widget.ArrayAdapter
-import android.widget.Toast
+import android.widget.Spinner
 import androidx.fragment.app.Fragment
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
@@ -48,10 +47,10 @@ class GestureSettingFragment : Fragment() {
         val noneDisplay = GestureAction.NONE.displayName
 
         // SharedPreferences에서 각 제스처의 초기 설정값 불러오기 (기본값 지정)
-        val paperAction = prefs.getString("gesture_paper_action", GestureAction.VOLUME_UP.displayName) ?: noneDisplay
-        val rockAction = prefs.getString("gesture_rock_action", GestureAction.TOGGLE_FLASH.displayName) ?: noneDisplay
-        val scissorsAction = prefs.getString("gesture_scissors_action", GestureAction.SWIPE_RIGHT.displayName) ?: noneDisplay
-        val oneAction = prefs.getString("gesture_one_action", GestureAction.SWIPE_DOWN.displayName) ?: noneDisplay
+        val paperAction = prefs.getString("gesture_paper_action", GestureAction.NONE.displayName) ?: noneDisplay
+        val rockAction = prefs.getString("gesture_rock_action", GestureAction.NONE.displayName) ?: noneDisplay
+        val scissorsAction = prefs.getString("gesture_scissors_action", GestureAction.NONE.displayName) ?: noneDisplay
+        val oneAction = prefs.getString("gesture_one_action", GestureAction.NONE.displayName) ?: noneDisplay
 
         // 각 Spinner에 동작 설정 로직 연결
         setupSpinner(binding.spinnerPaper, GestureLabel.PAPER, paperAction, "gesture_paper_action", options)
@@ -69,7 +68,7 @@ class GestureSettingFragment : Fragment() {
      * 각 제스처에 대해 Spinner를 초기화하고 선택 이벤트를 처리하는 함수
      * @param spinner 현재 연결할 Spinner
      * @param label 해당 Spinner와 연결된 제스처 라벨
-     * @param initialValue 초기 선택값
+     * @param initialValue 초기 선택값 (SharedPreferences에서 불러온 값)
      * @param prefsKey SharedPreferences에 저장될 키
      * @param options Spinner 항목 목록 (displayName 배열)
      */
@@ -83,13 +82,13 @@ class GestureSettingFragment : Fragment() {
         val context = requireContext()
         val prefs = context.getSharedPreferences(prefsName, 0)
 
-        // Spinner에 커스텀 어댑터 설정 (글자색 포함된 spinner_text.xml 사용)
+        // Spinner에 어댑터 설정 (텍스트 색상 포함된 레이아웃 사용)
         spinner.adapter = ArrayAdapter(
             context,
-            R.layout.spinner_text,   // Spinner의 기본 표시용 레이아웃 (텍스트 색 포함)
+            R.layout.spinner_text,   // Spinner의 기본 표시용 레이아웃
             options
         ).also {
-            it.setDropDownViewResource(R.layout.spinner_text) // 드롭다운 항목도 동일한 레이아웃 사용
+            it.setDropDownViewResource(R.layout.spinner_text) // 드롭다운 항목 레이아웃도 동일
         }
 
         // 초기 선택값 설정
@@ -107,20 +106,7 @@ class GestureSettingFragment : Fragment() {
                 val selectedAction = GestureAction.entries.firstOrNull { it.displayName == selectedDisplayName }
                     ?: GestureAction.NONE
 
-                // 다른 제스처에 이미 같은 동작이 설정되어 있는지 중복 검사 (NONE은 허용)
-                if (selectedAction != GestureAction.NONE) {
-                    val conflict = selectedActions.any { (otherLabel, otherAction) ->
-                        otherLabel != label && otherAction == selectedAction
-                    }
-                    if (conflict) {
-                        // 충돌 발생 시 이전 값으로 롤백
-                        Toast.makeText(context, "이미 다른 제스처에 설정된 동작입니다.", Toast.LENGTH_SHORT).show()
-                        val prevAction = selectedActions[label] ?: GestureAction.NONE
-                        spinner.setSelection(options.indexOf(prevAction.displayName).coerceAtLeast(0))
-                        return
-                    }
-                }
-
+                // 중복 허용: 같은 기능을 여러 제스처에 매핑할 수 있음
                 // SharedPreferences에 선택 결과 저장
                 prefs.edit().putString(prefsKey, selectedDisplayName).apply()
 
