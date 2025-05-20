@@ -17,7 +17,7 @@ from utils.model_builder import new_convert_to_npy
 from services.firebase_service import upload_model_to_firebase_async
 
 from sqlalchemy.orm import Session
-from tensorflow.keras.models import cur_model, load_model, Sequential
+from tensorflow.keras.models import Model, load_model, Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
@@ -62,12 +62,11 @@ def prepare_inputs(X, y, label_to_index):
 def build_transfer_model(base_model, num_classes, label_ids):
     for i, layer in enumerate(base_model.layers):
         if isinstance(layer, tf.keras.layers.Flatten):
-            feature_extractor = cur_model(inputs=base_model.input, outputs=base_model.layers[i-1].output)
+            feature_extractor = Model(inputs=base_model.input, outputs=base_model.layers[i-1].output)
             break
     feature_extractor.trainable = False
 
     # 고유한 이름 생성
-    label_ids = sorted(num_classes.values())
     label_str = "_".join(map(str, label_ids))
     label_hash = hashlib.md5(label_str.encode()).hexdigest()[:6]
     prefix = f"cls_{label_hash}"
