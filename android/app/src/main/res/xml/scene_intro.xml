@@ -45,7 +45,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:translationY="0dp"
+            android:translationY="50dp"
             android:alpha="1"/>
 
         <Constraint
