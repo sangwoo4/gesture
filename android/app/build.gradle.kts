@@ -4,41 +4,16 @@ plugins {
     alias(libs.plugins.kotlin.compose)
 }
 
-// QNN SDK 경로
-val qnnSdkPath = "C:/Users/ehdbs/Downloads/v2.34.0.250424(Direct)/qairt/2.34.0.250424"
-
 // QNN .so & Skel 복사 작업
 tasks.register<Copy>("copyQnnLibs") {
-    // .so 파일 복사 (Skel 포함)
-    from(fileTree("$qnnSdkPath/mediapipe") {
-        include(
-            "libQnnHtp.so",
-            "libQnnHtpPrepare.so",
-            "libQnnSystem.so",
-            "libQnnSaver.so",
-            "libQnnHtpV79Stub.so",
-            "libQnnHtpV79Skel.so",
-            "libcdsprpc.so",
-        )
-    }) {
-        into("build/jniLibs")
-    }
 
-    // ✅ [추가] 사용자 정의 delegate .so 복사
+    // 사용자 delegate .so → 이름 변경 없이 복사
     from("main/assets/mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite.so") {
-        into("build/jniLibs")
-        rename {
-            // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
-            "libmediapipelandmark_delegate.so"
-        }
+        into("src/main/jniLibs/arm64-v8a")
     }
 
     from("main/assets/mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite.so") {
-        into("build/jniLibs")
-        rename {
-            // JNI에서 로딩하기 쉽게 이름 변경 (lib 접두어 필요)
-            "libmediapipehand_delegate.so"
-        }
+        into("src/main/jniLibs/arm64-v8a")
     }
 
     into(layout.buildDirectory)
