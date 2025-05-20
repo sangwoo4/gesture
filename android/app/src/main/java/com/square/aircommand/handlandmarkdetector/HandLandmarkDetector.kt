@@ -40,7 +40,7 @@ class HandLandmarkDetector(
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var normalizedLandmarks = mutableListOf<Triple<Double, Double, Double>>()
-    var lastHandedness: String = "Right"
+    var lastHandedness: String = "right" // TODO: 전면은 거울모드라서 이 변수를 왼쪽으로 설정을 해야 오른손에 맞게 랜드마크가 뽑히나?
 
     init {
         OpenCVNativeLoader().init()
