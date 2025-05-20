@@ -5,6 +5,7 @@ import tensorflow as tf
 import numpy as np
 import os
 import time
+import hashlib
 
 from keras.src.layers import Dropout
 
@@ -16,7 +17,7 @@ from utils.model_builder import new_convert_to_npy
 from services.firebase_service import upload_model_to_firebase_async
 
 from sqlalchemy.orm import Session
-from tensorflow.keras.models import load_model, Sequential
+from tensorflow.keras.models import cur_model, load_model, Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.utils import to_categorical
 from tensorflow.keras.callbacks import EarlyStopping
@@ -58,29 +59,29 @@ def prepare_inputs(X, y, label_to_index):
     y = to_categorical([label_to_index[label] for label in y], num_classes=len(label_to_index))
     return X, y
 
-
 def build_transfer_model(base_model, num_classes, label_ids):
-    new_model = Sequential()
-    for layer in base_model.layers:
-        layer.trainable = False
-        new_model.add(layer)
-        if isinstance(layer, Flatten):
+    for i, layer in enumerate(base_model.layers):
+        if isinstance(layer, tf.keras.layers.Flatten):
+            feature_extractor = cur_model(inputs=base_model.input, outputs=base_model.layers[i-1].output)
             break
+    feature_extractor.trainable = False
 
-    dense_name = f"dense_cls_{'_'.join(map(str, label_ids))}"
-    output_name = f"output_cls_{'_'.join(map(str, label_ids))}"
+    # 고유한 이름 생성
+    label_ids = sorted(num_classes.values())
     label_str = "_".join(map(str, label_ids))
-    dropout_name = f"dropout_cls_{label_str}"
+    label_hash = hashlib.md5(label_str.encode()).hexdigest()[:6]
+    prefix = f"cls_{label_hash}"
 
-    new_model.add(Dense(128, activation='relu', kernel_initializer='he_normal', name=dense_name + "_1"))
-    new_model.add(Dropout(0.4, name=dropout_name + "_1"))
-
-    new_model.add(Dense(64, activation='relu', kernel_initializer='he_normal', name=dense_name + "_2"))
-    new_model.add(Dropout(0.3, name=dropout_name + "_2"))
-
-    new_model.add(Dense(num_classes, activation='softmax', name=output_name))
+    new_model = Sequential([
+        feature_extractor,
+        Flatten(name=f"{prefix}_flatten"),
+        Dense(128, activation='relu', kernel_initializer='he_normal', name=f"{prefix}_dense1"),
+        Dropout(0.3),
+        Dense(64, activation='relu', kernel_initializer='he_normal', name=f"{prefix}_dense2"),
+        Dropout(0.2),
+        Dense(num_classes, activation='softmax', name=f"{prefix}_output")
+    ])
     return new_model
-
 
 def check_duplicates(base_data, update_data, threshold=70.0):
     pairs_train = find_duplicate_label_pairs_by_distance(
