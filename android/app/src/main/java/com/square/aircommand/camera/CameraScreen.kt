@@ -173,6 +173,13 @@ class HandAnalyzer(
     // 분석 로직 실행 (프레임마다 호출됨)
     override fun analyze(imageProxy: ImageProxy) {
         try {
+
+            if (!landmarkDetector.isCollecting) {
+                imageProxy.close()
+                return
+            }
+
+
             val bitmap = imageProxy.toBitmapCompat()
             val points = handDetector.detect(bitmap)
             val orientation = getBackCameraSensorOrientation(context)
@@ -188,7 +195,7 @@ class HandAnalyzer(
 
                     for (point in points) {
                         // 랜드마크 예측
-                        landmarkDetector.predict(bitmap, orientation)
+                        landmarkDetector.transfer(bitmap, orientation)
                         val landmarks = landmarkDetector.lastLandmarks
 
                         // 랜드마크가 21개 일 때만 제스처 분류

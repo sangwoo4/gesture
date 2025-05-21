@@ -81,7 +81,7 @@ class TestFragment : Fragment() {
 
         gestureClassifier = GestureClassifier(
             context = requireContext(),
-            modelPath = "update_gesture_model_cnn.tflite",
+            modelPath = "update_gesture_model_cnns.tflite",
             delegatePriorityOrder = delegateOrder
         )
     }

@@ -16,7 +16,6 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
-import com.square.aircommand.screens.TestFragment.Companion
 import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
@@ -91,7 +90,7 @@ class GestureShootingFragment : Fragment() {
 
         gestureClassifier = GestureClassifier(
             context = requireContext(),
-            modelPath = "update_gesture_model_cnn.tflite",
+            modelPath = "update_gesture_model_cnns.tflite",
             delegatePriorityOrder = delegateOrder
         )
     }

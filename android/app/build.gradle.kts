@@ -162,4 +162,13 @@ dependencies {
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
 
+    // ✅ OkHttp3 기본 클라이언트
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
+    // ✅ (선택) JSON 직렬화를 위한 Gson 사용 시
+    implementation("com.squareup.okhttp3:logging-interceptor:4.12.0")
+    implementation("com.google.code.gson:gson:2.10.1")
+
+    implementation("com.google.android.material:material:1.11.0")
+
 }

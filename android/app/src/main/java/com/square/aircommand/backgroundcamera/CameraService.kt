@@ -21,7 +21,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
-import com.square.aircommand.camera.HandAnalyzer
+import com.square.aircommand.camera.HandAnalyzers
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.gesture.GestureActionExecutor
@@ -81,7 +81,7 @@ class CameraService : Service() {
 
         handDetector = HandDetector(this, "mediapipe_hand-handdetector.tflite", delegateOrder)
         landmarkDetector = HandLandmarkDetector(this, "mediapipe_hand-handlandmarkdetector.tflite", delegateOrder)
-        gestureClassifier = GestureClassifier(this, "update_gesture_model_cnn.tflite", delegateOrder)
+        gestureClassifier = GestureClassifier(this, "update_gesture_model_cnns.tflite", delegateOrder)
     }
 
     // 카메라 분석기 초기화
@@ -91,7 +91,7 @@ class CameraService : Service() {
         val latestPoints = mutableStateListOf<PointF>()
         val landmarksState = mutableStateOf<List<Triple<Double, Double, Double>>>(emptyList())
 
-        handAnalyzer = HandAnalyzer(
+        handAnalyzer = HandAnalyzers(
             context = this,
             handDetector = handDetector,
             landmarkDetector = landmarkDetector,

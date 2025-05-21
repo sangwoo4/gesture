@@ -2,6 +2,7 @@
   "0": "none",
   "1": "paper",
   "2": "rock",
-  "3": "scissors",
-  "4": "one"
+  "3": "scissor",
+  "4": "one",
+  "5": "thumb"
 }
