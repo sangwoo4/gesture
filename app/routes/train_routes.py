@@ -25,7 +25,7 @@ async def train_model(request: TrainData):
     landmarks = request.landmarks
 
     #csv_path = convert_landmarks_to_csv(landmarks, gesture)
-    csv_path = "/Users/park/Desktop/project/2025_capston/fastapi_project_1/app/cache_dir/update_hand_landmarks.csv"
+    csv_path = "app/cache_dir/update_hand_landmarks.csv"
     new_model_code, new_tflite_model_url = await train_new_model_service(model_code, csv_path)
     end = time.time()
     print(f"총시간={end - start:.2f}초")
