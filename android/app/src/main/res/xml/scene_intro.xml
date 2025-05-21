@@ -1,19 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <!-- ① 트랜지션 정의 : 0~3000ms 동안 START → END  -->
+    <!-- 트랜지션 -->
     <Transition
-        app:duration="3000"
+        app:duration="2000"
+        app:motionInterpolator="easeInOut"
         app:constraintSetStart="@+id/start"
-        app:constraintSetEnd="@+id/end" />
+        app:constraintSetEnd="@+id/end"/>
 
-    <!-- ② START 상태 – 제목은 위쪽, ‘터치’ 문구는 투명 -->
+    <!-- START 상태 -->
     <ConstraintSet android:id="@+id/start">
-
         <Constraint
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -22,7 +21,19 @@
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             android:translationY="-100dp"
-            android:alpha="0" />
+            android:alpha="0"/>
+
+        <Constraint
+            android:id="@+id/ivLogo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:scaleX="0.5"
+            android:scaleY="0.5"
+            android:alpha="0"/>
 
         <Constraint
             android:id="@+id/tvTouch"
@@ -31,12 +42,12 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            android:translationY="100dp"
             android:alpha="0"/>
     </ConstraintSet>
 
-    <!-- ③ END 상태 – 제목 중앙에, ‘터치’ 문구는 아래쪽에 등장 -->
+    <!-- END 상태 -->
     <ConstraintSet android:id="@+id/end">
-
         <Constraint
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
@@ -45,7 +56,19 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:translationY="50dp"
+            android:translationY="100dp"
+            android:alpha="1"/>
+
+        <Constraint
+            android:id="@+id/ivLogo"
+            android:layout_width="120dp"
+            android:layout_height="120dp"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:scaleX="1"
+            android:scaleY="1"
             android:alpha="1"/>
 
         <Constraint
@@ -55,6 +78,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
+            android:translationY="-50dp"
             android:alpha="1"/>
     </ConstraintSet>
 </MotionScene>
