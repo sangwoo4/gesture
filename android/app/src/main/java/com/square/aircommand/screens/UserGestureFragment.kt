@@ -4,7 +4,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ScrollView
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.square.aircommand.R
@@ -46,33 +45,39 @@ class UserGestureFragment : Fragment() {
 
         // ✅ [중복 확인] 버튼 클릭 이벤트 처리
         binding.btnCheckDuplicate.setOnClickListener {
-            val gestureName = binding.gestureNameEditText.text.toString().trim() // 사용자가 입력한 이름
+            val gestureName = binding.gestureNameEditText.text.toString().trim()
 
             when {
                 gestureName.isEmpty() -> {
-                    // 입력값 없음
                     binding.duplicateCheckResultText.text = "이름을 작성해주세요."
                     binding.btnStartGestureShooting.isEnabled = false
                 }
                 isGestureNameDuplicate(gestureName) -> {
-                    // 이름이 기존 목록과 중복됨
                     binding.duplicateCheckResultText.text = "중복된 이름입니다."
                     binding.btnStartGestureShooting.isEnabled = false
                 }
                 else -> {
-                    // 사용 가능한 이름
-                    binding.duplicateCheckResultText.text = "등록할 수 있는 이름입니다. [제스처 촬영]을 눌러 촬영을 시작해주세요"
+                    binding.duplicateCheckResultText.text =
+                        "등록할 수 있는 이름입니다. [제스처 촬영]을 눌러 촬영을 시작해주세요"
                     binding.btnStartGestureShooting.isEnabled = true
                 }
             }
 
-            // 결과 문구 표시
             binding.duplicateCheckResultText.visibility = View.VISIBLE
         }
 
-        // 🎥 [제스처 촬영] 버튼 클릭 → 촬영 화면(GestureShootingFragment)으로 이동
+        // 🎥 [제스처 촬영] 버튼 클릭 → GestureShootingFragment로 이동
         binding.btnStartGestureShooting.setOnClickListener {
-            findNavController().navigate(R.id.action_userGestureFragment_to_gestureShootingFragment)
+            val gestureName = binding.gestureNameEditText.text.toString().trim()
+
+            val bundle = Bundle().apply {
+                putString("gesture_name", gestureName)
+            }
+
+            findNavController().navigate(
+                R.id.action_userGestureFragment_to_gestureShootingFragment,
+                bundle
+            )
         }
     }
 
@@ -85,7 +90,6 @@ class UserGestureFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // 🧹 메모리 누수 방지를 위한 뷰 바인딩 정리
         _binding = null
     }
 }

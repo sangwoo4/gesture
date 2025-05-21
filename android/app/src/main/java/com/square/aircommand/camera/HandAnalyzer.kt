@@ -15,7 +15,10 @@ import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.utils.ThrottledLogger
 import com.square.aircommand.utils.toBitmapCompat
 
-// 손 감지 및 제스처 분류를 수행하는 분석기
+/**
+ * HandAnalyzers
+ * - 프레임 단위로 손을 감지하고, 실시간 제스처 분류 또는 전이 학습을 수행합니다.
+ */
 class HandAnalyzers(
     private val context: Context,
     private val handDetector: HandDetector,
@@ -27,10 +30,12 @@ class HandAnalyzers(
     private val latestPoints: SnapshotStateList<PointF>,
     private val landmarksState: MutableState<List<Triple<Double, Double, Double>>>,
     private val validDetectionThreshold: Int,
-    private val onGestureDetected: ((GestureLabel) -> Unit)? = null // ✅ 추가됨
+    private val isTrainingMode: Boolean = false,
+    private val trainingGestureName: String = "",
+    private val onGestureDetected: ((GestureLabel) -> Unit)? = null,
+    private val onTrainingComplete: (() -> Unit)? = null
 ) : ImageAnalysis.Analyzer {
 
-    // 분석 로직 실행 (프레임마다 호출됨)
     override fun analyze(imageProxy: ImageProxy) {
         try {
             val bitmap = imageProxy.toBitmapCompat()
@@ -38,49 +43,61 @@ class HandAnalyzers(
             val orientation = getBackCameraSensorOrientation(context)
 
             if (points.isNotEmpty()) {
-                // 손이 감지되면 누적 프레임 수 증가
                 detectionFrameCount.value += 1
 
                 if (detectionFrameCount.value >= validDetectionThreshold) {
-                    ThrottledLogger.log("HandAnalyzer", "🟢 유효 손 감지 (${points.size})")
+                    ThrottledLogger.log("HandAnalyzer", "손이 감지되었습니다 (${points.size}개)")
+
                     latestPoints.clear()
                     latestPoints.addAll(points)
 
                     for (point in points) {
-                        // 랜드마크 예측
-                        landmarkDetector.predict(bitmap, orientation)
-                        val landmarks = landmarkDetector.lastLandmarks
+                        if (isTrainingMode) {
+                            // 전이 학습: landmark 수집
+                            landmarkDetector.transfer(bitmap, orientation, trainingGestureName)
 
-                        // 랜드마크가 21개 일 때만 제스처 분류
-                        if (landmarks.size == 21) {
-                            landmarksState.value = landmarks.toList()
-                            val (gestureIndex, confidence) = gestureClassifier.classify(
-                                landmarks,
-                                landmarkDetector.lastHandedness
-                            )
-                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
-                            ThrottledLogger.log("HandAnalyzer", "✋ $gestureName ($gestureIndex, ${"%.2f".format(confidence)})")
-
-                            onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex)) // ✅ 제스처 콜백 실행 추가
+                            // 수집 완료 확인
+                            if (!landmarkDetector.isCollecting) {
+                                gestureText.value = "학습 완료"
+                                onTrainingComplete?.invoke()
+                            }
                         } else {
-                            // 일정 프레임 이상 감지되지 않으면 대기
-                            gestureText.value = "제스처 없음"
-                            ThrottledLogger.log("HandAnalyzer", "🚫 랜드마크 부족")
+                            // 일반 제스처 분류 모드
+                            landmarkDetector.predict(bitmap, orientation)
+                            val landmarks = landmarkDetector.lastLandmarks
+
+                            if (landmarks.size == 21) {
+                                landmarksState.value = landmarks.toList()
+                                val (gestureIndex, confidence) = gestureClassifier.classify(
+                                    landmarks,
+                                    landmarkDetector.lastHandedness
+                                )
+
+                                val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                                gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+
+                                ThrottledLogger.log(
+                                    "HandAnalyzer",
+                                    "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
+                                )
+
+                                onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex))
+                            } else {
+                                gestureText.value = "제스처 없음"
+                                ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
+                            }
                         }
                     }
                 } else {
-                    // 일정 프레임 이상 감지되지 않으면 대기
-                    ThrottledLogger.log("HandAnalyzer", "⏳ 누적 중 (${detectionFrameCount.value})")
+                    ThrottledLogger.log("HandAnalyzer", "손 감지 누적 중 (${detectionFrameCount.value}/${validDetectionThreshold})")
                 }
             } else {
-                // 손이 감지되지 않으면 상태 초기화
                 detectionFrameCount.value = 0
                 landmarksState.value = emptyList()
-                ThrottledLogger.log("HandAnalyzer", "🔴 손 감지 안됨")
+                ThrottledLogger.log("HandAnalyzer", "손이 감지되지 않았습니다")
             }
         } catch (e: Exception) {
-            Log.e("HandAnalyzer", "❌ 분석 실패: ${e.message}", e)
+            Log.e("HandAnalyzer", "프레임 분석 중 오류 발생: ${e.message}", e)
         } finally {
             imageProxy.close()
         }

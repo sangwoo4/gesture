@@ -6,83 +6,26 @@ import android.util.Log
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
 import com.square.aircommand.utils.ThrottledLogger
-import okhttp3.Call
-import okhttp3.Callback
+import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import okhttp3.RequestBody
-import okhttp3.Response
 import org.json.JSONArray
 import org.json.JSONObject
 import org.opencv.android.Utils
-import org.opencv.core.Core
-import org.opencv.core.CvException
-import org.opencv.core.CvType
-import org.opencv.core.Mat
-import org.opencv.core.Point
-import org.opencv.core.Scalar
-import org.opencv.core.Size
+import org.opencv.core.*
 import org.opencv.imgproc.Imgproc
 import org.opencv.osgi.OpenCVNativeLoader
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
+import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 
 class HandLandmarkDetector(
-    context: Context,
+    private val context: Context,
     modelPath: String,
     delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>
 ) : AutoCloseable {
-
-
-
-    fun sendTrainData(modelCode: String, gesture: String, landmarkSequence: MutableList<List<Triple<Double, Double, Double>>>) {
-        // 1. landmarks를 이중배열로 변환
-        val landmarksJsonArray = JSONArray()
-        for (frame in landmarkSequence) {
-            val frameArray = JSONArray()
-            frame.forEach { frameArray.put(it) }
-            landmarksJsonArray.put(frameArray)
-        }
-
-        // 2. 최종 JSON 구성
-        val json = JSONObject().apply {
-            put("model_code", modelCode)
-            put("gesture", gesture)
-            put("landmarks", landmarksJsonArray)
-        }
-
-        // 3. Request 생성
-        val body = RequestBody.create(
-            "application/json; charset=utf-8".toMediaTypeOrNull(),
-            json.toString()
-        )
-
-        val request = Request.Builder()
-            .url("http://192.168.0.5:8000/train_model/") // 에뮬레이터라면 10.0.2.2, 실기기라면 PC IP
-            .post(body)
-            .build()
-
-
-        // 4. 비동기 전송
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                println("❌ 서버 전송 실패: ${e.message}")
-            }
-
-            override fun onResponse(call: Call, response: Response) {
-                if (response.isSuccessful) {
-                    println("✅ 응답 성공: ${response.body?.string()}")
-                } else {
-                    println("⚠️ 응답 오류 코드: ${response.code}")
-                }
-            }
-        })
-    }
-
 
     private val interpreter: Interpreter
     private val delegateStore: Map<TFLiteHelpers.DelegateType, Delegate>
@@ -103,10 +46,11 @@ class HandLandmarkDetector(
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var normalizedLandmarks = mutableListOf<Triple<Double, Double, Double>>()
-    var lastHandedness: String = "Right" // TODO: 전면은 거울모드라서 이 변수를 왼쪽으로 설정을 해야 오른손에 맞게 랜드마크가 뽑히나?
+    var lastHandedness: String = "Right"
 
     init {
         OpenCVNativeLoader().init()
+
         val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
         val (i, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
             modelBuffer, delegatePriorityOrder,
@@ -146,20 +90,56 @@ class HandLandmarkDetector(
         return convertMatToBitmap(image)
     }
 
-    private fun extract63Landmarks(
-        landmarks: Array<Array<FloatArray>>,
-        imgW: Int,
-        imgH: Int
-    ) {
-        // landmarks[0]의 크기가 63이어야 함
-        val frameLandmarks = mutableListOf<Triple<Double, Double, Double>>()
-
-        for (i in 0 until 21) {
-            val (fx, fy, fz) = landmarks[0][i]
-            frameLandmarks.add(Triple(fx.toDouble(), fy.toDouble(), fz.toDouble()))
+    fun transfer(image: Bitmap, sensorOrientation: Int, gestureName: String): Bitmap {
+        if (!isCollecting) {
+            ThrottledLogger.log("HandLandmarkDetector", "⏸️ 현재 수집 중이 아님 (isCollecting = false)")
+            return image
         }
 
-        landmarkSequence.add(frameLandmarks)
+        preprocessImage(image, sensorOrientation)
+        val (landmarks, score, handedness) = runInference()
+
+        lastLandmarks.clear()
+        if (score < 0.005f) {
+            ThrottledLogger.log("HandLandmarkDetector", "❌ 유효하지 않은 점수 ($score)")
+            return image
+        }
+
+        lastHandedness = if (handedness > 0.5f) "Right" else "Left"
+        extractLandmarks(landmarks, image.width, image.height)
+
+        if (landmarkSequence.size < 100) {
+            if (frameCounter % frameInterval == 0) {
+                extract63Landmarks(landmarks, image.width, image.height)
+                ThrottledLogger.log("HandLandmarkDetector", "✅ 랜드마크 수집 중 (${landmarkSequence.size}/100)")
+            }
+            frameCounter++
+        }
+
+        if (landmarkSequence.size == 100) {
+            Log.d("HandLandmarkDetector", "📦 수집된 랜드마크 시퀀스 (총 ${landmarkSequence.size} 프레임)")
+            landmarkSequence.forEachIndexed { i, frame ->
+                Log.d("HandLandmarkDetector", "프레임 $i: ${frame.joinToString { "(${String.format("%.2f", it.first)}, ${String.format("%.2f", it.second)}, ${String.format("%.2f", it.third)})" }}")
+            }
+
+            val modelCode = getSavedModelCode(context)
+
+            sendTrainData(
+                modelCode = modelCode,
+                gesture = gestureName,
+                landmarkSequence = landmarkSequence
+            ) { newModelCode, labelJson ->
+                saveModelCode(context, newModelCode)
+                saveLabelMap(context, labelJson)
+                Log.d("HandLandmarkDetector", "✅ 서버 전송 완료 - 새 모델 코드: $newModelCode")
+            }
+
+            stopCollecting()
+            Log.d("HandLandmarkDetector", "🛑 랜드마크 수집 종료")
+        }
+
+        drawLandmarks(image.width, image.height)
+        return convertMatToBitmap(image)
     }
 
     fun startCollecting() {
@@ -171,44 +151,13 @@ class HandLandmarkDetector(
         isCollecting = false
     }
 
-
-    fun transfer(image: Bitmap, sensorOrientation: Int): Bitmap {
-        if (!isCollecting) return image  // 🔒 추론 중단 상태면 바로 반환
-
-        preprocessImage(image, sensorOrientation)
-        val (landmarks, score, handedness) = runInference()
-
-        lastLandmarks.clear()
-        if (score < 0.005f) return image
-
-        lastHandedness = if (handedness > 0.5f) "Right" else "Left"
-        extractLandmarks(landmarks, image.width, image.height)
-
-        if (landmarkSequence.size < 100) {
-            if (frameCounter % frameInterval == 0) {
-                extract63Landmarks(landmarks, image.width, image.height)
-            }
-            frameCounter++
+    private fun extract63Landmarks(landmarks: Array<Array<FloatArray>>, imgW: Int, imgH: Int) {
+        val frameLandmarks = mutableListOf<Triple<Double, Double, Double>>()
+        for (i in 0 until 21) {
+            val (fx, fy, fz) = landmarks[0][i]
+            frameLandmarks.add(Triple(fx.toDouble(), fy.toDouble(), fz.toDouble()))
         }
-
-        println("전체 프레임 수: ${landmarkSequence.size}")
-        landmarkSequence.forEachIndexed { index, frame ->
-            if (frame.size != 21) {
-                println("❌ 프레임 $index: 랜드마크 개수 = ${frame.size} (오류!)")
-            }
-        }
-
-        if (landmarkSequence.size == 100) {
-            sendTrainData(
-                modelCode = "basic",
-                gesture = "kk",
-                landmarkSequence = landmarkSequence
-            )
-            stopCollecting()  // ✅ 수집 완료 후 추론 정지
-        }
-
-        drawLandmarks(image.width, image.height)
-        return convertMatToBitmap(image)
+        landmarkSequence.add(frameLandmarks)
     }
 
     private fun preprocessImage(image: Bitmap, sensorOrientation: Int) {
@@ -247,19 +196,17 @@ class HandLandmarkDetector(
 
         interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
 
-        ThrottledLogger.log("LandmarkDetector", "🎯 outputScore = ${outputScores[0]}")
-        ThrottledLogger.log("LandmarkDetector", "✋ handedness = ${if (outputLR[0] > 0.5f) "Right" else "Left"}")
+        ThrottledLogger.log("LandmarkDetector", "outputScore = ${outputScores[0]}")
+        ThrottledLogger.log("LandmarkDetector", "handedness = ${if (outputLR[0] > 0.5f) "Right" else "Left"}")
 
         return Triple(outputLandmarks, outputScores[0], outputLR[0])
     }
 
-    // TODO:
     private fun extractLandmarks(landmarks: Array<Array<FloatArray>>, imgW: Int, imgH: Int) {
         for (i in 0 until 21) {
             val (fx, fy, fz) = landmarks[0][i]
             lastLandmarks.add(Triple(fx.toDouble(), fy.toDouble(), fz.toDouble()))
         }
-        ThrottledLogger.log("LandmarkDetector", "🖐️ 랜드마크: $lastLandmarks")
     }
 
     private fun drawLandmarks(imgW: Int, imgH: Int) {
@@ -275,7 +222,7 @@ class HandLandmarkDetector(
         val matH = inputMatRgb.rows()
 
         if (matW <= 0 || matH <= 0) {
-            Log.e("LandmarkDetector", "❌ 잘못된 이미지 크기: ${matW}x${matH} → Bitmap 생성 생략")
+            Log.e("LandmarkDetector", "잘못된 이미지 크기")
             return original
         }
 
@@ -286,8 +233,72 @@ class HandLandmarkDetector(
             Utils.matToBitmap(inputMatAbgr, outputBitmap)
             outputBitmap
         } catch (e: CvException) {
-            Log.e("LandmarkDetector", "❌ matToBitmap 실패: ${e.message}", e)
+            Log.e("LandmarkDetector", "matToBitmap 실패: ${e.message}", e)
             original
         }
+    }
+
+    fun sendTrainData(
+        modelCode: String,
+        gesture: String,
+        landmarkSequence: MutableList<List<Triple<Double, Double, Double>>>,
+        onSuccess: (modelCode: String, labelJson: String) -> Unit
+    ) {
+        val landmarksJsonArray = JSONArray()
+        for (frame in landmarkSequence) {
+            val frameArray = JSONArray()
+            frame.forEach { (x, y, z) ->
+                frameArray.put(JSONArray(listOf(x, y, z)))
+            }
+            landmarksJsonArray.put(frameArray)
+        }
+
+        val json = JSONObject().apply {
+            put("model_code", modelCode)
+            put("gesture", gesture)
+            put("landmarks", landmarksJsonArray)
+        }
+
+        val body = RequestBody.create(
+            "application/json; charset=utf-8".toMediaTypeOrNull(),
+            json.toString()
+        )
+
+        val request = Request.Builder()
+            .url("http://192.168.0.5:8000/train_model/")
+            .post(body)
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+            override fun onFailure(call: Call, e: IOException) {
+                println("서버 전송 실패: ${e.message}")
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                if (response.isSuccessful) {
+                    val bodyStr = response.body?.string() ?: "{}"
+                    val resultJson = JSONObject(bodyStr)
+                    val modelCode = resultJson.optString("model_code", "basic")
+                    onSuccess(modelCode, bodyStr)
+                } else {
+                    println("응답 오류 코드: ${response.code}")
+                }
+            }
+        })
+    }
+
+    private fun saveModelCode(context: Context, modelCode: String) {
+        context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
+            .edit().putString("model_code", modelCode).apply()
+    }
+
+    private fun saveLabelMap(context: Context, labelJson: String) {
+        val file = File(context.filesDir, "gesture_labels.json")
+        file.writeText(labelJson)
+    }
+
+    private fun getSavedModelCode(context: Context): String {
+        return context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
+            .getString("model_code", "basic") ?: "basic"
     }
 }

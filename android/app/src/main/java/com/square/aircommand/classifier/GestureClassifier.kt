@@ -7,6 +7,7 @@ import com.square.aircommand.utils.ThrottledLogger
 import org.json.JSONObject
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
+import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.pow
@@ -16,17 +17,31 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
     private val labelMap: Map<Int, String>
 
     init {
-        val json = context.assets.open(assetFileName).bufferedReader().use { it.readText() }
+        // 내부 저장소에 gesture_labels.json이 존재하면 그것을 먼저 사용
+        val labelFile = File(context.filesDir, assetFileName)
+        val json = if (labelFile.exists()) {
+            labelFile.readText()
+        } else {
+            context.assets.open(assetFileName).bufferedReader().use { it.readText() }
+        }
+
+        // model_code 키는 제외하고 index → label만 맵으로 구성
         val jsonObject = JSONObject(json)
         val map = mutableMapOf<Int, String>()
         for (key in jsonObject.keys()) {
-            map[key.toInt()] = jsonObject.getString(key)
+            if (key != "model_code") {
+                map[key.toInt()] = jsonObject.getString(key)
+            }
         }
         labelMap = map
     }
 
     fun getLabel(index: Int): String {
         return labelMap[index] ?: "Unknown"
+    }
+
+    fun getAllLabels(): Map<Int, String> {
+        return labelMap
     }
 }
 
@@ -45,7 +60,15 @@ class GestureClassifier(
     private val numClasses: Int
 
     init {
-        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
+        // 1. SharedPreferences에서 저장된 model_code를 불러옴
+        val modelCode = context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
+            .getString("model_code", "cnns") ?: "cnns"
+
+        // 2. model_code에 따라 모델 파일 경로 설정
+        val resolvedModelPath = "update_gesture_model_${modelCode}.tflite"
+
+        // 3. 지정된 모델 경로로 모델 로딩
+        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, resolvedModelPath)
         val (i, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
             modelBuffer,
             delegatePriorityOrder,
@@ -57,6 +80,7 @@ class GestureClassifier(
         interpreter = i
         delegateStore = delegates
 
+        // 4. 양자화 파라미터 초기화
         val inputTensor = interpreter.getInputTensor(0)
         inputScale = inputTensor.quantizationParams().scale
         inputZeroPoint = inputTensor.quantizationParams().zeroPoint
