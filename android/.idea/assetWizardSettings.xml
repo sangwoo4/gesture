@@ -79,8 +79,8 @@
                                             <option name="values">
                                               <map>
                                                 <entry key="color" value="000000" />
-                                                <entry key="imagePath" value="C:\workspace\Kotlin\pic\appIcon3.jpg" />
-                                                <entry key="scalingPercent" value="132" />
+                                                <entry key="imagePath" value="C:\workspace\Kotlin\pic\mainIcon.jpg" />
+                                                <entry key="scalingPercent" value="76" />
                                               </map>
                                             </option>
                                           </PersistentState>

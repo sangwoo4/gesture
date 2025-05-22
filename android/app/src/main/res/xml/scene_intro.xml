@@ -35,7 +35,7 @@
             android:scaleY="0.5"
             android:alpha="0"/>
 
-        <Constraint
+        <Constraint..33
             android:id="@+id/tvTouch"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
@@ -56,7 +56,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:translationY="100dp"
+            android:translationY="70dp"
             android:alpha="1"/>
 
         <Constraint
@@ -69,6 +69,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:scaleX="1"
             android:scaleY="1"
+            android:translationY="-30dp"
             android:alpha="1"/>
 
         <Constraint
@@ -78,7 +79,7 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:translationY="-50dp"
+            android:translationY="-70dp"
             android:alpha="1"/>
     </ConstraintSet>
 </MotionScene>

@@ -55,11 +55,6 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
-        <!-- 폰트 설정 -->
-        <meta-data
-            android:name="preloaded_fonts"
-            android:resource="@array/preloaded_fonts" />
-
     </application>
 
 </manifest>
