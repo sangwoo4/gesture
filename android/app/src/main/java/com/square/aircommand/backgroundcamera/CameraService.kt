@@ -30,6 +30,7 @@ import com.square.aircommand.gesture.GestureLabel
 import com.square.aircommand.gesture.GestureAccessibilityService
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
+import com.square.aircommand.tflite.ModelRepository
 import com.square.aircommand.tflite.TFLiteHelpers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -73,15 +74,10 @@ class CameraService : Service() {
 
     // 모델들 초기화 (HandDetector, LandmarkDetector, GestureClassifier)
     private fun initModels() {
-        val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
-            arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-            arrayOf() // CPU fallback
-        )
-
-        handDetector = HandDetector(this, "mediapipe_hand-handdetector.tflite", delegateOrder)
-        landmarkDetector = HandLandmarkDetector(this, "mediapipe_hand-handlandmarkdetector.tflite", delegateOrder)
-        gestureClassifier = GestureClassifier(this, "update_gesture_model_cnns.tflite", delegateOrder)
+        ModelRepository.initModels(applicationContext)
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
     // 카메라 분석기 초기화

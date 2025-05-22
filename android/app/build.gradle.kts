@@ -59,13 +59,7 @@ android {
         )
         buildConfigField(
             "String", "GESTURE_CLASSIFIER_MODEL",
-            "\"${project.findProperty("gestureClassifierModelName") ?: "update_gesture_model_cnn_2.tflite"}\""
-        )
-
-        buildConfigField(
-            "String",
-            "HAND_DETECTOR_MODEL",
-            "\"${project.findProperty("handDetectorModelName") ?: "mediapipe_hand-handdetector.tflite"}\""
+            "\"${project.findProperty("gestureClassifierModelName") ?: "update_gesture_model_cnns.tflite"}\""
         )
     }
 

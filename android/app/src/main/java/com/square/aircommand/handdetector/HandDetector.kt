@@ -88,7 +88,7 @@ class HandDetector(
     ): Tuple6<Interpreter, Map<TFLiteHelpers.DelegateType, Delegate>, Int, Int, FloatArray, ByteBuffer> {
         val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
 
-        val (interpreter, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
+        val (interpreter, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
             modelBuffer,
             delegatePriorityOrder,
             AIHubDefaults.numCPUThreads,

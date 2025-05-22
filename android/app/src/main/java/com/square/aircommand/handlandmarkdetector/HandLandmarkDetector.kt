@@ -60,7 +60,7 @@ class HandLandmarkDetector(
         OpenCVNativeLoader().init()
 
         val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
-        val (i, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
+        val (i, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
             modelBuffer, delegatePriorityOrder,
             AIHubDefaults.numCPUThreads,
             context.applicationInfo.nativeLibraryDir,
@@ -92,7 +92,7 @@ class HandLandmarkDetector(
         if (score < 0.005f) return image
 
         lastHandedness = if (handedness > 0.5f) "Right" else "Left"
-        extractLandmarks(landmarks, image.width, image.height)
+        extractLandmarks(landmarks)
         drawLandmarks(image.width, image.height)
 
         return convertMatToBitmap(image)
@@ -114,7 +114,7 @@ class HandLandmarkDetector(
         }
 
         lastHandedness = if (handedness > 0.5f) "Right" else "Left"
-        extractLandmarks(landmarks, image.width, image.height)
+        extractLandmarks(landmarks)
 
         if (landmarkSequence.size < 100) {
             if (frameCounter % frameInterval == 0) {

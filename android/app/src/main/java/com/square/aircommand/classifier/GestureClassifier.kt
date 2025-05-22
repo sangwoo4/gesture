@@ -92,7 +92,7 @@ class GestureClassifier(
 
         // 3. 지정된 모델 경로로 모델 로딩
         val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, resolvedModelPath)
-        val (i, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
+        val (i, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
             modelBuffer,
             delegatePriorityOrder,
             AIHubDefaults.numCPUThreads,

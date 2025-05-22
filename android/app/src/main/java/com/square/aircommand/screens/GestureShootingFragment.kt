@@ -18,6 +18,7 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
+import com.square.aircommand.tflite.ModelRepository
 import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
@@ -87,29 +88,10 @@ class GestureShootingFragment : Fragment() {
 
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
-        val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
-            arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-            arrayOf()
-        )
-
-        handDetector = HandDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
-
-        landmarkDetector = HandLandmarkDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handlandmarkdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
-
-        gestureClassifier = GestureClassifier(
-            context = requireContext(),
-            modelPath = "update_gesture_model_cnns.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
+        ModelRepository.initModels(requireContext())
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
     // ✅ 학습 시작 명시
@@ -143,10 +125,7 @@ class GestureShootingFragment : Fragment() {
 
     override fun onDestroyView() {
         super.onDestroyView()
-        // 리소스 해제
         _binding = null
-        handDetector.close()
-        landmarkDetector.close()
-        gestureClassifier.close()
+        ModelRepository.closeAll() // 👉 모든 모델 리소스를 일괄 해제
     }
 }

@@ -3,9 +3,11 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -14,6 +16,7 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentTestBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
+import com.square.aircommand.tflite.ModelRepository
 import com.square.aircommand.tflite.TFLiteHelpers
 
 class TestFragment : Fragment() {
@@ -45,8 +48,13 @@ class TestFragment : Fragment() {
         }
 
         if (allPermissionsGranted()) {
-            initModels()
-            showCameraCompose()
+            try {
+                ModelRepository.initModels(requireContext()) // ✅ 여기서 한 번만 초기화
+                showCameraCompose()
+            } catch (e: Exception) {
+                Log.e("TestFragment", "❌ 모델 초기화 실패: ${e.message}", e)
+                Toast.makeText(requireContext(), "모델 초기화 실패: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -60,38 +68,12 @@ class TestFragment : Fragment() {
         requireContext(), Manifest.permission.CAMERA
     ) == PackageManager.PERMISSION_GRANTED
 
-    private fun initModels() {
-        val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
-            arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-            arrayOf() // CPU fallback
-        )
-
-        handDetector = HandDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
-
-        landmarkDetector = HandLandmarkDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handlandmarkdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
-
-        gestureClassifier = GestureClassifier(
-            context = requireContext(),
-            modelPath = "update_gesture_model_cnns.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
-    }
-
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
             CameraScreen(
-                handDetector = handDetector,
-                landmarkDetector = landmarkDetector,
-                gestureClassifier = gestureClassifier
+                handDetector = ModelRepository.getHandDetector(),
+                landmarkDetector = ModelRepository.getLandmarkDetector(),
+                gestureClassifier = ModelRepository.getGestureClassifier()
             )
         }
     }

@@ -21,11 +21,12 @@ object TFLiteHelpers {
     // Delegate 타입을 정의함
     enum class DelegateType {
         GPUv2,
-        QNN_NPU
+        QNN_NPU_FP16,
+        QNN_NPU_QUANTIZED
     }
 
     // delegate 우선순위를 기준으로 interpreter와 delegate들을 생성함
-    fun CreateInterpreterAndDelegatesFromOptions(
+    fun createInterpreterAndDelegatesFromOptions(
         tfLiteModel: MappedByteBuffer,
         delegatePriorityOrder: Array<Array<DelegateType>>,
         numCPUThreads: Int,
@@ -40,7 +41,7 @@ object TFLiteHelpers {
         for (delegatesToRegister in delegatePriorityOrder) {
             // 이미 시도한 delegate는 건너뜀
             delegatesToRegister.filterNot { attemptedDelegates.contains(it) }.forEach { type ->
-                CreateDelegate(type, nativeLibraryDir, cacheDir, modelIdentifier)?.let {
+                createDelegate(type, nativeLibraryDir, cacheDir, modelIdentifier)?.let {
                     delegates[type] = it
                 }
                 attemptedDelegates.add(type)
@@ -51,7 +52,7 @@ object TFLiteHelpers {
 
             // interpreter 생성 시도함
             val pairs = delegatesToRegister.map { Pair(it, delegates[it]) }.toTypedArray()
-            val interpreter = CreateInterpreterFromDelegates(pairs, numCPUThreads, tfLiteModel) ?: continue
+            val interpreter = createInterpreterFromDelegates(pairs, numCPUThreads, tfLiteModel) ?: continue
 
             // 사용하지 않은 delegate는 해제함
             val used = delegatesToRegister.toSet()
@@ -67,7 +68,7 @@ object TFLiteHelpers {
     }
 
     // 주어진 delegate 배열로 interpreter를 생성함
-    fun CreateInterpreterFromDelegates(
+    fun createInterpreterFromDelegates(
         delegates: Array<Pair<DelegateType, Delegate?>>, numCPUThreads: Int, tfLiteModel: MappedByteBuffer
     ): Interpreter? {
         val options = Interpreter.Options().apply {
@@ -131,8 +132,9 @@ object TFLiteHelpers {
         return Pair(buffer, hash)
     }
 
+
     // delegate 타입에 따라 해당 delegate를 생성함
-    private fun CreateDelegate(
+    private fun createDelegate(
         delegateType: DelegateType,
         nativeLibraryDir: String,
         cacheDir: String,
@@ -140,7 +142,8 @@ object TFLiteHelpers {
     ): Delegate? {
         return when (delegateType) {
             DelegateType.GPUv2 -> CreateGPUv2Delegate(cacheDir, modelIdentifier)
-            DelegateType.QNN_NPU -> CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier)
+            DelegateType.QNN_NPU_FP16 -> CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier, true)
+            DelegateType.QNN_NPU_QUANTIZED -> CreateQNN_NPUDelegate(nativeLibraryDir, cacheDir, modelIdentifier, false)
         }
     }
 
@@ -148,7 +151,8 @@ object TFLiteHelpers {
     private fun CreateQNN_NPUDelegate(
         nativeLibraryDir: String,
         cacheDir: String,
-        modelIdentifier: String
+        modelIdentifier: String,
+        bool: Boolean
     ): Delegate? {
         val options = QnnDelegate.Options().apply {
             setSkelLibraryDir(nativeLibraryDir)
@@ -189,6 +193,20 @@ object TFLiteHelpers {
             null
         }
     }
+
+    fun getModelInputType(tfLiteModel: MappedByteBuffer): org.tensorflow.lite.DataType {
+        return try {
+            val interpreter = Interpreter(tfLiteModel)
+            val inputTensor = interpreter.getInputTensor(0)
+            val inputType = inputTensor.dataType()
+            interpreter.close()
+            inputType
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ 입력 타입 확인 실패: ${e.message}")
+            org.tensorflow.lite.DataType.FLOAT32 // 기본값 fallback
+        }
+    }
+
 
     // GPUv2 delegate를 생성함
     private fun CreateGPUv2Delegate(cacheDir: String, modelIdentifier: String): Delegate? {
