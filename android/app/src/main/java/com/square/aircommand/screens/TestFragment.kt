@@ -3,9 +3,11 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -15,6 +17,7 @@ import com.square.aircommand.databinding.FragmentTestBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.TFLiteHelpers
+import org.tensorflow.lite.DataType
 
 class TestFragment : Fragment() {
 
@@ -45,8 +48,13 @@ class TestFragment : Fragment() {
         }
 
         if (allPermissionsGranted()) {
-            initModels()
-            showCameraCompose()
+            try {
+                initModels()
+                showCameraCompose()
+            } catch (e: Exception) {
+                Log.e("TestFragment", "❌ 모델 초기화 실패: ${e.message}", e)
+                Toast.makeText(requireContext(), "모델 초기화 실패: ${e.message}", Toast.LENGTH_LONG).show()
+            }
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -61,29 +69,47 @@ class TestFragment : Fragment() {
     ) == PackageManager.PERMISSION_GRANTED
 
     private fun initModels() {
-        val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
-            arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-            arrayOf() // CPU fallback
-        )
+        fun loadDelegateOrder(modelName: String): Array<Array<TFLiteHelpers.DelegateType>> {
+            val modelBuffer = TFLiteHelpers.loadModelFile(requireContext().assets, modelName).first
+            val inputType: DataType = TFLiteHelpers.getModelInputType(modelBuffer)
+            Log.i("TestFragment", "📌 [$modelName] 입력 타입: $inputType")
+            val delegateOrder = TFLiteHelpers.getDelegatePriorityOrderFromInputType(inputType)
+            Log.i("TestFragment", "🧩 [$modelName] Delegate 우선순위: ${delegateOrder.joinToString { it.joinToString(" + ") }}")
+            return delegateOrder
+        }
 
-        handDetector = HandDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
+        try {
+            handDetector = HandDetector(
+                context = requireContext(),
+                modelPath = "mediapipe_hand-handdetector.tflite",
+                delegatePriorityOrder = loadDelegateOrder("mediapipe_hand-handdetector.tflite")
+            )
+        } catch (e: Exception) {
+            Log.e("TestFragment", "❌ HandDetector 초기화 실패: ${e.message}", e)
+            throw RuntimeException("HandDetector 초기화 실패: ${e.message}")
+        }
 
-        landmarkDetector = HandLandmarkDetector(
-            context = requireContext(),
-            modelPath = "mediapipe_hand-handlandmarkdetector.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
+        try {
+            landmarkDetector = HandLandmarkDetector(
+                context = requireContext(),
+                modelPath = "mediapipe_hand-handlandmarkdetector.tflite",
+                delegatePriorityOrder = loadDelegateOrder("mediapipe_hand-handlandmarkdetector.tflite")
+            )
+        } catch (e: Exception) {
+            Log.e("TestFragment", "❌ HandLandmarkDetector 초기화 실패: ${e.message}", e)
+            throw RuntimeException("HandLandmarkDetector 초기화 실패: ${e.message}")
+        }
 
-        gestureClassifier = GestureClassifier(
-            context = requireContext(),
-            modelPath = "update_gesture_model_cnns.tflite",
-            delegatePriorityOrder = delegateOrder
-        )
+        try {
+            gestureClassifier = GestureClassifier(
+                context = requireContext(),
+                modelPath = "update_gesture_model_cnn.tflite",
+                delegatePriorityOrder = loadDelegateOrder("update_gesture_model_cnns.tflite")
+            )
+        } catch (e: Exception) {
+            Log.e("TestFragment", "❌ GestureClassifier 초기화 실패: ${e.message}", e)
+            throw RuntimeException("GestureClassifier 초기화 실패: ${e.message}")
+        }
     }
 
     private fun showCameraCompose() {

@@ -74,7 +74,8 @@ class CameraService : Service() {
     // 모델들 초기화 (HandDetector, LandmarkDetector, GestureClassifier)
     private fun initModels() {
         val delegateOrder = arrayOf(
-            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
+            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_QUANTIZED),
+            arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_FP16),
             arrayOf(TFLiteHelpers.DelegateType.GPUv2),
             arrayOf() // CPU fallback
         )

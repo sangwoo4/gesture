@@ -13,6 +13,7 @@ import java.nio.ByteOrder
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
+import org.tensorflow.lite.DataType
 
 class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labels.json") {
     private val labelMap: Map<Int, String>
@@ -82,54 +83,69 @@ class GestureClassifier(
         interpreter = i
         delegateStore = delegates
 
-        // 4. 양자화 파라미터 초기화
         val inputTensor = interpreter.getInputTensor(0)
-        inputScale = inputTensor.quantizationParams().scale
-        inputZeroPoint = inputTensor.quantizationParams().zeroPoint
+        require(inputTensor.dataType() == DataType.UINT8) { "GestureClassifier는 UINT8 양자화 모델만 지원됩니다." }
+
+        val inputQuant = inputTensor.quantizationParams()
+        inputScale = inputQuant.scale
+        inputZeroPoint = inputQuant.zeroPoint
 
         val outputTensor = interpreter.getOutputTensor(0)
-        outputScale = outputTensor.quantizationParams().scale
-        outputZeroPoint = outputTensor.quantizationParams().zeroPoint
+        val outputQuant = outputTensor.quantizationParams()
+        outputScale = outputQuant.scale
+        outputZeroPoint = outputQuant.zeroPoint
         numClasses = outputTensor.shape()[1]
     }
 
     fun classify(landmarks: MutableList<Triple<Double, Double, Double>>, handedness: String): Pair<Int, Float> {
         if (landmarks.size != 21) throw IllegalArgumentException("❌ 랜드마크는 21개여야 합니다")
 
+        // ✅ 기준점: wrist(0)
         val base = landmarks[0]
-        val norm: List<FloatArray> = landmarks.map { (x, y, z) ->
-            floatArrayOf((x - base.first).toFloat(), (y - base.second).toFloat(), (z - base.third).toFloat())
+        val norm = landmarks.map { (x, y, z) ->
+            floatArrayOf(
+                (x - base.first).toFloat(),
+                (y - base.second).toFloat(),
+                (z - base.third).toFloat()
+            )
         }
 
-        // 🔄 더 나은 정규화 기준: 평균 거리
-        val scale = listOf(
-            distance(norm[0], norm[9]),
-            distance(norm[0], norm[5]),
-            distance(norm[0], norm[17])
-        ).average().toFloat()
+        // ✅ 정규화 기준: wrist ~ middle_finger_mcp(9)
+        val scale = sqrt(
+            (norm[0][0] - norm[9][0]).pow(2) +
+                    (norm[0][1] - norm[9][1]).pow(2) +
+                    (norm[0][2] - norm[9][2]).pow(2)
+        )
 
-        val normalized: List<FloatArray> =
-            if (scale > 0f) norm.map { arr -> FloatArray(3) { i -> arr[i] / scale } }
-            else norm
+        val normalized = if (scale > 0f) {
+            norm.map { arr -> FloatArray(3) { i -> arr[i] / scale } }
+        } else norm
 
-        val inputFloats = mutableListOf<Float>()
-        for (arr in normalized) {
-            inputFloats.addAll(arr.toList())
+        // ✅ (21, 3) → (1, 21, 3, 1) 형식으로 reshape
+        val reshaped = Array(1) { Array(21) { Array(3) { ByteArray(1) } } }
+
+        for (i in 0 until 21) {
+            for (j in 0 until 3) {
+                val floatVal = normalized[i][j]
+                val quantized = ((floatVal / inputScale) + inputZeroPoint).toInt().coerceIn(0, 255)
+                reshaped[0][i][j][0] = quantized.toByte()
+            }
         }
 
-        val quantizedInput = ByteArray(inputFloats.size) { idx ->
-            val q = ((inputFloats[idx] / inputScale) + inputZeroPoint).toInt()
-            q.coerceIn(0, 255).toByte()
+        val inputBuffer = ByteBuffer.allocateDirect(21 * 3 * 1).order(ByteOrder.nativeOrder())
+        for (i in 0 until 21) {
+            for (j in 0 until 3) {
+                inputBuffer.put(reshaped[0][i][j][0])
+            }
         }
-
-        val inputBuffer = ByteBuffer.allocateDirect(quantizedInput.size).order(ByteOrder.nativeOrder())
-        inputBuffer.put(quantizedInput)
         inputBuffer.rewind()
 
+        // ✅ 출력 준비 및 추론 실행
         val outputBuffer = ByteBuffer.allocateDirect(numClasses).order(ByteOrder.nativeOrder())
         interpreter.run(inputBuffer, outputBuffer)
         outputBuffer.rewind()
 
+        // ✅ 후처리
         val output = ByteArray(numClasses)
         outputBuffer.get(output)
 
@@ -147,14 +163,6 @@ class GestureClassifier(
 
         ThrottledLogger.log("GestureClassifier", "✅ 예측 결과: 클래스 $maxIdx, 신뢰도 ${"%.3f".format(confidence)}")
         return Pair(maxIdx, confidence)
-    }
-
-    private fun distance(a: FloatArray, b: FloatArray): Float {
-        return sqrt(
-            (a[0] - b[0]).toDouble().pow(2.0) +
-                    (a[1] - b[1]).toDouble().pow(2.0) +
-                    (a[2] - b[2]).toDouble().pow(2.0)
-        ).toFloat()
     }
 
     override fun close() {
