@@ -13,11 +13,14 @@ import java.nio.ByteOrder
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
+import java.io.IOException
 
 class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labels.json") {
     private val labelMap: Map<Int, String>
 
     init {
+
+        copyAssetToInternalStorageIfNotExists(context, assetFileName)
         // 내부 저장소에 gesture_labels.json이 존재하면 그것을 먼저 사용
         val labelFile = File(context.filesDir, assetFileName)
         val json = if (labelFile.exists()) {
@@ -39,6 +42,24 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
 
     fun getLabel(index: Int): String {
         return labelMap[index] ?: "Unknown"
+    }
+
+    fun copyAssetToInternalStorageIfNotExists(context: Context, assetFileName: String) {
+        val file = File(context.filesDir, assetFileName)
+        if (!file.exists()) {
+            try {
+                context.assets.open(assetFileName).use { inputStream ->
+                    file.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                Log.d("GestureLabelMapper", "$assetFileName copied to internal storage.")
+            } catch (e: IOException) {
+                Log.e("GestureLabelMapper", "파일 복사 실패: ${e.message}")
+            }
+        } else {
+            Log.d("GestureLabelMapper", "$assetFileName already exists in internal storage.")
+        }
     }
 
     fun getAllLabels(): Map<Int, String> {

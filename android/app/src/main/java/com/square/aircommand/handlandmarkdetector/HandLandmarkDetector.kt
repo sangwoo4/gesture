@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.utils.ModelStorageManager.getSavedModelCode
+import com.square.aircommand.utils.ModelStorageManager.saveModelCode
+import com.square.aircommand.utils.ModelStorageManager.updateLabelMap
 import com.square.aircommand.utils.ThrottledLogger
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -135,7 +138,7 @@ class HandLandmarkDetector(
                 landmarkSequence = landmarkSequence
             ) { newModelCode, labelJson ->
                 saveModelCode(context, newModelCode)
-                saveLabelMap(context, labelJson)
+                updateLabelMap(context, gestureName)
                 Log.d("HandLandmarkDetector", "✅ 서버 전송 완료 - 새 모델 코드: $newModelCode")
             }
 
@@ -207,7 +210,7 @@ class HandLandmarkDetector(
         return Triple(outputLandmarks, outputScores[0], outputLR[0])
     }
 
-    private fun extractLandmarks(landmarks: Array<Array<FloatArray>>, imgW: Int, imgH: Int) {
+    private fun extractLandmarks(landmarks: Array<Array<FloatArray>>) {
         for (i in 0 until 21) {
             val (fx, fy, fz) = landmarks[0][i]
             lastLandmarks.add(Triple(fx.toDouble(), fy.toDouble(), fz.toDouble()))
@@ -294,20 +297,5 @@ class HandLandmarkDetector(
                 }
             }
         })
-    }
-
-    private fun saveModelCode(context: Context, modelCode: String) {
-        context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
-            .edit().putString("model_code", modelCode).apply()
-    }
-
-    private fun saveLabelMap(context: Context, labelJson: String) {
-        val file = File(context.filesDir, "gesture_labels.json")
-        file.writeText(labelJson)
-    }
-
-    private fun getSavedModelCode(context: Context): String {
-        return context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
-            .getString("model_code", "basic") ?: "basic"
     }
 }
