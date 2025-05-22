@@ -8,6 +8,7 @@ import com.square.aircommand.tflite.TFLiteHelpers
 import org.opencv.android.Utils
 import org.opencv.core.CvType
 import org.opencv.core.Mat
+import org.opencv.core.Scalar
 import org.opencv.core.Size
 import org.opencv.imgproc.Imgproc
 import org.opencv.osgi.OpenCVNativeLoader
@@ -132,17 +133,44 @@ class HandDetector(
         val candidates = mutableListOf<PointF>()
         val scores = mutableListOf<Float>()
 
+        // ✅ 시각화를 위한 Mat 변환
+        val debugMat = Mat()
+        Utils.bitmapToMat(bitmap, debugMat)
+
         for (i in 0 until NUM_ANCHORS) {
             val rawScore = boxScores[0][i][0]
             val score = sigmoid(rawScore)
             if (score <= DETECTION_THRESHOLD) continue
 
-            val x = boxCoords[0][i][0] * scaleX
-            val y = boxCoords[0][i][1] * scaleY
+            // 💡 모델에서 (x, y)만 제공되는 상황을 가정
+            val x = boxCoords[0][i][0] * bitmap.width
+            val y = boxCoords[0][i][1] * bitmap.height
+
+            // ✅ 확장된 박스 적용
+            val scaleFactor = 1.4f
+            val boxSize = 100f  // 또는 모델 제공값이 있다면 그것을 사용할 것
+            val boxW = boxSize * scaleFactor
+            val boxH = boxSize * scaleFactor
+
+            val left = (x - boxW / 2).coerceAtLeast(0f)
+            val top = (y - boxH / 2).coerceAtLeast(0f)
+            val right = (x + boxW / 2).coerceAtMost(bitmap.width.toFloat())
+            val bottom = (y + boxH / 2).coerceAtMost(bitmap.height.toFloat())
+
+            // ✅ 디버깅 박스 시각화
+            Imgproc.rectangle(
+                debugMat,
+                org.opencv.core.Point(left.toDouble(), top.toDouble()),
+                org.opencv.core.Point(right.toDouble(), bottom.toDouble()),
+                Scalar(0.0, 255.0, 0.0), 2
+            )
 
             candidates.add(PointF(x, y))
             scores.add(score)
         }
+
+        // ✅ 다시 Bitmap에 반영
+        Utils.matToBitmap(debugMat, bitmap)
 
         return if (candidates.isEmpty()) {
             emptyList()

@@ -11,7 +11,7 @@ import android.graphics.Typeface
 import android.util.AttributeSet
 import android.view.View
 
-class FragmentRender @JvmOverloads constructor(
+class   FragmentRender @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null
 ) : View(context, attrs) {

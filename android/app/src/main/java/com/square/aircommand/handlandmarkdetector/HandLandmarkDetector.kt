@@ -173,14 +173,39 @@ class HandLandmarkDetector(
         Utils.bitmapToMat(image, inputMatAbgr)
         Imgproc.cvtColor(inputMatAbgr, inputMatRgb, Imgproc.COLOR_BGRA2RGB)
 
+        // 센서 방향 보정
         when (sensorOrientation) {
             90 -> Core.rotate(inputMatRgb, inputMatRgb, Core.ROTATE_90_CLOCKWISE)
             180 -> Core.rotate(inputMatRgb, inputMatRgb, Core.ROTATE_180)
             270 -> Core.rotate(inputMatRgb, inputMatRgb, Core.ROTATE_90_COUNTERCLOCKWISE)
         }
 
+        val srcSize = inputMatRgb.size()
+        val dstSize = Size(inputWidth.toDouble(), inputHeight.toDouble())
+        val aspectSrc = srcSize.width / srcSize.height
+        val aspectDst = dstSize.width / dstSize.height
+
         val resizedInputMat = Mat()
-        Imgproc.resize(inputMatRgb, resizedInputMat, Size(inputWidth.toDouble(), inputHeight.toDouble()))
+
+        if (aspectSrc > aspectDst) {
+            // 가로가 더 긴 경우: 너비 기준 resize, 위아래 padding
+            val newWidth = dstSize.width
+            val newHeight = dstSize.width / aspectSrc
+            Imgproc.resize(inputMatRgb, resizedInputMat, Size(newWidth, newHeight))
+
+            val top = ((dstSize.height - newHeight) / 2).toInt()
+            Core.copyMakeBorder(resizedInputMat, resizedInputMat, top, top, 0, 0, Core.BORDER_CONSTANT, Scalar(0.0, 0.0, 0.0))
+        } else {
+            // 세로가 더 긴 경우: 높이 기준 resize, 좌우 padding
+            val newHeight = dstSize.height
+            val newWidth = dstSize.height * aspectSrc
+            Imgproc.resize(inputMatRgb, resizedInputMat, Size(newWidth, newHeight))
+
+            val side = ((dstSize.width - newWidth) / 2).toInt()
+            Core.copyMakeBorder(resizedInputMat, resizedInputMat, 0, 0, side, side, Core.BORDER_CONSTANT, Scalar(0.0, 0.0, 0.0))
+        }
+
+        // 정규화 및 버퍼 입력
         resizedInputMat.convertTo(resizedInputMat, CvType.CV_32FC3, 1.0 / 255.0)
         resizedInputMat.get(0, 0, inputFloatArray)
 
