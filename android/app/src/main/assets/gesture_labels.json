@@ -1,8 +1,6 @@
 {
-  "model_code" : "basic",
   "0": "none",
   "1": "paper",
   "2": "rock",
-  "3": "scissor",
-  "4": "one"
+  "3": "scissor"
 }
