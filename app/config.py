@@ -10,9 +10,6 @@ load_dotenv()
 firebase_credentials_path = os.getenv("FIREBASE_CREDENTIALS")
 firebase_storage_bucket = os.getenv("FIREBASE_STORAGE_BUCKET")
 
-print(f"firebase_credentials_path: {firebase_credentials_path}")
-print(f"firebase_storage_bucket: {firebase_storage_bucket}")
-
 # Firebase 인증 JSON 파일이 존재하는지 확인
 if not firebase_credentials_path or not os.path.exists(firebase_credentials_path):
     raise FileNotFoundError(f"Firebase 인증 파일이 없습니다: {firebase_credentials_path}")
@@ -26,5 +23,9 @@ if not firebase_admin._apps:
 bucket = storage.bucket()
 print(f"✅ Firebase 연결됨: {bucket.name}")
 
-ZIP_DIR = "cache_dir/models_zip"
-NEW_DIR = "cache_dir/models"
+# 현재 파일 기준 프로젝트 루트 디렉토리 경로 계산
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+# 상대 경로로 안전하게 설정
+ZIP_DIR = os.path.join(BASE_DIR, "cache_dir", "models_zip")
+NEW_DIR = os.path.join(BASE_DIR, "cache_dir", "models")

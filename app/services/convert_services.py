@@ -43,6 +43,8 @@ def convert_landmarks_to_csv(landmarks: list, label: str) -> str:
     df = pd.DataFrame(landmarks_data)
     df.insert(0, "label", [label] * len(landmarks_data))
 
+    os.makedirs(NEW_DIR, exist_ok=True)
+
     csv_path = os.path.join(NEW_DIR, "update_hand_landmarks.csv")
     df.to_csv(csv_path, index=False)
 

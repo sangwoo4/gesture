@@ -39,7 +39,7 @@ async def download_model(model_info: str):
     # 1. 압축 해제된 모델 폴더가 이미 존재하면 다운로드 스킵
     if os.path.exists(unzip_path) and all(
         os.path.exists(os.path.join(unzip_path, fname))
-        for fname in ["model.h5", "train.npy", "test.npy"]
+        for fname in [f"{model_info}_model_cnn.h5", f"{model_info}_test_hand_landmarks.npy", f"{model_info}_train_hand_landmarks.npy"]
     ):
         print(f"[Cache Hit] Using local model files in {unzip_path}")
         return unzip_path
