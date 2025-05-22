@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.utils.ModelStorageManager.getSavedModelCode
+import com.square.aircommand.utils.ModelStorageManager.saveModelCode
+import com.square.aircommand.utils.ModelStorageManager.updateLabelMap
 import com.square.aircommand.utils.ThrottledLogger
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -133,10 +136,11 @@ class HandLandmarkDetector(
                 modelCode = modelCode,
                 gesture = gestureName,
                 landmarkSequence = landmarkSequence
-            ) { newModelCode, labelJson ->
-                saveModelCode(context, newModelCode)
-                saveLabelMap(context, labelJson)
+            ) {
+              newModelCode, labelJson ->
                 Log.d("HandLandmarkDetector", "✅ 서버 전송 완료 - 새 모델 코드: $newModelCode")
+                saveModelCode(context, newModelCode)
+                updateLabelMap(context, gestureName)
             }
 
             stopCollecting()
@@ -270,7 +274,7 @@ class HandLandmarkDetector(
         )
 
         val request = Request.Builder()
-            .url("http://192.168.0.5:8000/train_model/")
+            .url("http://128.134.219.184:8000/train_model/")
             .post(body)
             .build()
 
@@ -287,6 +291,8 @@ class HandLandmarkDetector(
                     val modelCode = resultJson.optString("new_model_code", "basic")
                     val modelUrl = resultJson.optString("new_tflite_model_url", "")
 
+                    Log.d("HandLandmarkDetector", "📦 modelCode ($modelCode)")
+                    Log.d("HandLandmarkDetector", "📦 modelUrl ($modelUrl)")
                     // 콜백에 전달
                     onSuccess(modelCode, modelUrl)
                 } else {
@@ -294,20 +300,5 @@ class HandLandmarkDetector(
                 }
             }
         })
-    }
-
-    private fun saveModelCode(context: Context, modelCode: String) {
-        context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
-            .edit().putString("model_code", modelCode).apply()
-    }
-
-    private fun saveLabelMap(context: Context, labelJson: String) {
-        val file = File(context.filesDir, "gesture_labels.json")
-        file.writeText(labelJson)
-    }
-
-    private fun getSavedModelCode(context: Context): String {
-        return context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
-            .getString("model_code", "basic") ?: "basic"
     }
 }
