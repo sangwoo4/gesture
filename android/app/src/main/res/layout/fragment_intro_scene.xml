@@ -14,7 +14,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Air Command"
-        android:textSize="40sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@android:color/white"/>
 
@@ -38,7 +38,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="화면을 터치해주세요"
-        android:textSize="20sp"
+        android:textSize="12sp"
         android:textColor="@android:color/white"/>
 
 </androidx.constraintlayout.motion.widget.MotionLayout>
