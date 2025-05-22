@@ -20,6 +20,7 @@ import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.TimeUnit
 
 class HandLandmarkDetector(
     private val context: Context,
@@ -42,7 +43,11 @@ class HandLandmarkDetector(
     private val landmarkSequence = mutableListOf<List<Triple<Double, Double, Double>>>()
     private var frameCounter = 0
     private val frameInterval = 3
-    private val client = OkHttpClient()
+    private val client = OkHttpClient.Builder()
+        .connectTimeout(30, TimeUnit.SECONDS) // 서버 연결 타임아웃
+        .readTimeout(30, TimeUnit.SECONDS)    // 응답 대기 타임아웃
+        .writeTimeout(30, TimeUnit.SECONDS)   // 요청 전송 타임아웃
+        .build()
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var normalizedLandmarks = mutableListOf<Triple<Double, Double, Double>>()
@@ -278,8 +283,12 @@ class HandLandmarkDetector(
                 if (response.isSuccessful) {
                     val bodyStr = response.body?.string() ?: "{}"
                     val resultJson = JSONObject(bodyStr)
-                    val modelCode = resultJson.optString("model_code", "basic")
-                    onSuccess(modelCode, bodyStr)
+
+                    val modelCode = resultJson.optString("new_model_code", "basic")
+                    val modelUrl = resultJson.optString("new_tflite_model_url", "")
+
+                    // 콜백에 전달
+                    onSuccess(modelCode, modelUrl)
                 } else {
                     println("응답 오류 코드: ${response.code}")
                 }

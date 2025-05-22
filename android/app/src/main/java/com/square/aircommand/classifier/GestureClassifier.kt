@@ -12,6 +12,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.pow
 import kotlin.math.sqrt
+import android.util.Log
 
 class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labels.json") {
     private val labelMap: Map<Int, String>
@@ -64,6 +65,7 @@ class GestureClassifier(
         val modelCode = context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
             .getString("model_code", "cnns") ?: "cnns"
 
+        Log.d("GestureClassifier", "modelCode = $modelCode")
         // 2. model_code에 따라 모델 파일 경로 설정
         val resolvedModelPath = "update_gesture_model_${modelCode}.tflite"
 
