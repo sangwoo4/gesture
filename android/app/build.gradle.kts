@@ -3,35 +3,22 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
 }
-
-// QNN SDK 경로
-val qnnSdkPath = "/Users/hansung/Desktop/25-1/web_capstone/qairt/2.32.6.250402"
-
 // QNN .so & Skel 복사 작업
 tasks.register<Copy>("copyQnnLibs") {
-    // .so 파일 복사 (Skel 포함)
-    from(fileTree("$qnnSdkPath/lib/aarch64-android") {
-        include(
-            "libQnnHtp.so",
-            "libQnnHtpPrepare.so",
-            "libQnnSystem.so",
-            "libQnnSaver.so",
-            "libQnnHtpV79Stub.so"
-        )
-    }) {
-        into("build/jniLibs/arm64-v8a")
+
+    // 사용자 delegate .so → 이름 변경 없이 복사
+    from("main/assets/mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite.so") {
+        into("src/main/jniLibs/arm64-v8a")
     }
 
-    // Skel 파일은 DSP가 읽을 수 있는 cdsp 디렉토리로
-    from("$qnnSdkPath/lib/hexagon-v79/unsigned/libQnnHtpV79Skel.so") {
-        into("build/cdsp")
+    from("main/assets/mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite.so") {
+        into("src/main/jniLibs/arm64-v8a")
     }
 
     into(layout.buildDirectory)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     includeEmptyDirs = false
 }
-
 // 빌드 전에 copy 작업 실행되도록 연결
 tasks.named("preBuild") {
     dependsOn("copyQnnLibs")
@@ -98,6 +85,9 @@ android {
 
     // ✅ META-INF 충돌 방지 설정
     packaging {
+        jniLibs {
+            useLegacyPackaging = true // QNN용 필수 설정
+        }
         resources {
             pickFirsts += listOf(
                 "META-INF/versions/9/OSGI-INF/MANIFEST.MF"

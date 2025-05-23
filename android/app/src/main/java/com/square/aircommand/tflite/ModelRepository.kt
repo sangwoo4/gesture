@@ -21,15 +21,7 @@ object ModelRepository {
             val modelBuffer = TFLiteHelpers.loadModelFile(context.assets, modelName).first
             val inputType = TFLiteHelpers.getModelInputType(modelBuffer)
 
-            // 실제 존재하는 값으로만 구성
-            val delegateOrder: Array<Array<TFLiteHelpers.DelegateType>> = arrayOf(
-                arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_QUANTIZED),
-                arrayOf(TFLiteHelpers.DelegateType.QNN_NPU_FP16),
-                arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-                arrayOf() // CPU fallback (빈 배열로 처리)
-            )
-
-            return delegateOrder
+            return TFLiteHelpers.getDelegatePriorityOrderFromInputType(inputType)
         }
 
         try {
