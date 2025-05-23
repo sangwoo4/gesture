@@ -13,13 +13,17 @@ import java.nio.ByteOrder
 import kotlin.math.pow
 import kotlin.math.sqrt
 import android.util.Log
+import java.io.FileInputStream
+import java.io.FileNotFoundException
 import java.io.IOException
+import java.nio.channels.FileChannel
 
 class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labels.json") {
     private val labelMap: Map<Int, String>
 
     init {
         copyAssetToInternalStorageIfNotExists(context, assetFileName)
+
         // 내부 저장소에 gesture_labels.json이 존재하면 그것을 먼저 사용
         val labelFile = File(context.filesDir, assetFileName)
         val json = if (labelFile.exists()) {
@@ -27,6 +31,9 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
         } else {
             context.assets.open(assetFileName).bufferedReader().use { it.readText() }
         }
+
+        // 🔍 JSON 내용 로그로 출력
+        Log.d("GestureLabelInit", "📄 JSON 내용: $json")
 
         // model_code 키는 제외하고 index → label만 맵으로 구성
         val jsonObject = JSONObject(json)
@@ -68,7 +75,7 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
 
 class GestureClassifier(
     context: Context,
-    modelPath: String,
+    modelName: String,
     delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>
 ) : AutoCloseable {
 
@@ -81,16 +88,18 @@ class GestureClassifier(
     private val numClasses: Int
 
     init {
-        // 1. SharedPreferences에서 저장된 model_code를 불러옴
-        val modelCode = context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
-            .getString("model_code", "cnns") ?: "cnns"
+        val resolvedModelPath = File(context.filesDir, modelName)
 
-        Log.d("GestureClassifier", "modelCode = $modelCode")
-        // 2. model_code에 따라 모델 파일 경로 설정
-        val resolvedModelPath = "update_gesture_model_${modelCode}.tflite"
+        if (!resolvedModelPath.exists()) {
+            throw FileNotFoundException("❌ 모델 파일이 존재하지 않습니다: ${resolvedModelPath.absolutePath}")
+        }
+
+        val fileInputStream = FileInputStream(resolvedModelPath)
+        val fileChannel = fileInputStream.channel
+        val modelBuffer = fileChannel.map(FileChannel.MapMode.READ_ONLY, 0, fileChannel.size())
+        val hash = TFLiteHelpers.calculateSHA256(modelBuffer)
 
         // 3. 지정된 모델 경로로 모델 로딩
-        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, resolvedModelPath)
         val (i, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
             modelBuffer,
             delegatePriorityOrder,

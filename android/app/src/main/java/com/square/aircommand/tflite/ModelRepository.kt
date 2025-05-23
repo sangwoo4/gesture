@@ -7,7 +7,11 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import java.io.File
+import java.io.FileInputStream
+import java.nio.MappedByteBuffer
+import java.nio.channels.FileChannel
 import java.io.FileNotFoundException
+
 
 object ModelRepository {
     private var handDetector: HandDetector? = null
@@ -16,15 +20,12 @@ object ModelRepository {
 
     private var initialized = false
 
-
-
     fun initModels(context: Context) {
         if (initialized) return
 
         fun loadDelegateOrder(modelName: String): Array<Array<TFLiteHelpers.DelegateType>> {
             val modelBuffer = TFLiteHelpers.loadModelFile(context.assets, modelName).first
             val inputType = TFLiteHelpers.getModelInputType(modelBuffer)
-
             return TFLiteHelpers.getDelegatePriorityOrderFromInputType(inputType)
         }
 
@@ -47,12 +48,12 @@ object ModelRepository {
             if (!internalModelFile.exists()) {
                 throw FileNotFoundException("내부 저장소에 $internalModelName 파일이 없습니다.")
             }
-
             gestureClassifier = GestureClassifier(
                 context,
                 internalModelName,
                 loadDelegateOrder(internalModelName)
             )
+
 
             initialized = true
         } catch (e: Exception) {
