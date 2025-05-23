@@ -58,7 +58,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="새롭게 등록할 제스처의 이름을 설정해주세요."
-            android:textSize="8sp"
+            android:textSize="10sp"
             android:textColor="#777777"
             app:layout_constraintTop_toBottomOf="@id/titleText"
             app:layout_constraintStart_toStartOf="parent"
@@ -78,6 +78,7 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="12dp">
 
+            <!-- 제스처 이름 입력 -->
             <EditText
                 android:id="@+id/gestureNameEditText"
                 android:layout_width="0dp"
@@ -90,22 +91,45 @@
                 android:background="@android:color/transparent"
                 android:inputType="text" />
 
+            <!-- 체크 버튼 (원형 아이콘) -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="5dp">
+
+                <at.markushi.ui.CircleButton
+                    android:id="@+id/checkPassedGif"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:src="@raw/checkgif"
+                    android:visibility="gone"
+                    app:cb_color="#99CC00"
+                    app:cb_pressedRingWidth="6dp" />
+
+            </FrameLayout>
+
+            <!-- 중복 검사 버튼 -->
             <Button
                 android:id="@+id/btnCheckDuplicate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="중복검사"
                 android:textColor="@color/black"
-                app:backgroundTint="@color/cardview_light_background"
-                android:textSize="10sp" />
+                android:textSize="10sp"
+                app:backgroundTint="@color/cardview_light_background" />
         </LinearLayout>
+
 
         <!-- 중복검사 결과 -->
         <TextView
             android:id="@+id/duplicateCheckResultText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:textColor="#D08855"
             android:visibility="gone"

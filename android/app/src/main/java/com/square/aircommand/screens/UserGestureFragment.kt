@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentUserGestureBinding
+import com.bumptech.glide.Glide
 
 /**
  * [사용자 제스처 등록 화면]
@@ -39,6 +40,9 @@ class UserGestureFragment : Fragment() {
         // 🚫 제스처 촬영 버튼은 이름이 중복되지 않을 때만 활성화됨
         binding.btnStartGestureShooting.isEnabled = false
 
+        // 체크 아이콘 초기에는 숨김
+        binding.checkPassedGif.visibility = View.GONE
+
         // 🔙 뒤로가기 버튼 → 이전 화면으로 이동
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -61,8 +65,15 @@ class UserGestureFragment : Fragment() {
                 }
                 else -> {
                     // 사용 가능한 이름
-                    binding.duplicateCheckResultText.text = "등록할 수 있는 이름입니다. [제스처 촬영]을 눌러 촬영을 시작해주세요"
+                    binding.duplicateCheckResultText.text =
+                        "등록할 수 있는 이름입니다. [제스처 촬영]을 눌러 촬영을 시작해주세요"
                     binding.btnStartGestureShooting.isEnabled = true
+
+                    Glide.with(this)
+                        .asGif()
+                        .load(R.raw.checkgif) // res/raw/checkgif.gif
+                        .into(binding.checkPassedGif)
+                    binding.checkPassedGif.visibility = View.VISIBLE // ✅ 체크 아이콘 보이기
                 }
             }
 

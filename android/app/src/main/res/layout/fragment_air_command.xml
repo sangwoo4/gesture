@@ -2,7 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-android:paddingTop="20dp"
+android:paddingTop="40dp"
 android:background="#FFFFFF">
 
 <LinearLayout
@@ -72,6 +72,7 @@ android:background="#FFFFFF">
             android:id="@+id/switchUse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
     </LinearLayout>
 
     <!-- 설명 -->
@@ -83,44 +84,6 @@ android:background="#FFFFFF">
         android:textSize="11sp"
         android:paddingBottom="50dp"/>
 
-<!--    <TextView android:layout_width="wrap_content"-->
-<!--        android:layout_height="wrap_content"-->
-<!--        android:text="• 제스처 설정을 통해 커스터마이징 할 수 있습니다.\n• 새로운 제스처를 등록하여 사용할 수 있습니다.\n• 터치가 힘든 상황에서 손쉽게 제어가 가능합니다.\n• 사용할 기능만 골라 설정할 수 있습니다."-->
-<!--        android:textSize="8sp"-->
-<!--        android:textColor="@color/black"-->
-<!--        android:paddingBottom="20dp"/>-->
-
-    <!-- 카메라 권한 섹션 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rounded_box"
-        android:orientation="horizontal"
-        android:padding="12dp"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"
-        android:clipToPadding="false"
-        android:elevation="1dp">
-
-        <ImageView
-            android:layout_width="25dp"
-            android:layout_height="25dp"
-            android:src="@drawable/cameraicon"
-            android:layout_marginEnd="10dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="백그라운드 카메라 권한"
-            android:textColor="@color/black"
-            android:textSize="12sp"
-            android:textStyle="bold"/>
-
-        <Switch
-            android:id="@+id/switchCamera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
 
     <!-- 제스처 기능 설정 -->
     <LinearLayout

@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
+    id("org.jetbrains.kotlin.kapt")
 }
 
 // QNN SDK 경로
@@ -161,5 +162,13 @@ dependencies {
 
     implementation("com.google.android.material:material:1.11.0")
     implementation("androidx.constraintlayout:constraintlayout:2.2.0")
+    
+    implementation("com.github.markushi:circlebutton:1.1")
+
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    kapt("com.github.bumptech.glide:compiler:4.16.0")
+
+    implementation("io.github.shashank02051997:FancyToast:2.0.2")
+
 
 }

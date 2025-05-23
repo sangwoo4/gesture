@@ -52,7 +52,7 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:text="오프라인 상태에서 사용할 제스처를 골라주세요."
-        android:textSize="8sp"
+        android:textSize="10sp"
         android:textColor="#777777"
         app:layout_constraintTop_toBottomOf="@id/titleText"
         app:layout_constraintStart_toStartOf="parent"
