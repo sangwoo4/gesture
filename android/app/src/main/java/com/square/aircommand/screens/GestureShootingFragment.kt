@@ -19,6 +19,7 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
+import com.square.aircommand.tflite.ModelRepository.initModels
 import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
@@ -31,6 +32,14 @@ class GestureShootingFragment : Fragment() {
     private lateinit var gestureClassifier: GestureClassifier
 
     private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
+
+    // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
+    private fun initModels() {
+        ModelRepository.initModels(requireContext())
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
+    }
 
     // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
     private val gestureName by lazy {
@@ -86,13 +95,7 @@ class GestureShootingFragment : Fragment() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
-    private fun initModels() {
-        ModelRepository.initModels(requireContext())
-        handDetector = ModelRepository.getHandDetector()
-        landmarkDetector = ModelRepository.getLandmarkDetector()
-        gestureClassifier = ModelRepository.getGestureClassifier()
-    }
+
 
     // ✅ 학습 시작 명시
     private fun startTraining() {

@@ -5,6 +5,7 @@ import android.graphics.Bitmap
 import android.util.Log
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.utils.ModelStorageManager
 import com.square.aircommand.utils.ModelStorageManager.getSavedModelCode
 import com.square.aircommand.utils.ModelStorageManager.saveModelCode
 import com.square.aircommand.utils.ModelStorageManager.updateLabelMap
@@ -19,6 +20,7 @@ import org.opencv.imgproc.Imgproc
 import org.opencv.osgi.OpenCVNativeLoader
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
+import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -53,7 +55,7 @@ class HandLandmarkDetector(
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var normalizedLandmarks = mutableListOf<Triple<Double, Double, Double>>()
-    var lastHandedness: String = "Right"
+    var lastHandedness: String = "Left" // 원래 Right임
 
     init {
         OpenCVNativeLoader().init()
@@ -135,9 +137,22 @@ class HandLandmarkDetector(
                 modelCode = modelCode,
                 gesture = gestureName,
                 landmarkSequence = landmarkSequence
-            ) { newModelCode, labelJson ->
+            ) { newModelCode, modelUrl ->
+
+                // 1) 모델 코드 저장
                 saveModelCode(context, newModelCode)
+
+                // 2) 라벨 . 저장
                 updateLabelMap(context, gestureName)
+
+                // 3) model_url.json 생성
+                val modelUrlFile = File(context.filesDir, "model_url.json")
+                modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
+
+                // 4) 모델 다운로드 -> 모델 교체
+                ModelStorageManager.downloadAndReplaceModel(context)
+
+
                 Log.d("HandLandmarkDetector", "✅ 서버 전송 완료 - 새 모델 코드: $newModelCode")
             }
 
@@ -249,7 +264,7 @@ class HandLandmarkDetector(
         modelCode: String,
         gesture: String,
         landmarkSequence: MutableList<List<Triple<Double, Double, Double>>>,
-        onSuccess: (modelCode: String, labelJson: String) -> Unit
+        onSuccess: (newModelCode: String, modelUrl: String) -> Unit
     ) {
         val landmarksJsonArray = JSONArray()
         for (frame in landmarkSequence) {
@@ -272,7 +287,7 @@ class HandLandmarkDetector(
         )
 
         val request = Request.Builder()
-            .url("http://192.168.0.5:8000/train_model/")
+            .url("http://192.168.196.189:8000/train_model/")
             .post(body)
             .build()
 
@@ -298,3 +313,4 @@ class HandLandmarkDetector(
         })
     }
 }
+
