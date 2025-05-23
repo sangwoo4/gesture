@@ -44,6 +44,13 @@ class GestureShootingFragment : Fragment() {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 10
     }
 
+    private fun initModels() {
+        ModelRepository.initModels(requireContext())
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -84,14 +91,6 @@ class GestureShootingFragment : Fragment() {
         return ContextCompat.checkSelfPermission(
             requireContext(), Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
-    private fun initModels() {
-        ModelRepository.initModels(requireContext())
-        handDetector = ModelRepository.getHandDetector()
-        landmarkDetector = ModelRepository.getLandmarkDetector()
-        gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
     // ✅ 학습 시작 명시

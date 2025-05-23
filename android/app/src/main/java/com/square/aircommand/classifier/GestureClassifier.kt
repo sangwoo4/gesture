@@ -19,7 +19,6 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
     private val labelMap: Map<Int, String>
 
     init {
-
         copyAssetToInternalStorageIfNotExists(context, assetFileName)
         // 내부 저장소에 gesture_labels.json이 존재하면 그것을 먼저 사용
         val labelFile = File(context.filesDir, assetFileName)

@@ -3,6 +3,7 @@ package com.square.aircommand.handdetector
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.PointF
+import android.util.Log
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
 import org.opencv.android.Utils
@@ -58,23 +59,44 @@ class HandDetector(
         inputBuffer = inputBuf
     }
 
+    private var isClosed = false
+
     override fun close() {
-        interpreter.close()
-        delegateStore.values.forEach { it.close() }
+        if (!isClosed) {
+            interpreter.close()
+            delegateStore.values.forEach { it.close() }
+            isClosed = true
+        }
     }
 
     fun detect(bitmap: Bitmap): List<PointF> {
+        if (isClosed) {
+            Log.w("HandDetector", "⚠️ Attempted to call detect() after interpreter was closed.")
+            return emptyList()
+        }
+
         preprocessImage(bitmap)
 
         val boxCoords = Array(1) { Array(NUM_ANCHORS) { FloatArray(NUM_COORDS) } }
         val boxScores = Array(1) { Array(NUM_ANCHORS) { FloatArray(1) } }
 
         val outputMap = mapOf(
-            interpreter.getOutputIndex("box_coords") to boxCoords,
-            interpreter.getOutputIndex("box_scores") to boxScores
+            runCatching { interpreter.getOutputIndex("box_coords") }.getOrElse {
+                Log.e("HandDetector", "❌ Output index 'box_coords' not found: ${it.message}")
+                return emptyList()
+            } to boxCoords,
+            runCatching { interpreter.getOutputIndex("box_scores") }.getOrElse {
+                Log.e("HandDetector", "❌ Output index 'box_scores' not found: ${it.message}")
+                return emptyList()
+            } to boxScores
         )
 
-        interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
+        runCatching {
+            interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
+        }.onFailure {
+            Log.e("HandDetector", "🔥 Inference failed: ${it.message}", it)
+            return emptyList()
+        }
 
         return postProcessDetections(bitmap, boxCoords, boxScores)
     }

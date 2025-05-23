@@ -6,6 +6,8 @@ import com.square.aircommand.BuildConfig
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
+import java.io.File
+import java.io.FileNotFoundException
 
 object ModelRepository {
     private var handDetector: HandDetector? = null
@@ -13,6 +15,8 @@ object ModelRepository {
     private var gestureClassifier: GestureClassifier? = null
 
     private var initialized = false
+
+
 
     fun initModels(context: Context) {
         if (initialized) return
@@ -37,10 +41,17 @@ object ModelRepository {
                 loadDelegateOrder(BuildConfig.HAND_LANDMARK_MODEL)
             )
 
+            // ✅ GestureClassifier만 내부 저장소 모델 고정 사용
+            val internalModelName = "update_gesture_model_cnns.tflite"
+            val internalModelFile = File(context.filesDir, internalModelName)
+            if (!internalModelFile.exists()) {
+                throw FileNotFoundException("내부 저장소에 $internalModelName 파일이 없습니다.")
+            }
+
             gestureClassifier = GestureClassifier(
                 context,
-                BuildConfig.GESTURE_CLASSIFIER_MODEL,
-                loadDelegateOrder(BuildConfig.GESTURE_CLASSIFIER_MODEL)
+                internalModelName,
+                loadDelegateOrder(internalModelName)
             )
 
             initialized = true

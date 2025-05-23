@@ -1,27 +1,76 @@
 package com.square.aircommand.utils
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.util.Log
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 object ModelStorageManager {
 
+    private const val MODEL_CODE_FILENAME = "model_code.json"
+    private const val TAG = "ModelCodeManager"
+    private const val MODEL_NAME = "update_gesture_model_cnns.tflite"
+
+
+    fun initializeModelCodeFromAssetsIfNotExists(context: Context) {
+        val targetFile = File(context.filesDir, MODEL_CODE_FILENAME)
+        if (!targetFile.exists()) {
+            try {
+                context.assets.open(MODEL_CODE_FILENAME).use { inputStream ->
+                    targetFile.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                Log.d(TAG, "📄 model_code.json 복사 완료 (from assets)")
+            } catch (e: IOException) {
+                Log.e(TAG, "❌ model_code.json 복사 실패: ${e.message}")
+            }
+        } else {
+            Log.d(TAG, "✅ model_code.json 이미 존재함 → 복사 생략")
+        }
+    }
+
+    fun initializeModelFromAssetsIfNotExists(context: Context) {
+        val targetFile = File(context.filesDir, MODEL_NAME)
+        if (targetFile.exists()) {
+            return  // 이미 복사된 경우는 무시
+        }
+        try {
+            context.assets.open(MODEL_NAME).use { inputStream ->
+                FileOutputStream(targetFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            Log.d("ModelStorageManager", "✅ 모델 파일 복사 완료: ${targetFile.absolutePath}")
+        } catch (e: IOException) {
+            Log.e("ModelStorageManager", "❌ 모델 파일 복사 실패: ${e.message}", e)
+        }
+    }
+
+
     fun saveModelCode(context: Context, modelCode: String) {
-        val file = File(context.filesDir, "model_code.json")
+        val file = File(context.filesDir, MODEL_CODE_FILENAME)
         val json = JSONObject().put("model_code", modelCode)
         file.writeText(json.toString())
     }
 
     fun getSavedModelCode(context: Context): String {
-        return try {
-            val file = File(context.filesDir, "model_code.json")
-            val jsonStr = file.readText()
-            val jsonObj = JSONObject(jsonStr)
-            jsonObj.optString("model_code", "basic")
-        } catch (e: Exception) {
-            e.printStackTrace()
-            "basic"
+        val file = File(context.filesDir, MODEL_CODE_FILENAME)
+        return if (file.exists()) {
+            try {
+                val json = JSONObject(file.readText())
+                val modelCode = json.getString("model_code")
+                Log.d(TAG, "✅ 모델 코드 파싱 성공: $modelCode")
+                modelCode
+            } catch (e: Exception) {
+                e.printStackTrace()
+                "basic" // 파싱 실패 시 기본값 반환
+            }
+        } else {
+            "basic" // 존재하지 않을 경우 기본값 (이론상 실행 안 됨)
         }
     }
 
