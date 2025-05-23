@@ -69,11 +69,15 @@ class TestFragment : Fragment() {
     ) == PackageManager.PERMISSION_GRANTED
 
     private fun showCameraCompose() {
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
+
         binding.landmarkOverlay.setContent {
             CameraScreen(
-                handDetector = ModelRepository.getHandDetector(),
-                landmarkDetector = ModelRepository.getLandmarkDetector(),
-                gestureClassifier = ModelRepository.getGestureClassifier()
+                handDetector = handDetector,
+                landmarkDetector = landmarkDetector,
+                gestureClassifier = gestureClassifier
             )
         }
     }

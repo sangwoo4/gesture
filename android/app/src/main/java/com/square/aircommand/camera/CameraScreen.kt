@@ -5,12 +5,22 @@ import android.graphics.PointF
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.util.Log
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageAnalysis
+import androidx.camera.core.ImageProxy
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -25,9 +35,6 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
-import com.square.aircommand.gesture.GestureActionExecutor
-import com.square.aircommand.gesture.GestureActionMapper
-import com.square.aircommand.gesture.GestureLabel
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.overlay.HandLandmarkOverlay
@@ -75,11 +82,6 @@ fun CameraScreen(
             validDetectionThreshold = 20,
             isTrainingMode = isTrainingMode,
             trainingGestureName = trainingGestureName,
-            onGestureDetected = { gestureName ->
-                val label = GestureLabel.entries.find { it.name == gestureName } ?: GestureLabel.NONE
-                val action = GestureActionMapper.getSavedGestureAction(context, label)
-                GestureActionExecutor.execute(action, context)
-            },
             onTrainingComplete = {
                 gestureText.value = "🎉 학습 완료"
                 gestureStatusText?.value = "✅ 사용자 제스처 학습 완료"

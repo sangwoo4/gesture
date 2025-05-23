@@ -26,26 +26,6 @@ object TFLiteHelpers {
         QNN_NPU_QUANTIZED
     }
 
-    val delegates: List<Pair<String, Array<Array<DelegateType>>>> = listOf(
-        "CPU" to arrayOf(arrayOf()),
-        "GPU" to arrayOf(arrayOf(DelegateType.GPUv2)),
-        "QNN_FP16" to arrayOf(arrayOf(DelegateType.QNN_NPU_FP16)),
-        "QNN_QUANT" to arrayOf(arrayOf(DelegateType.QNN_NPU_QUANTIZED))
-    )
-
-    // ✅ QNN Delegate용 성능 모드 리스트
-    val qnnPerformanceModes: List<QnnDelegate.Options.HtpPerformanceMode> = listOf(
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_DEFAULT,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_BURST,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_BALANCE,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_LOW_BALANCE,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_HIGH_PERFORMANCE,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_HIGH_POWER_SAVER,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_LOW_POWER_SAVER,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_POWER_SAVER,
-        QnnDelegate.Options.HtpPerformanceMode.HTP_PERFORMANCE_SUSTAINED_HIGH_PERFORMANCE
-    )
-
     // delegate 우선순위를 기준으로 interpreter와 delegate들을 생성함
     fun createInterpreterAndDelegatesFromOptions(
         tfLiteModel: MappedByteBuffer,

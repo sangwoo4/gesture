@@ -19,7 +19,6 @@ import org.opencv.imgproc.Imgproc
 import org.opencv.osgi.OpenCVNativeLoader
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
-import java.io.File
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
