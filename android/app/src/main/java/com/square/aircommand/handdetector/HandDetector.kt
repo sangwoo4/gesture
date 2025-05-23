@@ -46,6 +46,7 @@ class HandDetector(
     private val inputHeight: Int
     private val inputArray: FloatArray
     private val inputBuffer: ByteBuffer
+    private var isClosed = false
 
     init {
         OpenCVNativeLoader().init()
@@ -59,11 +60,19 @@ class HandDetector(
     }
 
     override fun close() {
-        interpreter.close()
-        delegateStore.values.forEach { it.close() }
+        if (!isClosed) {
+            interpreter.close()
+            delegateStore.values.forEach { it.close() }
+            isClosed = true
+        }
     }
 
     fun detect(bitmap: Bitmap): List<PointF> {
+//        if (isClosed) {
+//            throw IllegalStateException("Interpreter is already closed")
+//        }
+        if (isClosed) return emptyList()
+
         preprocessImage(bitmap)
 
         val boxCoords = Array(1) { Array(NUM_ANCHORS) { FloatArray(NUM_COORDS) } }

@@ -3,29 +3,29 @@ package com.square.aircommand.classifier
 import android.content.Context
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.utils.FileUtils
 import com.square.aircommand.utils.ThrottledLogger
 import org.json.JSONObject
 import org.tensorflow.lite.Delegate
 import org.tensorflow.lite.Interpreter
-import java.io.File
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.pow
 import kotlin.math.sqrt
 
-class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labels.json") {
+class GestureLabelMapper(context: Context, fileName: String = "gesture_labels.json") {
     private val labelMap: Map<Int, String>
 
     init {
-        // 내부 저장소에 gesture_labels.json이 존재하면 그것을 먼저 사용
-        val labelFile = File(context.filesDir, assetFileName)
+        // ✅ filesDir에 있는 gesture_labels.json이 우선적으로 사용됨
+        val labelFile = FileUtils.getLabelFile(context)
         val json = if (labelFile.exists()) {
             labelFile.readText()
         } else {
-            context.assets.open(assetFileName).bufferedReader().use { it.readText() }
+            context.assets.open(fileName).bufferedReader().use { it.readText() }
         }
 
-        // model_code 키는 제외하고 index → label만 맵으로 구성
+        // ✅ model_code는 무시하고 숫자 키만 파싱
         val jsonObject = JSONObject(json)
         val map = mutableMapOf<Int, String>()
         for (key in jsonObject.keys()) {
@@ -36,13 +36,9 @@ class GestureLabelMapper(context: Context, assetFileName: String = "gesture_labe
         labelMap = map
     }
 
-    fun getLabel(index: Int): String {
-        return labelMap[index] ?: "Unknown"
-    }
+    fun getLabel(index: Int): String = labelMap[index] ?: "Unknown"
 
-    fun getAllLabels(): Map<Int, String> {
-        return labelMap
-    }
+    fun getAllLabels(): Map<Int, String> = labelMap
 }
 
 class GestureClassifier(
@@ -60,15 +56,27 @@ class GestureClassifier(
     private val numClasses: Int
 
     init {
-        // 1. SharedPreferences에서 저장된 model_code를 불러옴
+        // ✅ model_code를 SharedPreferences에서 불러옴
         val modelCode = context.getSharedPreferences("gesture_prefs", Context.MODE_PRIVATE)
             .getString("model_code", "cnns") ?: "cnns"
 
-        // 2. model_code에 따라 모델 파일 경로 설정
-        val resolvedModelPath = "update_gesture_model_${modelCode}.tflite"
+        // ✅ 우선 filesDir의 모델을 시도하고, 없으면 assets에서 불러옴
+        val localModelFile = FileUtils.getModelFile(context)
+        val (modelBuffer, hash) = if (localModelFile.exists()) {
+            // 파일을 직접 메모리 매핑 방식으로 로드
+            val fileInputStream = localModelFile.inputStream()
+            val mappedBuffer = fileInputStream.channel.map(
+                java.nio.channels.FileChannel.MapMode.READ_ONLY,
+                0,
+                localModelFile.length()
+            )
+            fileInputStream.close()
+            Pair(mappedBuffer, localModelFile.name)
+        } else {
+            val modelName = "update_gesture_model_${modelCode}.tflite"
+            TFLiteHelpers.loadModelFile(context.assets, modelName)
+        }
 
-        // 3. 지정된 모델 경로로 모델 로딩
-        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, resolvedModelPath)
         val (i, delegates) = TFLiteHelpers.CreateInterpreterAndDelegatesFromOptions(
             modelBuffer,
             delegatePriorityOrder,
@@ -80,7 +88,7 @@ class GestureClassifier(
         interpreter = i
         delegateStore = delegates
 
-        // 4. 양자화 파라미터 초기화
+        // ✅ 양자화 파라미터 추출
         val inputTensor = interpreter.getInputTensor(0)
         inputScale = inputTensor.quantizationParams().scale
         inputZeroPoint = inputTensor.quantizationParams().zeroPoint
@@ -95,26 +103,23 @@ class GestureClassifier(
         if (landmarks.size != 21) throw IllegalArgumentException("❌ 랜드마크는 21개여야 합니다")
 
         val base = landmarks[0]
-        val norm: List<FloatArray> = landmarks.map { (x, y, z) ->
-            floatArrayOf((x - base.first).toFloat(), (y - base.second).toFloat(), (z - base.third).toFloat())
+        val norm = landmarks.map { (x, y, z) ->
+            floatArrayOf(
+                (x - base.first).toFloat(),
+                (y - base.second).toFloat(),
+                (z - base.third).toFloat()
+            )
         }
 
-        // 🔄 더 나은 정규화 기준: 평균 거리
         val scale = listOf(
             distance(norm[0], norm[9]),
             distance(norm[0], norm[5]),
             distance(norm[0], norm[17])
         ).average().toFloat()
 
-        val normalized: List<FloatArray> =
-            if (scale > 0f) norm.map { arr -> FloatArray(3) { i -> arr[i] / scale } }
-            else norm
+        val normalized = if (scale > 0f) norm.map { arr -> FloatArray(3) { i -> arr[i] / scale } } else norm
 
-        val inputFloats = mutableListOf<Float>()
-        for (arr in normalized) {
-            inputFloats.addAll(arr.toList())
-        }
-
+        val inputFloats = normalized.flatMap { it.toList() }
         val quantizedInput = ByteArray(inputFloats.size) { idx ->
             val q = ((inputFloats[idx] / inputScale) + inputZeroPoint).toInt()
             q.coerceIn(0, 255).toByte()
@@ -131,8 +136,8 @@ class GestureClassifier(
         val output = ByteArray(numClasses)
         outputBuffer.get(output)
 
-        val confidences = output.map { byte ->
-            (byte.toInt() and 0xFF - outputZeroPoint) * outputScale
+        val confidences = output.map {
+            ((it.toInt() and 0xFF) - outputZeroPoint) * outputScale
         }
 
         val maxIdx = confidences.indices.maxByOrNull { confidences[it] } ?: -1
@@ -148,11 +153,9 @@ class GestureClassifier(
     }
 
     private fun distance(a: FloatArray, b: FloatArray): Float {
-        return sqrt(
-            (a[0] - b[0]).toDouble().pow(2.0) +
-                    (a[1] - b[1]).toDouble().pow(2.0) +
-                    (a[2] - b[2]).toDouble().pow(2.0)
-        ).toFloat()
+        return sqrt((a[0] - b[0]).toDouble().pow(2.0) +
+                (a[1] - b[1]).toDouble().pow(2.0) +
+                (a[2] - b[2]).toDouble().pow(2.0)).toFloat()
     }
 
     override fun close() {

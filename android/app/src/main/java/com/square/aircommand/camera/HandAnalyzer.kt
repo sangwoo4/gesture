@@ -33,10 +33,18 @@ class HandAnalyzers(
     private val isTrainingMode: Boolean = false,
     private val trainingGestureName: String = "",
     private val onGestureDetected: ((GestureLabel) -> Unit)? = null,
-    private val onTrainingComplete: (() -> Unit)? = null
+    private val onTrainingComplete: (() -> Unit)? = null,
+    private val isActive: () -> Boolean = { true } // ✅ 모델이 닫힌 상태 체크용 콜백
 ) : ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: ImageProxy) {
+
+        // TODO: 모델이 null or close() 상태일 때 분석을 스킵하도록 체크
+        if (!isActive()) {
+            imageProxy.close()
+            return
+        }
+
         try {
             val bitmap = imageProxy.toBitmapCompat()
             val points = handDetector.detect(bitmap)
@@ -53,16 +61,12 @@ class HandAnalyzers(
 
                     for (point in points) {
                         if (isTrainingMode) {
-                            // 전이 학습: landmark 수집
                             landmarkDetector.transfer(bitmap, orientation, trainingGestureName)
-
-                            // 수집 완료 확인
                             if (!landmarkDetector.isCollecting) {
                                 gestureText.value = "학습 완료"
                                 onTrainingComplete?.invoke()
                             }
                         } else {
-                            // 일반 제스처 분류 모드
                             landmarkDetector.predict(bitmap, orientation)
                             val landmarks = landmarkDetector.lastLandmarks
 

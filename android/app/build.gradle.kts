@@ -171,4 +171,8 @@ dependencies {
 
     implementation("com.google.android.material:material:1.11.0")
 
+//    // 앱 인트로 라이브러리
+//    implementation("com.airbnb.android:lottie:6.1.0")
+//
+//    implementation("com.airbnb.android:lottie-compose:6.0.0")
 }

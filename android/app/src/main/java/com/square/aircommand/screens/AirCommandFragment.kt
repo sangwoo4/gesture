@@ -35,57 +35,108 @@ class AirCommandFragment : Fragment() {
 
     private val REQUEST_CAMERA_PERMISSIONS = 1001
     private val PREFS_KEY_CAMERA_ENABLED = "camera_service_enabled"
+    private val PREFS_KEY_USE_ENABLED = "air_command_use_enabled"
+
+    private var switchUseChangedBySystem = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         _binding = FragmentAirCommandBinding.inflate(inflater, container, false)
-
         val prefs = requireContext().getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
         val savedTime = prefs.getString("selected_time", "설정 안 함")
         binding.btnSelectTime.text = savedTime
 
-        // 백그라운드 자동 종료 시간 선택 팝업
         binding.btnSelectTime.setOnClickListener {
             val popup = PopupMenu(requireContext(), binding.btnSelectTime)
             timeOptions.forEachIndexed { index, option ->
                 popup.menu.add(0, index, index, option)
             }
-
             popup.setOnMenuItemClickListener { item ->
                 val selectedTime = timeOptions[item.itemId]
                 binding.btnSelectTime.text = selectedTime
                 prefs.edit { putString("selected_time", selectedTime) }
                 true
             }
-
             popup.show()
         }
 
-        // 'AirCommand 기능 사용' 스위치 텍스트 상태 설정
         binding.switchUse.setOnCheckedChangeListener { _, isChecked ->
+            val context = requireContext()
+
+            if (switchUseChangedBySystem) {
+                switchUseChangedBySystem = false
+                return@setOnCheckedChangeListener
+            }
+
+            if (isChecked && !isAccessibilityServiceEnabled(context)) {
+                AlertDialog.Builder(context)
+                    .setTitle("✔ 접근성 권한 필요")
+                    .setMessage("이 기능을 사용하려면 접근성 권한이 필요합니다.\n\n1. '설정 열기' 버튼을 눌러 이동\n2. 'AirCommand' 항목을 찾아 스위치를 켜주세요")
+                    .setPositiveButton("설정 열기") { _, _ ->
+                        val settingsIntent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                        settingsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                        startActivity(settingsIntent)
+                    }
+                    .setNegativeButton("취소") { _, _ ->
+                        binding.switchUse.isChecked = false
+                    }
+                    .show()
+                return@setOnCheckedChangeListener
+            }
+
             binding.tvUseStatus.text = if (isChecked) "사용 중" else "사용 안 함"
+            prefs.edit { putBoolean(PREFS_KEY_USE_ENABLED, isChecked) }
+
+            if (!isChecked && binding.switchCamera.isChecked) {
+                binding.switchCamera.setOnCheckedChangeListener(null)
+                binding.switchCamera.isChecked = false
+                prefs.edit { putBoolean(PREFS_KEY_CAMERA_ENABLED, false) }
+                requireContext().stopService(Intent(requireContext(), CameraService::class.java))
+                restoreCameraSwitchListener()
+            }
         }
 
-        // 백그라운드 카메라 스위치 (직접 조작 시)
+        restoreCameraSwitchListener()
+
+        binding.btnGestureSetting.setOnClickListener {
+            findNavController().navigate(R.id.action_airCommand_to_gestureSetting)
+        }
+        binding.btnUserGesture.setOnClickListener {
+            findNavController().navigate(R.id.action_airCommand_to_userGesture)
+        }
+        binding.btnTest.setOnClickListener {
+            findNavController().navigate(R.id.action_airCommand_to_testFragment)
+        }
+
+        return binding.root
+    }
+
+    private fun restoreCameraSwitchListener() {
         binding.switchCamera.setOnCheckedChangeListener { _, isChecked ->
             val context = requireContext()
             val intent = Intent(context, CameraService::class.java)
+            val prefs = context.getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
 
-            // 사용자 설정 저장
             prefs.edit { putBoolean(PREFS_KEY_CAMERA_ENABLED, isChecked) }
+            val useEnabled = prefs.getBoolean(PREFS_KEY_USE_ENABLED, false)
 
             if (isChecked) {
-                // 접근성 권한 미허용 시 설정 유도
+                if (!useEnabled) {
+                    AlertDialog.Builder(context)
+                        .setTitle("⚠ 기능 사용 비활성화")
+                        .setMessage("먼저 'AirCommand 기능 사용'을 켜야 카메라 기능을 사용할 수 있습니다.")
+                        .setPositiveButton("확인") { _, _ ->
+                            binding.switchCamera.isChecked = false
+                        }
+                        .show()
+                    return@setOnCheckedChangeListener
+                }
                 if (!isAccessibilityServiceEnabled(context)) {
                     AlertDialog.Builder(context)
                         .setTitle("✔ 접근성 권한이 필요합니다")
-                        .setMessage(
-                            "1. \"설정 열기\" 버튼을 눌러주세요\n" +
-                                    "2. 목록에서 'AirCommand'를 선택\n" +
-                                    "3. 스위치를 '사용 중'으로 켜고 확인"
-                        )
+                        .setMessage("1. \"설정 열기\" 버튼을 눌러주세요\n2. 목록에서 'AirCommand'를 선택\n3. 스위치를 '사용 중'으로 켜고 확인")
                         .setPositiveButton("설정 열기") { _, _ ->
                             val settingsIntent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
                             settingsIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
@@ -98,7 +149,6 @@ class AirCommandFragment : Fragment() {
                     return@setOnCheckedChangeListener
                 }
 
-                // 권한 여부에 따라 카메라 서비스 시작 or 권한 요청
                 if (hasCameraPermissions()) {
                     ContextCompat.startForegroundService(context, intent)
                 } else {
@@ -112,24 +162,8 @@ class AirCommandFragment : Fragment() {
                 context.stopService(intent)
             }
         }
-
-        // 이동 버튼
-        binding.btnGestureSetting.setOnClickListener {
-            findNavController().navigate(R.id.action_airCommand_to_gestureSetting)
-        }
-
-        binding.btnUserGesture.setOnClickListener {
-            findNavController().navigate(R.id.action_airCommand_to_userGesture)
-        }
-
-        binding.btnTest.setOnClickListener {
-            findNavController().navigate(R.id.action_airCommand_to_testFragment)
-        }
-
-        return binding.root
     }
 
-    // ✅ 앱 시작 또는 접근성 설정 후 복귀 시 호출
     override fun onResume() {
         super.onResume()
         Log.d("AirCommandFragment", "🔁 onResume 호출됨")
@@ -137,13 +171,21 @@ class AirCommandFragment : Fragment() {
         val context = requireContext()
         val prefs = context.getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
         val autoStartEnabled = prefs.getBoolean(PREFS_KEY_CAMERA_ENABLED, false)
+        var useEnabled = prefs.getBoolean(PREFS_KEY_USE_ENABLED, false)
 
         val accessibility = isAccessibilityServiceEnabled(context)
         val cameraGranted = hasCameraPermissions()
 
         Log.d("AirCommandFragment", "접근성 권한: $accessibility, 카메라 권한: $cameraGranted")
 
-        // ✅ 카메라 권한이 없으면 앱 실행 시 요청 (최초 한 번)
+        if (accessibility && !useEnabled) {
+            Log.d("AirCommandFragment", "✅ 접근성 권한 새로 감지됨 → 사용 중 상태 자동 활성화")
+            useEnabled = true
+            prefs.edit { putBoolean(PREFS_KEY_USE_ENABLED, true) }
+            switchUseChangedBySystem = true
+            binding.switchUse.isChecked = true
+        }
+
         if (!cameraGranted) {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -152,15 +194,16 @@ class AirCommandFragment : Fragment() {
             )
         }
 
-        // ✅ 백그라운드 카메라 서비스 자동 시작 조건 확인
-        if (autoStartEnabled && !binding.switchCamera.isChecked && accessibility && cameraGranted) {
+        if (autoStartEnabled && useEnabled && !binding.switchCamera.isChecked && accessibility && cameraGranted) {
             Log.d("AirCommandFragment", "✅ 조건 만족 → CameraService 자동 시작")
             ContextCompat.startForegroundService(context, Intent(context, CameraService::class.java))
             binding.switchCamera.isChecked = true
         }
+
+        binding.switchUse.isChecked = useEnabled
+        binding.switchCamera.isChecked = autoStartEnabled
     }
 
-    // ✅ 카메라 권한 요청 결과 처리
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
@@ -180,7 +223,6 @@ class AirCommandFragment : Fragment() {
         }
     }
 
-    // ✅ 카메라 권한 확인
     private fun hasCameraPermissions(): Boolean {
         val context = requireContext()
         return CAMERA_PERMISSIONS.all {
@@ -188,7 +230,6 @@ class AirCommandFragment : Fragment() {
         }
     }
 
-    // ✅ 접근성 서비스 활성화 여부 확인
     private fun isAccessibilityServiceEnabled(context: Context): Boolean {
         val serviceId = "${context.packageName}/com.square.aircommand.gesture.GestureAccessibilityService"
         val enabledServices = Settings.Secure.getString(
@@ -203,7 +244,6 @@ class AirCommandFragment : Fragment() {
         return accessibilityEnabled == 1 && enabledServices.contains(serviceId)
     }
 
-    // ViewBinding 메모리 해제
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

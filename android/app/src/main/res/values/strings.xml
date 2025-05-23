@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">AirCommand</string>
+    <string name="app_name">Air Command</string>
     <string name="using">사용 중</string>
     <string name="description_1">에어 커맨드를 활용해 핸드폰을 터치 없이 제어할 수 있습니다.</string>
     <string name="description_2">• 제스처 설정을 통해 커스터마이징 할 수 있습니다.</string>

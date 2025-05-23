@@ -41,7 +41,6 @@ class CameraService : Service() {
 
     private val tag = "CameraService"
     private val channelId = "camera_service_channel"
-
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     private lateinit var handDetector: HandDetector
@@ -49,12 +48,13 @@ class CameraService : Service() {
     private lateinit var gestureClassifier: GestureClassifier
     private lateinit var handAnalyzer: ImageAnalysis.Analyzer
 
+    private var isModelInitialized = false
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
         Log.d(tag, "✅ CameraService onCreate() 호출됨")
 
-        // 알림 채널 및 포그라운드 서비스 시작
         createNotificationChannel()
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
             startForeground(1, createNotification(), ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA)
@@ -62,29 +62,38 @@ class CameraService : Service() {
             startForeground(1, createNotification())
         }
 
-        // 접근성 권한이 없으면 초기화 중단 (설정으로 이동)
         if (!ensureAccessibilityServiceEnabled()) return
 
-        // 모델 초기화 및 카메라 분석기 설정
+
         initModels()
         initAnalyzer()
         startCamera()
     }
 
-    // 모델들 초기화 (HandDetector, LandmarkDetector, GestureClassifier)
     private fun initModels() {
+        if (::handDetector.isInitialized) {
+            handDetector.close()
+        }
+        if (::landmarkDetector.isInitialized) {
+            landmarkDetector.close()
+        }
+        if (::gestureClassifier.isInitialized) {
+            gestureClassifier.close()
+        }
+
         val delegateOrder = arrayOf(
             arrayOf(TFLiteHelpers.DelegateType.QNN_NPU),
             arrayOf(TFLiteHelpers.DelegateType.GPUv2),
-            arrayOf() // CPU fallback
+            arrayOf()
         )
 
         handDetector = HandDetector(this, "mediapipe_hand-handdetector.tflite", delegateOrder)
         landmarkDetector = HandLandmarkDetector(this, "mediapipe_hand-handlandmarkdetector.tflite", delegateOrder)
         gestureClassifier = GestureClassifier(this, "update_gesture_model_cnns.tflite", delegateOrder)
+
+        isModelInitialized = true
     }
 
-    // 카메라 분석기 초기화
     private fun initAnalyzer() {
         val gestureText = mutableStateOf("제스처 없음")
         val detectionFrameCount = mutableIntStateOf(0)
@@ -102,6 +111,7 @@ class CameraService : Service() {
             latestPoints = latestPoints,
             landmarksState = landmarksState,
             validDetectionThreshold = 20,
+            isActive = { isModelInitialized },
             onGestureDetected = { gestureLabel ->
                 if (gestureLabel != GestureLabel.NONE) {
                     val action = GestureActionMapper.getSavedGestureAction(this, gestureLabel)
@@ -112,22 +122,27 @@ class CameraService : Service() {
         )
     }
 
-    // 카메라 스트림을 백그라운드에서 시작
     private fun startCamera() {
+
+        // TODO: HandAnalyzer를 만들기 전에 모델 초기화 여부 체크 -> 백그라운드 권한 관련
+        if (!isModelInitialized) {
+            return
+        }
+
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
 
         cameraProviderFuture.addListener({
-            val cameraProvider = cameraProviderFuture.get()
-            val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
-
-            val analysis = ImageAnalysis.Builder()
-                .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
-                .build()
-                .also {
-                    it.setAnalyzer(Executors.newSingleThreadExecutor(), handAnalyzer)
-                }
-
             try {
+                val cameraProvider = cameraProviderFuture.get()
+                val cameraSelector = CameraSelector.DEFAULT_FRONT_CAMERA
+
+                val analysis = ImageAnalysis.Builder()
+                    .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
+                    .build()
+                    .also {
+                        it.setAnalyzer(Executors.newSingleThreadExecutor(), handAnalyzer)
+                    }
+
                 cameraProvider.unbindAll()
                 cameraProvider.bindToLifecycle(
                     DummyLifecycleOwner(),
@@ -141,16 +156,10 @@ class CameraService : Service() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    // 접근성 권한 확인 및 안내 처리 → 접근성 미설정 시 설정 화면으로 이동
     private fun ensureAccessibilityServiceEnabled(): Boolean {
         val prefs = getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
+        if (prefs.getBoolean("accessibility_permission_checked", false)) return true
 
-        // ✅ 이미 안내한 경우 → 계속 진행
-        if (prefs.getBoolean("accessibility_permission_checked", false)) {
-            return true
-        }
-
-        // ✋ 접근성 서비스가 꺼져 있는 경우 안내 후 설정 이동
         if (GestureAccessibilityService.instance == null) {
             Toast.makeText(
                 this,
@@ -162,25 +171,38 @@ class CameraService : Service() {
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             startActivity(intent)
 
-            return false // 👉 초기화 중단
+            return false
         }
 
-        // ✅ 안내는 한 번만 표시
         prefs.edit().putBoolean("accessibility_permission_checked", true).apply()
         return true
     }
 
     override fun onDestroy() {
         super.onDestroy()
+
+        try {
+            ProcessCameraProvider.getInstance(this).get().unbindAll()
+            Log.d(tag, "📷 카메라 및 분석기 해제 완료")
+        } catch (e: Exception) {
+            Log.w(tag, "unbindAll 실패: ${e.message}")
+        }
+
+        try {
+            if (::handDetector.isInitialized) handDetector.close()
+            if (::landmarkDetector.isInitialized) landmarkDetector.close()
+            if (::gestureClassifier.isInitialized) gestureClassifier.close()
+            Log.d(tag, "🧹 모델 close() 완료")
+        } catch (e: Exception) {
+            Log.e(tag, "❌ 모델 해제 중 오류: ${e.message}", e)
+        }
+
         serviceScope.cancel()
-        handDetector.close()
-        landmarkDetector.close()
-        gestureClassifier.close()
+        isModelInitialized = false
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    // 포그라운드 서비스 알림 생성
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotification(): Notification {
         return Notification.Builder(this, channelId)
@@ -190,7 +212,6 @@ class CameraService : Service() {
             .build()
     }
 
-    // 알림 채널 생성
     @RequiresApi(Build.VERSION_CODES.O)
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
