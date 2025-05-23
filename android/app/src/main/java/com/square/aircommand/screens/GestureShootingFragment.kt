@@ -53,6 +53,7 @@ class GestureShootingFragment : Fragment() {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 10
     }
 
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -94,8 +95,6 @@ class GestureShootingFragment : Fragment() {
             requireContext(), Manifest.permission.CAMERA
         ) == PackageManager.PERMISSION_GRANTED
     }
-
-
 
     // ✅ 학습 시작 명시
     private fun startTraining() {

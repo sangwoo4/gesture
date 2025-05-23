@@ -10,6 +10,7 @@ import org.tensorflow.lite.gpu.GpuDelegateFactory
 import java.io.File
 import java.io.FileInputStream
 import java.io.IOException
+import java.nio.ByteBuffer
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
 import java.security.DigestInputStream
@@ -24,6 +25,18 @@ object TFLiteHelpers {
         GPUv2,
         QNN_NPU_FP16,
         QNN_NPU_QUANTIZED
+    }
+
+    fun calculateSHA256(buffer: ByteBuffer): String {
+        val md = MessageDigest.getInstance("SHA-256")
+        val readOnlyBuffer = buffer.asReadOnlyBuffer()
+        readOnlyBuffer.rewind()
+
+        val byteArray = ByteArray(readOnlyBuffer.remaining())
+        readOnlyBuffer.get(byteArray)
+        val digest = md.digest(byteArray)
+
+        return digest.joinToString("") { "%02x".format(it) }
     }
 
     // delegate 우선순위를 기준으로 interpreter와 delegate들을 생성함

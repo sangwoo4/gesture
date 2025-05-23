@@ -85,8 +85,6 @@ class TestFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        handDetector.close()
-        landmarkDetector.close()
-        gestureClassifier.close()
+        ModelRepository.closeAll() // 👉 모든 모델 리소스를 일괄 해제
     }
 }

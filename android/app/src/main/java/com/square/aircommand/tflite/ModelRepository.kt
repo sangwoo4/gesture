@@ -10,6 +10,8 @@ import java.io.File
 import java.io.FileInputStream
 import java.nio.MappedByteBuffer
 import java.nio.channels.FileChannel
+import java.io.FileNotFoundException
+
 
 object ModelRepository {
     private var handDetector: HandDetector? = null
@@ -20,20 +22,6 @@ object ModelRepository {
 
     fun initModels(context: Context) {
         if (initialized) return
-
-        fun loadMappedBuffer(modelFile: File): MappedByteBuffer {
-            val inputStream = FileInputStream(modelFile)
-            val fileChannel = inputStream.channel
-            val startOffset = 0L
-            val declaredLength = modelFile.length()
-            return fileChannel.map(FileChannel.MapMode.READ_ONLY, startOffset, declaredLength)
-        }
-
-        fun loadDelegateOrderFromModelFile(modelFile: File): Array<Array<TFLiteHelpers.DelegateType>> {
-            val mappedBuffer = loadMappedBuffer(modelFile)
-            val inputType = TFLiteHelpers.getModelInputType(mappedBuffer)
-            return TFLiteHelpers.getDelegatePriorityOrderFromInputType(inputType)
-        }
 
         fun loadDelegateOrder(modelName: String): Array<Array<TFLiteHelpers.DelegateType>> {
             val modelBuffer = TFLiteHelpers.loadModelFile(context.assets, modelName).first
@@ -54,26 +42,18 @@ object ModelRepository {
                 loadDelegateOrder(BuildConfig.HAND_LANDMARK_MODEL)
             )
 
-            // ✅ filesDir 모델이 있으면 우선 사용
-            val gestureModelFile = File(context.filesDir, BuildConfig.GESTURE_CLASSIFIER_MODEL)
-            val gestureModelNameOrPath: String
-            val delegateOrder: Array<Array<TFLiteHelpers.DelegateType>>
-
-            if (gestureModelFile.exists()) {
-                Log.i("ModelRepository", "📂 사용자 모델 사용: ${gestureModelFile.absolutePath}")
-                gestureModelNameOrPath = gestureModelFile.absolutePath
-                delegateOrder = loadDelegateOrderFromModelFile(gestureModelFile)
-            } else {
-                Log.i("ModelRepository", "📦 기본 모델(assets) 사용: ${BuildConfig.GESTURE_CLASSIFIER_MODEL}")
-                gestureModelNameOrPath = BuildConfig.GESTURE_CLASSIFIER_MODEL
-                delegateOrder = loadDelegateOrder(BuildConfig.GESTURE_CLASSIFIER_MODEL)
+            // ✅ GestureClassifier만 내부 저장소 모델 고정 사용
+            val internalModelName = "update_gesture_model_cnns.tflite"
+            val internalModelFile = File(context.filesDir, internalModelName)
+            if (!internalModelFile.exists()) {
+                throw FileNotFoundException("내부 저장소에 $internalModelName 파일이 없습니다.")
             }
-
             gestureClassifier = GestureClassifier(
                 context,
-                gestureModelNameOrPath,
-                delegateOrder
+                internalModelName,
+                loadDelegateOrder(internalModelName)
             )
+
 
             initialized = true
         } catch (e: Exception) {

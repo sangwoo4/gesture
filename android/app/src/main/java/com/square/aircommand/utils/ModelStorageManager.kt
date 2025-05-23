@@ -1,5 +1,6 @@
 package com.square.aircommand.utils
 
+import android.content.ContentValues.TAG
 import android.content.Context
 import android.os.Handler
 import android.os.Looper
@@ -12,6 +13,7 @@ import okhttp3.Request
 import okhttp3.Response
 import org.json.JSONObject
 import java.io.File
+import java.io.FileOutputStream
 import java.io.IOException
 
 /**
@@ -21,6 +23,9 @@ import java.io.IOException
  * - gesture_labels.json : 제스처 라벨 맵핑 (index -> gesture name) 저장
  */
 object ModelStorageManager {
+    private const val MODEL_CODE_FILENAME = "model_code.json"
+    private const val TAG = "ModelCodeManager"
+    private const val MODEL_NAME = "update_gesture_model_cnns.tflite"
 
     /**
      * ✅ model_url.json에 있는 URL로부터 새 모델을 다운로드하고 기존 모델 파일을 덮어쓴다
@@ -82,10 +87,6 @@ object ModelStorageManager {
                     Handler(Looper.getMainLooper()).post {
                         Toast.makeText(context, "✅ 새 제스처 모델 적용 완료!", Toast.LENGTH_SHORT).show()
                     }
-
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(context, "✅ 새 제스처 모델 적용 완료!", Toast.LENGTH_SHORT).show()
-                    }
                 }
             })
         } catch (e: Exception) {
@@ -93,15 +94,44 @@ object ModelStorageManager {
         }
     }
 
-    /**
-     * ### model_code.json 파일에 모델 식별 코드를 저장
-     * - 이 정보는 서버에서 학습된 모델을 구분하는 데 사용
-     *
-     * @param context 앱의 내부 저장소 접근을 위한 컨텍스트
-     * @param modelCode 저장할 모델 식별 코드 (예: "cnn_013abc")
-     */
+
+    fun initializeModelCodeFromAssetsIfNotExists(context: Context) {
+        val targetFile = File(context.filesDir, MODEL_CODE_FILENAME)
+        if (!targetFile.exists()) {
+            try {
+                context.assets.open(MODEL_CODE_FILENAME).use { inputStream ->
+                    targetFile.outputStream().use { outputStream ->
+                        inputStream.copyTo(outputStream)
+                    }
+                }
+                Log.d(TAG, "📄 model_code.json 복사 완료 (from assets)")
+            } catch (e: IOException) {
+                Log.e(TAG, "❌ model_code.json 복사 실패: ${e.message}")
+            }
+        } else {
+            Log.d(TAG, "✅ model_code.json 이미 존재함 → 복사 생략")
+        }
+    }
+
+    fun initializeModelFromAssetsIfNotExists(context: Context) {
+        val targetFile = File(context.filesDir, MODEL_NAME)
+        if (targetFile.exists()) {
+            return  // 이미 복사된 경우는 무시
+        }
+        try {
+            context.assets.open(MODEL_NAME).use { inputStream ->
+                FileOutputStream(targetFile).use { outputStream ->
+                    inputStream.copyTo(outputStream)
+                }
+            }
+            Log.d("ModelStorageManager", "✅ 모델 파일 복사 완료: ${targetFile.absolutePath}")
+        } catch (e: IOException) {
+            Log.e("ModelStorageManager", "❌ 모델 파일 복사 실패: ${e.message}", e)
+        }
+    }
+
     fun saveModelCode(context: Context, modelCode: String) {
-        val file = File(context.filesDir, "model_code.json")
+        val file = File(context.filesDir, MODEL_CODE_FILENAME)
         val json = JSONObject().put("model_code", modelCode)
         file.writeText(json.toString())
     }
@@ -113,19 +143,19 @@ object ModelStorageManager {
      * @return 저장된 모델 코드 문자열 ("basic"이 기본값)
      */
     fun getSavedModelCode(context: Context): String {
-        val file = File(context.filesDir, "model_code.json")
+        val file = File(context.filesDir, MODEL_CODE_FILENAME)
         return if (file.exists()) {
             try {
                 val json = JSONObject(file.readText())
-                json.getString("model_code")
+                val modelCode = json.getString("model_code")
+                Log.d(TAG, "✅ 모델 코드 파싱 성공: $modelCode")
+                modelCode
             } catch (e: Exception) {
                 e.printStackTrace()
                 "basic" // 파싱 실패 시 기본값 반환
             }
         } else {
-            val defaultCode = "basic"
-            saveModelCode(context, defaultCode)
-            defaultCode
+            "basic" // 존재하지 않을 경우 기본값 (이론상 실행 안 됨)
         }
     }
 
@@ -135,6 +165,7 @@ object ModelStorageManager {
      *
      * @param gestureName 추가할 사용자 정의 제스처 이름 (예: "thumb")
      */
+
     fun updateLabelMap(context: Context, gestureName: String) {
         val file = File(context.filesDir, "gesture_labels.json")
         Log.d("updateLabelMap", "file: $file")
