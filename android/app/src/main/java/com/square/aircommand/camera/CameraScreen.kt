@@ -55,48 +55,66 @@ fun CameraScreen(
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-    val executor = remember { Executors.newSingleThreadExecutor() }
+    val analysisExecutor = remember { Executors.newSingleThreadExecutor() }
 
-    val uiState = remember { GestureUIState() }
-    val labelMapper = remember { GestureLabelMapper(context) }
+    val gestureLabelMapper = remember { GestureLabelMapper(context) }
+    val gestureText = remember { mutableStateOf("제스처 없음") }
+    val detectionFrameCount = remember { mutableIntStateOf(0) }
+    val latestPoints = remember { mutableStateListOf<PointF>() }
+    val landmarksState = remember { mutableStateOf<List<Triple<Double, Double, Double>>>(emptyList()) }
 
-    val analyzer = remember {
+    val analyzer = remember(
+        context, handDetector, landmarkDetector, gestureClassifier,
+        gestureLabelMapper, gestureText, detectionFrameCount,
+        latestPoints, landmarksState, isTrainingMode,
+        trainingGestureName, gestureStatusText, onTrainingComplete
+    ) {
         HandAnalyzer(
             context = context,
             handDetector = handDetector,
             landmarkDetector = landmarkDetector,
-            classifier = gestureClassifier,
-            labelMapper = labelMapper,
-            uiState = uiState,
-            isTraining = isTrainingMode,
-            trainingName = trainingGestureName,
+            gestureClassifier = gestureClassifier,
+            gestureLabelMapper = gestureLabelMapper,
+            gestureText = gestureText,
+            detectionFrameCount = detectionFrameCount,
+            latestPoints = latestPoints,
+            landmarksState = landmarksState,
+            validDetectionThreshold = 20,
+            isTrainingMode = isTrainingMode,
+            trainingGestureName = trainingGestureName,
             onGestureDetected = {},
-            onTrainingDone = {
-                uiState.gestureText.value = "🎉 학습 완료"
+            onTrainingComplete = {
+                gestureText.value = "🎉 학습 완료"
                 gestureStatusText?.value = "✅ 사용자 제스처 학습 완료"
                 onTrainingComplete?.invoke()
-            }
+            },
         )
     }
 
     Box(modifier = Modifier.fillMaxSize()) {
         AndroidView(
-            factory = {
-                PreviewView(it).apply {
-                    CameraInitializer.startCamera(context, this, lifecycleOwner, executor, analyzer)
-                }
+            factory = { ctx ->
+                val previewView = PreviewView(ctx)
+                CameraInitializer.startCamera(
+                    ctx,
+                    previewView,
+                    lifecycleOwner,
+                    analysisExecutor,
+                    analyzer
+                )
+                previewView
             },
             modifier = Modifier.fillMaxSize()
         )
 
-        if (uiState.landmarks.value.isNotEmpty()) {
+        if (landmarksState.value.isNotEmpty()) {
             HandLandmarkOverlay(
-                landmarks = uiState.landmarks.value,
+                landmarks = landmarksState.value,
                 modifier = Modifier.fillMaxSize()
             )
 
             Text(
-                text = uiState.gestureText.value,
+                text = gestureText.value,
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 32.dp),
@@ -106,6 +124,7 @@ fun CameraScreen(
             )
         }
 
+        // ✅ 학습 완료 UI 상태 메시지 (하단)
         if (!gestureStatusText?.value.isNullOrBlank()) {
             Text(
                 text = gestureStatusText?.value ?: "",
@@ -156,26 +175,21 @@ object CameraInitializer {
     }
 }
 
-data class GestureUIState(
-    val gestureText: MutableState<String> = mutableStateOf("제스처 없음"),
-    val gestureStatusText: MutableState<String?> = mutableStateOf(null),
-    val detectionFrameCount: MutableState<Int> = mutableIntStateOf(0),
-    val landmarks: MutableState<List<Triple<Double, Double, Double>>> = mutableStateOf(emptyList()),
-    val latestPoints: SnapshotStateList<PointF> = mutableStateListOf()
-)
-
 class HandAnalyzer(
     private val context: Context,
     private val handDetector: HandDetector,
     private val landmarkDetector: HandLandmarkDetector,
-    private val classifier: GestureClassifier,
-    private val labelMapper: GestureLabelMapper,
-    private val uiState: GestureUIState,
-    private val isTraining: Boolean,
-    private val trainingName: String,
-    private val validThreshold: Int = 20,
+    private val gestureClassifier: GestureClassifier,
+    private val gestureLabelMapper: GestureLabelMapper,
+    private val gestureText: MutableState<String>,
+    private val detectionFrameCount: MutableState<Int>,
+    private val latestPoints: SnapshotStateList<PointF>,
+    private val landmarksState: MutableState<List<Triple<Double, Double, Double>>>,
+    private val validDetectionThreshold: Int,
+    private val isTrainingMode: Boolean,
+    private val trainingGestureName: String,
     private val onGestureDetected: ((String) -> Unit)? = null,
-    private val onTrainingDone: (() -> Unit)? = null
+    private val onTrainingComplete: (() -> Unit)? = null // ✅ 추가됨
 ) : ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: ImageProxy) {
@@ -185,34 +199,48 @@ class HandAnalyzer(
             val orientation = getBackCameraSensorOrientation(context)
 
             if (points.isNotEmpty()) {
-                uiState.detectionFrameCount.value++
+                detectionFrameCount.value += 1
 
-                if (uiState.detectionFrameCount.value >= validThreshold) {
-                    uiState.latestPoints.clear()
-                    uiState.latestPoints.addAll(points)
+                if (detectionFrameCount.value >= validDetectionThreshold) {
+                    ThrottledLogger.log("HandAnalyzer", "손 감지 성공: ${points.size}")
+                    latestPoints.clear()
+                    latestPoints.addAll(points)
 
                     for (point in points) {
-                        val gestureName = if (isTraining) trainingName else "temp"
-                        landmarkDetector.transfer(bitmap, orientation, gestureName)
+                        if (isTrainingMode) {
+                            // ✅ 전이 학습 시에만 transfer() 호출
+                            landmarkDetector.transfer(bitmap, orientation, trainingGestureName)
 
-                        if (isTraining && !landmarkDetector.isCollecting) {
-                            onTrainingDone?.invoke()
-                            return
+                            if (!landmarkDetector.isCollecting) {
+                                onTrainingComplete?.invoke()
+                            }
+                        } else {
+                            // ✅ 일반 예측 모드에서는 transfer()가 아니라 predict() 호출
+                            landmarkDetector.predict(bitmap, orientation)
                         }
 
                         val landmarks = landmarkDetector.lastLandmarks
-                        if (!isTraining && landmarks.size == 21) {
-                            uiState.landmarks.value = landmarks
-                            val (index, confidence) = classifier.classify(landmarks, landmarkDetector.lastHandedness)
-                            val name = labelMapper.getLabel(index)
-                            uiState.gestureText.value = "$name (${(confidence * 100).toInt()}%)"
-                            onGestureDetected?.invoke(name)
+
+                        if (!isTrainingMode && landmarks.size == 21) {
+                            landmarksState.value = landmarks.toList()
+                            val (gestureIndex, confidence) = gestureClassifier.classify(
+                                landmarks,
+                                landmarkDetector.lastHandedness
+                            )
+                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+                            ThrottledLogger.log("HandAnalyzer", "$gestureName ($gestureIndex, $confidence)")
+
+                            onGestureDetected?.invoke(gestureName)
                         }
                     }
+                } else {
+                    ThrottledLogger.log("HandAnalyzer", "감지 누적 중 (${detectionFrameCount.value})")
                 }
             } else {
-                uiState.detectionFrameCount.value = 0
-                uiState.landmarks.value = emptyList()
+                detectionFrameCount.value = 0
+                landmarksState.value = emptyList()
+                ThrottledLogger.log("HandAnalyzer", "손 감지 안됨")
             }
         } catch (e: Exception) {
             Log.e("HandAnalyzer", "분석 실패: ${e.message}", e)

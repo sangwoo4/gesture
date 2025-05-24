@@ -53,39 +53,39 @@ class HandAnalyzers(
 
                     for (point in points) {
                         if (isTrainingMode) {
-                            // 전이 학습: landmark 수집
+                            // ✅ 학습 모드일 때만 서버 전송을 위한 transfer 호출
                             landmarkDetector.transfer(bitmap, orientation, trainingGestureName)
 
-                            // 수집 완료 확인
                             if (!landmarkDetector.isCollecting) {
                                 gestureText.value = "학습 완료"
                                 onTrainingComplete?.invoke()
                             }
                         } else {
-                            // 일반 제스처 분류 모드
+                            // ✅ 일반 모드에서는 예측만 수행
                             landmarkDetector.predict(bitmap, orientation)
-                            val landmarks = landmarkDetector.lastLandmarks
+                        }
 
-                            if (landmarks.size == 21) {
-                                landmarksState.value = landmarks.toList()
-                                val (gestureIndex, confidence) = gestureClassifier.classify(
-                                    landmarks,
-                                    landmarkDetector.lastHandedness
-                                )
+                        val landmarks = landmarkDetector.lastLandmarks
 
-                                val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                                gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+                        if (!isTrainingMode && landmarks.size == 21) {
+                            landmarksState.value = landmarks.toList()
+                            val (gestureIndex, confidence) = gestureClassifier.classify(
+                                landmarks,
+                                landmarkDetector.lastHandedness
+                            )
 
-                                ThrottledLogger.log(
-                                    "HandAnalyzer",
-                                    "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
-                                )
+                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
 
-                                onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex))
-                            } else {
-                                gestureText.value = "제스처 없음"
-                                ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
-                            }
+                            ThrottledLogger.log(
+                                "HandAnalyzer",
+                                "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
+                            )
+
+                            onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex))
+                        } else if (!isTrainingMode) {
+                            gestureText.value = "제스처 없음"
+                            ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
                         }
                     }
                 } else {
