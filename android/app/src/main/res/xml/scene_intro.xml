@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- ① 트랜지션 정의 : 0~3000ms 동안 START → END  -->
+    <Transition
+        app:duration="3000"
+        app:constraintSetStart="@+id/start"
+        app:constraintSetEnd="@+id/end" />
+
+    <!-- ② START 상태 – 제목은 위쪽, ‘터치’ 문구는 투명 -->
+    <ConstraintSet android:id="@+id/start">
+
+        <Constraint
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:translationY="-100dp"
+            android:alpha="0" />
+
+        <Constraint
+            android:id="@+id/tvTouch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:alpha="0"/>
+    </ConstraintSet>
+
+    <!-- ③ END 상태 – 제목 중앙에, ‘터치’ 문구는 아래쪽에 등장 -->
+    <ConstraintSet android:id="@+id/end">
+
+        <Constraint
+            android:id="@+id/tvTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:translationY="50dp"
+            android:alpha="1"/>
+
+        <Constraint
+            android:id="@+id/tvTouch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:alpha="1"/>
+    </ConstraintSet>
+</MotionScene>
