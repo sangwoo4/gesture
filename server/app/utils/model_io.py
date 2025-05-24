@@ -1,12 +1,11 @@
 from concurrent.futures import ThreadPoolExecutor
 
-from fastapi import HTTPException
 from sqlalchemy.orm import Session
 #from app.models import File
 from app.services.firebase_service import get_cached_or_download
 import os
 import zipfile
-from app.config import NEW_DIR, ZIP_DIR
+from app.utils.config import NEW_DIR, ZIP_DIR
 
 executor = ThreadPoolExecutor(max_workers=10)
 

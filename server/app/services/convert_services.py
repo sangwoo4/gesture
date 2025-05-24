@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import ast
-from app.config import NEW_DIR
+from app.utils.config import NEW_DIR
 def parse_str_landmarks(str_landmark_list):
     # 문자열 "(x, y, z)" → 튜플 (float, float, float)
     return [ast.literal_eval(coord_str) for coord_str in str_landmark_list]

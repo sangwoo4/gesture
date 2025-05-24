@@ -1,6 +1,6 @@
 import random
 from http.client import HTTPException
-from typing import Any, Coroutine
+from typing import Any
 
 from fastapi import HTTPException
 import tensorflow as tf
@@ -9,7 +9,7 @@ import os
 
 from keras.src.layers import Dropout
 
-from app.config import NEW_DIR
+from app.utils.config import NEW_DIR
 from app.utils.model_io import download_model
 
 #from app.utils.model_io import get_model_info, download_model, save_model_info
@@ -17,7 +17,6 @@ from app.utils.preprocessing import generate_model_filename, new_split_landmarks
 from app.utils.model_builder import new_convert_to_npy
 from app.services.firebase_service import upload_model_to_firebase_async
 
-from sqlalchemy.orm import Session
 from tensorflow.keras.models import load_model, Sequential
 from tensorflow.keras.layers import Dense, Flatten
 from tensorflow.keras.utils import to_categorical
@@ -56,20 +55,25 @@ def create_label_maps(y_basic_train, y_basic_test, y_update_train, y_update_test
     label_to_index = {"none": 0}
     index_to_label = {0: "none"}
 
-    # 기존 라벨
-    existing_labels = sorted(set(y_basic_train) | set(y_basic_test) - {"none"})
+    def unique_preserve_order(seq):
+        seen = set()
+        return [x for x in seq if x != "none" and not (x in seen or seen.add(x))]
+
+    # 기존 라벨 순서 유지
+    existing_labels = unique_preserve_order(list(y_basic_train) + list(y_basic_test))
     for idx, label in enumerate(existing_labels, start=1):
         label_to_index[label] = idx
         index_to_label[idx] = label
 
-    print("existing labels: ", existing_labels)
-    # 신규 라벨 중 기존에 없는 라벨 추가
-    update_labels = sorted(set(y_update_train) | set(y_update_test) - {"none"})
-    start_idx = max(label_to_index.values()) + 1
-    for idx, label in enumerate(update_labels, start=start_idx):
+    print("existing labels:", existing_labels)
+
+    # 신규 라벨 추가
+    update_labels = unique_preserve_order(list(y_update_train) + list(y_update_test))
+    for label in update_labels:
         if label not in label_to_index:
-            label_to_index[label] = idx
-            index_to_label[idx] = label
+            next_idx = max(label_to_index.values()) + 1
+            label_to_index[label] = next_idx
+            index_to_label[next_idx] = label
 
     return label_to_index, index_to_label
 
@@ -202,6 +206,7 @@ async def train_new_model_service(model_code: str, csv_path: str) -> tuple[Any, 
         y_update_train=update_train[:, -1],
         y_update_test=update_test[:, -1]
     )
+
     print("label_to_index", label_to_index)
     print("index_to_label", index_to_label)
 
@@ -210,7 +215,7 @@ async def train_new_model_service(model_code: str, csv_path: str) -> tuple[Any, 
     X_test, y_test = prepare_inputs(X_test_all, y_test_all, label_to_index)
 
     # 7. 모델 생성 및 학습
-    model = build_transfer_model(base_model, len(label_to_index), sorted(label_to_index.values()))
+    model = build_transfer_model(base_model, len(label_to_index), label_to_index.values())
     model.compile(optimizer=tf.keras.optimizers.Adam(learning_rate=0.0001),
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
@@ -236,10 +241,10 @@ async def train_new_model_service(model_code: str, csv_path: str) -> tuple[Any, 
 
 
     # 9. 신규 클래스 정보 추출
-    existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
-    updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
-    all_labels = set(y_train_all) | set(y_test_all)
-    new_labels = all_labels - existing_labels
+    # existing_labels = set(basic_train[:, -1]) | set(basic_test[:, -1])
+    # updated_labels = set(update_train[:, -1]) | set(update_test[:, -1])
+    # all_labels = set(y_train_all) | set(y_test_all)
+    # new_labels = all_labels - existing_labels
 
     # 10. Firebase 업로드
     new_tflite_model_url = await upload_model_to_firebase_async(

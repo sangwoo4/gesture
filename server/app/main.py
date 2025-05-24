@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.routes.train_routes import router as train_router
-import app.config  # ✅ Firebase 초기화 강제 수행!
 
 app = FastAPI()
 app.include_router(train_router)

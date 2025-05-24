@@ -20,6 +20,7 @@ async def train_model(request: TrainData):
     gesture = request.gesture
     landmarks = request.landmarks
 
+    print("model_code: ", model_code)
     csv_path = convert_landmarks_to_csv(landmarks, gesture)
     #csv_path = "app/cache_dir/update_hand_landmarks.csv"
     new_model_code, new_tflite_model_url = await train_new_model_service(model_code, csv_path)

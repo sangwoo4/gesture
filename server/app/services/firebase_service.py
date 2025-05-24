@@ -1,13 +1,11 @@
 import os
-import tempfile
 import time
 from concurrent.futures import ThreadPoolExecutor
 import asyncio
 import zipfile
 import tempfile
-from app.config import bucket
-import shutil
-from app.config import NEW_DIR, ZIP_DIR
+from app.utils.config import bucket
+from app.utils.config import ZIP_DIR
 CACHE_EXPIRATION = 24 * 60 * 60
 
 executor = ThreadPoolExecutor(max_workers=3)
