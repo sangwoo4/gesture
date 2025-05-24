@@ -12,7 +12,9 @@
 
     <action
         android:id="@+id/action_introSceneFragment_to_airCommandFragment"
-        app:destination="@id/airCommandFragment" />
+        app:destination="@id/airCommandFragment"
+        app:enterAnim="@anim/slide_in_right"
+        app:popEnterAnim="@anim/slide_in_left" />
     </fragment>
 
     <!-- AirCommand Fragment -->

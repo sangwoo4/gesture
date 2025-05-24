@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.provider.Settings
+import android.transition.TransitionInflater
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -39,6 +40,13 @@ class AirCommandFragment : Fragment() {
 
     private val REQUEST_CAMERA_PERMISSIONS = 1001
     private val PREFS_KEY_CAMERA_ENABLED = "camera_service_enabled"
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        sharedElementEnterTransition =
+            TransitionInflater.from(requireContext()).inflateTransition(android.R.transition.move)
+    }
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,

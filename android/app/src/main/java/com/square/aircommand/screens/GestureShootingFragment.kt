@@ -16,7 +16,6 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
-import com.square.aircommand.screens.TestFragment.Companion
 import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
@@ -43,16 +42,42 @@ class GestureShootingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        binding.numberProgress.progress = 0
+
+        // 진행 상태바 초기화
+        binding.numberProgress.progress = 0
+
+        // 상태바 애니메이션 예제 (1초마다 10씩 증가)
+        val handler = android.os.Handler()
+        var progress = 0
+        val runnable = object : Runnable {
+            override fun run() {
+                if (progress <= 100) {
+                    binding.numberProgress.progress = progress
+
+                    // 100%가 되면 메시지 업데이트
+                    if (progress == 100) {
+                        binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
+                    }
+
+                    progress += 10
+                    handler.postDelayed(this, 800) // 1초마다 반복
+                }
+            }
+        }
+        handler.post(runnable)
 
         // 뒤로가기 버튼 클릭 시 이전 프래그먼트로 이동
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        // 저장 버튼 클릭 -> UserGestureFragment로 이동
+//        // 저장 버튼 클릭 -> UserGestureFragment로 이동
         binding.saveButton.setOnClickListener {
             findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
         }
+
+
 
         if (allPermissionsGranted()) {
             initModels()

@@ -170,5 +170,5 @@ dependencies {
 
     implementation("io.github.shashank02051997:FancyToast:2.0.2")
 
-
+    implementation("com.daimajia.numberprogressbar:library:1.4@aar")
 }

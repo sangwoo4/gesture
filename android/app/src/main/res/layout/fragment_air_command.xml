@@ -25,6 +25,7 @@ android:background="#E5E8F0">
             android:layout_width="50dp"
             android:layout_height="50dp"
             android:src="@mipmap/ic_launcher_foreground"
+            android:transitionName="logo_transition"
             android:adjustViewBounds="true"
             android:layout_marginEnd="8dp"/>
 
@@ -47,7 +48,7 @@ android:background="#E5E8F0">
         android:orientation="horizontal"
         android:padding="10dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"  
+        android:layout_marginBottom="16dp"
         android:backgroundTint="#F4F4F5"
         android:clipToPadding="false"
         android:elevation="1dp"

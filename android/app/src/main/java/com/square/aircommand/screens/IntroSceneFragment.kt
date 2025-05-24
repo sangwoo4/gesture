@@ -9,9 +9,7 @@ import androidx.fragment.app.Fragment
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentIntroSceneBinding
 import android.os.Handler
-import android.view.animation.AnimationUtils
 import androidx.navigation.fragment.findNavController
-
 
 class IntroSceneFragment : Fragment() {
 
@@ -33,30 +31,32 @@ class IntroSceneFragment : Fragment() {
         setTouchListener()
     }
 
-    /** 3초짜리 모션 실행 */
+    /** 모션 실행 */
     private fun startMotion() = with(binding.introMotion) {
         transitionToStart()
         post { transitionToEnd() }
     }
 
-    /** 애니메이션 끝난 뒤 깜빡임 + 터치 처리 */
 //    private fun setTouchListener() = with(binding) {
 //        Handler(Looper.getMainLooper()).postDelayed({
-////            tvTouch.startAnimation(
-////                AnimationUtils.loadAnimation(requireContext(), R.anim.blink)
-////            )
-//            introMotion.setOnClickListener {
-//                findNavController().navigate(R.id.action_introSceneFragment_to_airCommandFragment)
-//            }
-//
-//        }, 2000)
+//            findNavController().navigate(R.id.action_introSceneFragment_to_airCommandFragment)
+//        }, 2500)
 //    }
-
     private fun setTouchListener() = with(binding) {
         Handler(Looper.getMainLooper()).postDelayed({
-            findNavController().navigate(R.id.action_introSceneFragment_to_airCommandFragment)
+            val extras = androidx.navigation.fragment.FragmentNavigatorExtras(
+                ivLogo to "logo_transition"
+            )
+            findNavController().navigate(
+                R.id.action_introSceneFragment_to_airCommandFragment,
+                null,
+                null,
+                extras
+            )
         }, 2500)
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

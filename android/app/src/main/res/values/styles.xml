@@ -4,6 +4,9 @@
         <!-- 폰트만 전체 적용 가능 -->
         <item name="android:fontFamily">@font/binggrae1</item>
 
+        <!-- 애니메이션 적용 -->
+        <item name="android:windowActivityTransitions">true</item>
+
         <!-- 개별 위젯 스타일 오버라이드 -->
         <item name="textAppearanceBody1">@style/CustomTextAppearance</item>
         <item name="textAppearanceHeadline6">@style/CustomTextAppearance</item>
