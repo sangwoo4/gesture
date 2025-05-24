@@ -58,6 +58,11 @@ class GestureShootingFragment : Fragment() {
                     // 100%가 되면 메시지 업데이트
                     if (progress == 100) {
                         binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
+
+                        // 완료되면 카메라 꺼지고 빈 화면이 됨
+                        binding.landmarkOverlay.setContent {
+                            // 아무것도 없는 빈 화면
+                        }
                     }
 
                     progress += 10
@@ -72,7 +77,21 @@ class GestureShootingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-//        // 저장 버튼 클릭 -> UserGestureFragment로 이동
+        binding.retakeButton.setOnClickListener {
+            // 상태 초기화
+            progress = 0
+            binding.numberProgress.progress = 0
+
+            // 카메라 다시 실행
+            showCameraCompose()
+
+            // 진행률 다시 시작
+            handler.removeCallbacks(runnable) // 기존 루프 제거.
+            handler.post(runnable)
+        }
+
+
+        // 저장 버튼 클릭 -> UserGestureFragment로 이동
         binding.saveButton.setOnClickListener {
             findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
         }
