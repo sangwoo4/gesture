@@ -105,7 +105,7 @@ fun CameraScreenTest(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 32.dp),
-                color = Color.White,
+                color = Color.Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )

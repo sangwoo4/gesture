@@ -72,129 +72,129 @@
         app:layout_constraintStart_toStartOf="parent"
         android:layout_marginTop="16dp" />
 
-    <!-- PAPER -->
-    <LinearLayout
-        android:id="@+id/gesturePaper"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/installedLabel"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+<!--    &lt;!&ndash; PAPER &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/gesturePaper"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingVertical="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/installedLabel"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:paddingStart="16dp"-->
+<!--        android:paddingEnd="16dp">-->
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="보 제스처"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="보 제스처"-->
+<!--            android:textColor="@color/black"-->
+<!--            android:textSize="20sp" />-->
 
-        <Spinner
-            android:id="@+id/spinnerPaper"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/gesture_action_options"
-            android:spinnerMode="dropdown"
-            android:popupBackground="@drawable/spinner_background"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+<!--        <Spinner-->
+<!--            android:id="@+id/spinnerPaper"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:entries="@array/gesture_action_options"-->
+<!--            android:spinnerMode="dropdown"-->
+<!--            android:popupBackground="@drawable/spinner_background"-->
+<!--            android:layout_marginStart="8dp" />-->
+<!--    </LinearLayout>-->
 
-    <!-- ROCK -->
-    <LinearLayout
-        android:id="@+id/gestureRock"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/gesturePaper"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+<!--    &lt;!&ndash; ROCK &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/gestureRock"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingVertical="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/gesturePaper"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:paddingStart="16dp"-->
+<!--        android:paddingEnd="16dp">-->
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="주먹 제스처"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="주먹 제스처"-->
+<!--            android:textColor="@color/black"-->
+<!--            android:textSize="20sp" />-->
 
-        <Spinner
-            android:id="@+id/spinnerRock"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/gesture_action_options"
-            android:spinnerMode="dropdown"
-            android:popupBackground="@drawable/spinner_background"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+<!--        <Spinner-->
+<!--            android:id="@+id/spinnerRock"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:entries="@array/gesture_action_options"-->
+<!--            android:spinnerMode="dropdown"-->
+<!--            android:popupBackground="@drawable/spinner_background"-->
+<!--            android:layout_marginStart="8dp" />-->
+<!--    </LinearLayout>-->
 
-    <!-- SCISSORS -->
-    <LinearLayout
-        android:id="@+id/gestureScissors"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/gestureRock"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+<!--    &lt;!&ndash; SCISSORS &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/gestureScissors"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingVertical="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/gestureRock"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:paddingStart="16dp"-->
+<!--        android:paddingEnd="16dp">-->
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="가위 제스처"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="가위 제스처"-->
+<!--            android:textColor="@color/black"-->
+<!--            android:textSize="20sp" />-->
 
-        <Spinner
-            android:id="@+id/spinnerScissors"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/gesture_action_options"
-            android:spinnerMode="dropdown"
-            android:popupBackground="@drawable/spinner_background"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+<!--        <Spinner-->
+<!--            android:id="@+id/spinnerScissors"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:entries="@array/gesture_action_options"-->
+<!--            android:spinnerMode="dropdown"-->
+<!--            android:popupBackground="@drawable/spinner_background"-->
+<!--            android:layout_marginStart="8dp" />-->
+<!--    </LinearLayout>-->
 
-    <!-- ONE -->
-    <LinearLayout
-        android:id="@+id/gestureOne"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:paddingVertical="12dp"
-        app:layout_constraintTop_toBottomOf="@id/gestureScissors"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp">
+<!--    &lt;!&ndash; ONE &ndash;&gt;-->
+<!--    <LinearLayout-->
+<!--        android:id="@+id/gestureOne"-->
+<!--        android:layout_width="0dp"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:orientation="horizontal"-->
+<!--        android:paddingVertical="12dp"-->
+<!--        app:layout_constraintTop_toBottomOf="@id/gestureScissors"-->
+<!--        app:layout_constraintStart_toStartOf="parent"-->
+<!--        app:layout_constraintEnd_toEndOf="parent"-->
+<!--        android:paddingStart="16dp"-->
+<!--        android:paddingEnd="16dp">-->
 
-        <TextView
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="하나 제스처"
-            android:textColor="@color/black"
-            android:textSize="20sp" />
+<!--        <TextView-->
+<!--            android:layout_width="0dp"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:layout_weight="1"-->
+<!--            android:text="하나 제스처"-->
+<!--            android:textColor="@color/black"-->
+<!--            android:textSize="20sp" />-->
 
-        <Spinner
-            android:id="@+id/spinnerOne"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:entries="@array/gesture_action_options"
-            android:spinnerMode="dropdown"
-            android:popupBackground="@drawable/spinner_background"
-            android:layout_marginStart="8dp" />
-    </LinearLayout>
+<!--        <Spinner-->
+<!--            android:id="@+id/spinnerOne"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:entries="@array/gesture_action_options"-->
+<!--            android:spinnerMode="dropdown"-->
+<!--            android:popupBackground="@drawable/spinner_background"-->
+<!--            android:layout_marginStart="8dp" />-->
+<!--    </LinearLayout>-->
 
 
     <!-- 사용자 정의 제스처 영역 -->
@@ -207,7 +207,7 @@
         android:showDividers="middle"
         android:paddingTop="12dp"
         android:paddingBottom="24dp"
-        app:layout_constraintTop_toBottomOf="@id/gestureOne"
+        app:layout_constraintTop_toBottomOf="@id/installedLabel"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:paddingStart="16dp"

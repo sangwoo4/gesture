@@ -12,9 +12,9 @@ import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
 
 /**
- * 사용자가 제스처와 기능(GestureAction)을 매핑할 수 있는 화면
- * - 기본 제스처(PAPER, ROCK, SCISSORS, ONE)는 고정 Spinner 제공
- * - 사용자 학습 제스처는 gesture_labels.json 기반으로 동적으로 생성
+ * 제스처 기능 설정 화면 (GestureSettingFragment)
+ * - gesture_labels.json 파일에서 제스처 목록을 불러옴
+ * - NONE 및 UNKNOWN만 제외하고 모든 제스처 표시
  */
 class GestureSettingFragment : Fragment() {
 
@@ -26,7 +26,8 @@ class GestureSettingFragment : Fragment() {
 
     private lateinit var gestureLabelMapper: GestureLabelMapper
 
-    private val defaultGestures = listOf("PAPER", "ROCK", "SCISSORS", "ONE")
+    // 제외할 기본 제스처
+    private val excludedLabels = listOf("NONE", "UNKNOWN")
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,33 +45,28 @@ class GestureSettingFragment : Fragment() {
         val options = resources.getStringArray(R.array.gesture_action_options)
         val noneDisplay = GestureAction.NONE.displayName
 
-        // ✅ 1. 기본 제스처 Spinner 연결
-        setupSpinner(binding.spinnerPaper, "PAPER", prefs.getString("gesture_paper_action", noneDisplay) ?: noneDisplay, "gesture_paper_action", options)
-        setupSpinner(binding.spinnerRock, "ROCK", prefs.getString("gesture_rock_action", noneDisplay) ?: noneDisplay, "gesture_rock_action", options)
-        setupSpinner(binding.spinnerScissors, "SCISSORS", prefs.getString("gesture_scissors_action", noneDisplay) ?: noneDisplay, "gesture_scissors_action", options)
-        setupSpinner(binding.spinnerOne, "ONE", prefs.getString("gesture_one_action", noneDisplay) ?: noneDisplay, "gesture_one_action", options)
-
-        // ✅ 2. 사용자 학습 제스처만 UI 추가
-        val userGestures = gestureLabelMapper.getAllLabels().values
-            .filter { it !in defaultGestures }
+        // ✅ 모든 제스처에서 NONE, UNKNOWN 제외
+        val allGestures = gestureLabelMapper.getAllLabels().values
+            .filter { it.uppercase() !in excludedLabels }
             .sorted()
 
-        for (label in userGestures) {
+        for (label in allGestures) {
             val (rowLayout, spinner) = createGestureRow(label)
             binding.customGestureContainer.addView(rowLayout)
 
-            val savedValue = prefs.getString("gesture_${label.lowercase()}_action", noneDisplay) ?: noneDisplay
-            setupSpinner(spinner, label, savedValue, "gesture_${label.lowercase()}_action", options)
+            val prefsKey = "gesture_${label.lowercase()}_action"
+            val savedValue = prefs.getString(prefsKey, noneDisplay) ?: noneDisplay
+            setupSpinner(spinner, label, savedValue, prefsKey, options)
         }
 
-        // 🔙 뒤로가기
+        // 🔙 뒤로가기 버튼 처리
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
     }
 
     /**
-     * Spinner와 기능 연결 설정
+     * Spinner UI 설정 및 SharedPreferences 저장 처리
      */
     private fun setupSpinner(
         spinner: Spinner,
@@ -90,17 +86,16 @@ class GestureSettingFragment : Fragment() {
             it.setDropDownViewResource(R.layout.spinner_text)
         }
 
+        // 초기 선택값 설정
         spinner.setSelection(options.indexOf(initialValue).coerceAtLeast(0))
 
-        GestureAction.entries.firstOrNull { it.displayName == initialValue }?.let { action ->
-            if (action != GestureAction.NONE) selectedActions[label] = action
-        }
-
+        // 선택 항목에 따라 SharedPreferences 저장
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
                 val selectedDisplayName = options[position]
-                val selectedAction = GestureAction.entries.firstOrNull { it.displayName == selectedDisplayName }
-                    ?: GestureAction.NONE
+                val selectedAction = GestureAction.entries.firstOrNull {
+                    it.displayName == selectedDisplayName
+                } ?: GestureAction.NONE
 
                 prefs.edit().putString(prefsKey, selectedDisplayName).apply()
 
@@ -116,7 +111,7 @@ class GestureSettingFragment : Fragment() {
     }
 
     /**
-     * 사용자 정의 제스처 UI 행 생성 (TextView + Spinner)
+     * 제스처 행 동적 생성 (TextView + Spinner)
      */
     private fun createGestureRow(label: String): Pair<LinearLayout, Spinner> {
         val context = requireContext()

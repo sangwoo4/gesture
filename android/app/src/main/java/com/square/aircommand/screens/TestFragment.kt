@@ -11,7 +11,6 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.square.aircommand.camera.CameraScreen
 import com.square.aircommand.camera.CameraScreenTest
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentTestBinding
