@@ -19,19 +19,20 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.tflite.ModelRepository.initModels
-import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
 
     private var _binding: FragmentGestureShootingBinding? = null
     private val binding get() = _binding!!
 
+    // 상태 진행바 초기화
+    private var progress = 0
+
     private lateinit var handDetector: HandDetector
     private lateinit var landmarkDetector: HandLandmarkDetector
     private lateinit var gestureClassifier: GestureClassifier
 
-    private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
+//    private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
 
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
@@ -65,15 +66,28 @@ class GestureShootingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 🔙 뒤로가기 버튼
+        // 초기 상태
+        binding.numberProgress.progress = 0
+        progress = 0
+
+        // 뒤로가기 버튼
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        // 💾 저장 버튼 → 사용자 제스처 등록 화면으로 이동
+        // 다시 촬영
+        binding.retakeButton.setOnClickListener {
+            progress = 0
+            binding.numberProgress.progress = 0
+            binding.statusMessage.text = ""
+            showCameraCompose()
+        }
+
+        // 저장 버튼
         binding.saveButton.setOnClickListener {
             findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
         }
+
 
         // 📷 카메라 권한 확인 후 초기화
         if (allPermissionsGranted()) {
@@ -88,6 +102,22 @@ class GestureShootingFragment : Fragment() {
             )
         }
     }
+
+    // Fragment 내부에 추가
+    private fun updateProgress(percent: Int) {
+        requireActivity().runOnUiThread {
+            progress = percent.coerceAtMost(100)
+            binding.numberProgress.progress = progress
+
+            if (progress >= 100) {
+                binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
+                binding.landmarkOverlay.setContent {
+                    // 카메라 중지 - 빈 화면
+                }
+            }
+        }
+    }
+
 
     // ✅ 카메라 권한 확인
     private fun allPermissionsGranted(): Boolean {
@@ -111,6 +141,9 @@ class GestureShootingFragment : Fragment() {
                 gestureClassifier = gestureClassifier,
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
+
+//                gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
+
                 onTrainingComplete = {
                     // 🎉 학습 완료 시 토스트 한 번만 표시
                     if (!toastShown) {
@@ -120,10 +153,15 @@ class GestureShootingFragment : Fragment() {
                         }
                     }
                 },
-                gestureStatusText = gestureStatusText // ✅ 상태 전달
+
+                // 상태바 퍼센티지 연동
+                onProgressUpdate = { percent ->
+                    updateProgress(percent)
+                }
             )
         }
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

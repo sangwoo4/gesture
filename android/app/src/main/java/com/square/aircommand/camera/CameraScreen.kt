@@ -51,7 +51,11 @@ fun CameraScreen(
     isTrainingMode: Boolean = false,
     trainingGestureName: String = "",
     gestureStatusText: MutableState<String>? = null,
-    onTrainingComplete: (() -> Unit)? = null
+    onTrainingComplete: (() -> Unit)? = null,
+
+    // 상태바 초기화
+    onProgressUpdate: ((Int) -> Unit)? = null
+
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -66,7 +70,10 @@ fun CameraScreen(
     val trainingListener = remember {
         object : TrainingProgressListener {
             override fun onCollectionProgress(percent: Int) {
-                gestureStatusText?.value = "🔄 수집 중... ($percent%)"
+                //gestureStatusText?.value = "🔄 수집 중... ($percent%)"
+
+                // 상태바 퍼센티지 연동
+                onProgressUpdate?.invoke(percent)
             }
 
             override fun onTrainingStarted() {
