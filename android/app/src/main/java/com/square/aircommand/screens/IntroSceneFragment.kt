@@ -39,18 +39,20 @@ class IntroSceneFragment : Fragment() {
         post { transitionToEnd() }
     }
 
-    /** 애니메이션 끝난 뒤 깜빡임 + 터치 처리 */
     private fun setTouchListener() = with(binding) {
         Handler(Looper.getMainLooper()).postDelayed({
-            tvTouch.startAnimation(
-                AnimationUtils.loadAnimation(requireContext(), R.anim.blink)
+            val extras = androidx.navigation.fragment.FragmentNavigatorExtras(
+                ivLogo to "logo_transition"
             )
-            introMotion.setOnClickListener {
-                findNavController().navigate(R.id.action_introSceneFragment_to_airCommandFragment)
-            }
-
-        }, 3000)
+            findNavController().navigate(
+                R.id.action_introSceneFragment_to_airCommandFragment,
+                null,
+                null,
+                extras
+            )
+        }, 2500)
     }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

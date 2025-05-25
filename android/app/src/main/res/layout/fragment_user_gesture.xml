@@ -10,7 +10,8 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent"
+        android:paddingTop="10dp">
 
         <!-- 뒤로가기 버튼 -->
         <ImageButton
@@ -29,7 +30,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="사용자 제스처 등록"
-            android:textSize="25sp"
+            android:textSize="17sp"
             android:textStyle="bold"
             android:textColor="@android:color/black"
             app:layout_constraintStart_toEndOf="@id/backButton"
@@ -57,7 +58,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="새롭게 등록할 제스처의 이름을 설정해주세요."
-            android:textSize="17sp"
+            android:textSize="10sp"
             android:textColor="#777777"
             app:layout_constraintTop_toBottomOf="@id/titleText"
             app:layout_constraintStart_toStartOf="parent"
@@ -77,33 +78,58 @@
             app:layout_constraintEnd_toEndOf="parent"
             android:layout_marginTop="12dp">
 
+            <!-- 제스처 이름 입력 -->
             <EditText
                 android:id="@+id/gestureNameEditText"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:hint="제스처 이름을 적어주세요"
+                android:textSize="10sp"
                 android:textColorHint="@color/hintcolor"
                 android:textColor="@color/black"
                 android:background="@android:color/transparent"
                 android:inputType="text" />
 
+            <!-- 체크 버튼 (원형 아이콘) -->
+            <FrameLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginEnd="8dp"
+                android:layout_marginTop="5dp">
+
+                <at.markushi.ui.CircleButton
+                    android:id="@+id/checkPassedGif"
+                    android:layout_width="40dp"
+                    android:layout_height="40dp"
+                    android:layout_gravity="center_vertical"
+                    android:layout_marginStart="8dp"
+                    android:src="@raw/checkgif"
+                    android:visibility="gone"
+                    app:cb_color="#99CC00"
+                    app:cb_pressedRingWidth="6dp" />
+
+            </FrameLayout>
+
+            <!-- 중복 검사 버튼 -->
             <Button
                 android:id="@+id/btnCheckDuplicate"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="중복검사"
                 android:textColor="@color/black"
-                app:backgroundTint="@color/cardview_light_background"
-                android:textSize="17sp" />
+                android:textSize="10sp"
+                app:backgroundTint="@color/cardview_light_background" />
         </LinearLayout>
+
 
         <!-- 중복검사 결과 -->
         <TextView
             android:id="@+id/duplicateCheckResultText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:textSize="15sp"
+            android:textSize="10sp"
             android:textStyle="bold"
             android:textColor="#D08855"
             android:visibility="gone"
@@ -121,7 +147,7 @@
             android:background="@drawable/rounded_box"
             android:text="제스처 촬영"
             android:textColor="@color/black"
-            android:textSize="17sp"
+            android:textSize="12sp"
             app:backgroundTint="@null"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.0"
@@ -138,56 +164,56 @@
             android:text="등록됨"
             android:textStyle="bold"
             android:textColor="@android:color/black"
-            android:textSize="17sp"
+            android:textSize="12sp"
             app:layout_constraintTop_toBottomOf="@id/btnStartGestureShooting"
             app:layout_constraintStart_toStartOf="parent"
             android:layout_marginTop="20dp" />
 
-<!--        &lt;!&ndash; 예: 가위 제스처 &ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:id="@+id/gesture1"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="horizontal"-->
-<!--            android:paddingVertical="12dp"-->
-<!--            android:background="@drawable/rounded_box"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/installedLabel"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            android:layout_marginTop="8dp">-->
+        <!-- 예: 가위 제스처 -->
+        <LinearLayout
+            android:id="@+id/gesture1"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="12dp"
+            android:background="@drawable/rounded_box"
+            app:layout_constraintTop_toBottomOf="@id/installedLabel"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp">
 
-<!--            <TextView-->
-<!--                android:layout_width="1dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_marginLeft="10dp"-->
-<!--                android:text="가위 제스처"-->
-<!--                android:textColor="@android:color/black"-->
-<!--                android:layout_weight="1"-->
-<!--                android:textSize="20sp" />-->
-<!--        </LinearLayout>-->
+            <TextView
+                android:layout_width="1dp"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="10dp"
+                android:text="가위 제스처"
+                android:textColor="@android:color/black"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+        </LinearLayout>
 
-<!--        &lt;!&ndash; 두 번째 제스처 &ndash;&gt;-->
-<!--        <LinearLayout-->
-<!--            android:id="@+id/gesture2"-->
-<!--            android:layout_width="0dp"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:orientation="horizontal"-->
-<!--            android:paddingVertical="12dp"-->
-<!--            android:background="@drawable/rounded_box"-->
-<!--            app:layout_constraintTop_toBottomOf="@id/gesture1"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            android:layout_marginTop="8dp">-->
+        <!-- 두 번째 제스처 -->
+        <LinearLayout
+            android:id="@+id/gesture2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:paddingVertical="12dp"
+            android:background="@drawable/rounded_box"
+            app:layout_constraintTop_toBottomOf="@id/gesture1"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="8dp">
 
-<!--            <TextView-->
-<!--                android:layout_width="0dp"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:text="주먹 제스처"-->
-<!--                android:textColor="@android:color/black"-->
-<!--                android:layout_marginLeft="10dp"-->
-<!--                android:layout_weight="1"-->
-<!--                android:textSize="20sp" />-->
-<!--        </LinearLayout>-->
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:text="주먹 제스처"
+                android:textColor="@android:color/black"
+                android:layout_marginLeft="10dp"
+                android:layout_weight="1"
+                android:textSize="12sp" />
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

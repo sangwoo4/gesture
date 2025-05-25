@@ -2,23 +2,43 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
 android:layout_width="match_parent"
 android:layout_height="match_parent"
-android:background="#FFFFFF">
+android:paddingTop="40dp"
+android:background="#E5E8F0">
 
 <LinearLayout
-    android:padding="20dp"
+    android:padding="10dp"
     android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="wrap_content" >
 
-    <!-- 타이틀 -->
-    <TextView
+    <!-- 앱 로고 + 타이틀 한 줄로 묶기 -->
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Air Command"
-        android:textColor="@color/black"
-        android:textSize="30sp"
-        android:textStyle="bold"
-        android:paddingBottom="10dp"/>
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:paddingBottom="10dp">
+
+        <!-- 앱 로고 -->
+        <ImageView
+            android:id="@+id/ivLogo"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:src="@mipmap/ic_launcher_foreground"
+            android:transitionName="logo_transition"
+            android:adjustViewBounds="true"
+            android:layout_marginEnd="8dp"/>
+
+        <!-- 타이틀 -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Air Command"
+            android:textColor="@color/black"
+            android:textSize="17sp"
+            android:textStyle="bold"/>
+    </LinearLayout>
+
 
     <!-- 사용 중 섹션 -->
     <LinearLayout
@@ -26,20 +46,26 @@ android:background="#FFFFFF">
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_box"
         android:orientation="horizontal"
-        android:padding="16dp"
+        android:padding="10dp"
         android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"  
+        android:layout_marginBottom="16dp"
         android:backgroundTint="#F4F4F5"
         android:clipToPadding="false"
         android:elevation="1dp"
         android:layout_marginTop="8dp">
+
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/gestureicon"
+            android:layout_marginEnd="10dp" />
 
         <TextView
             android:id="@+id/tvUseStatus"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="사용 안 함"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:textColor="#B45309"
             android:textStyle="bold"/>
 
@@ -47,6 +73,7 @@ android:background="#FFFFFF">
             android:id="@+id/switchUse"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content" />
+
     </LinearLayout>
 
     <!-- 설명 -->
@@ -55,41 +82,9 @@ android:background="#FFFFFF">
         android:layout_height="wrap_content"
         android:text="에어 커맨드를 활용해 핸드폰을 터치 없이 제어할 수 있습니다."
         android:textColor="@color/black"
-        android:textSize="14sp"
-        android:paddingBottom="8dp"/>
+        android:textSize="11sp"
+        android:paddingBottom="50dp"/>
 
-    <TextView android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="• 제스처 설정을 통해 커스터마이징 할 수 있습니다.\n• 새로운 제스처를 등록하여 사용할 수 있습니다.\n• 터치가 힘든 상황에서 손쉽게 제어가 가능합니다.\n• 사용할 기능만 골라 설정할 수 있습니다."
-        android:textSize="13sp"
-        android:textColor="@color/black"
-        android:paddingBottom="20dp"/>
-
-    <!-- 카메라 권한 섹션 -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/rounded_box"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:gravity="center_vertical"
-        android:layout_marginBottom="16dp"
-        android:clipToPadding="false"
-        android:elevation="1dp">
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="백그라운드 카메라 권한"
-            android:textColor="@color/black"
-            android:textSize="14sp"
-            android:textStyle="bold"/>
-
-        <Switch
-            android:id="@+id/switchCamera"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
 
     <!-- 제스처 기능 설정 -->
     <LinearLayout
@@ -98,28 +93,45 @@ android:background="#FFFFFF">
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_box"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="12dp"
         android:layout_marginBottom="12dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground">
 
-        <TextView
+        <!-- 아이콘 + 타이틀 수평 정렬 -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="제스처 기능 설정"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:paddingBottom="4dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
 
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/controlicon"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="제스처 기능 설정"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+
+        <!-- 설명 텍스트 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="기본 내장된 제스처 목록입니다.\n새로운 제스처를 원하시면 하단 제스처 등록을 먼저 설정하세요."
-            android:textSize="12sp"
+            android:text="새로운 제스처를 원하시면 하단 제스처 등록을 먼저 설정하세요."
+            android:textSize="8sp"
             android:textColor="#9A3412" />
     </LinearLayout>
+
 
     <!-- 사용자 제스처 등록 -->
     <LinearLayout
@@ -128,29 +140,43 @@ android:background="#FFFFFF">
         android:layout_height="wrap_content"
         android:background="@drawable/rounded_box"
         android:orientation="vertical"
-        android:padding="16dp"
+        android:padding="12dp"
         android:layout_marginBottom="16dp"
         android:clickable="true"
         android:focusable="true"
         android:foreground="?attr/selectableItemBackground">
 
-        <TextView
+        <!-- 아이콘 + 타이틀 한 줄로 묶기 -->
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="사용자 제스처 등록"
-            android:textColor="@color/black"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:paddingBottom="4dp" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="4dp">
 
+            <ImageView
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:src="@drawable/usericon"
+                android:layout_marginEnd="10dp" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="사용자 제스처 등록"
+                android:textColor="@color/black"
+                android:textStyle="bold"
+                android:textSize="12sp" />
+        </LinearLayout>
+
+        <!-- 설명 텍스트 -->
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="새로운 제스처를 등록할 수 있습니다."
-            android:textSize="12sp"
+            android:textSize="8sp"
             android:textColor="#9A3412" />
     </LinearLayout>
-
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -162,13 +188,19 @@ android:background="#FFFFFF">
         android:gravity="center_vertical"
         android:layout_marginTop="8dp">
 
+        <ImageView
+            android:layout_width="25dp"
+            android:layout_height="25dp"
+            android:src="@drawable/timericon"
+            android:layout_marginEnd="10dp" />
+
         <TextView
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:text="백그라운드 자동 꺼짐"
             android:textColor="@color/black"
             android:textStyle="bold"
-            android:textSize="16sp"
+            android:textSize="12sp"
             android:layout_weight="1"/>
 
         <Button

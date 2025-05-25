@@ -6,4 +6,4 @@
     android:textColor="@color/black"
     android:gravity="center_vertical"
     android:padding="12dp"
-    android:textSize="16sp" />
+    android:textSize="10sp" />
