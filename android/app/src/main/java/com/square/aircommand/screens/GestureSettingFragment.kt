@@ -1,17 +1,26 @@
 package com.square.aircommand.screens
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.Spinner
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.skydoves.powermenu.MenuAnimation
+import com.skydoves.powermenu.PowerMenu
+import com.skydoves.powermenu.PowerMenuItem
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
 import com.square.aircommand.gesture.GestureLabel
+import android.graphics.Typeface
+import com.skydoves.powermenu.CircularEffect
+
 
 /**
  * 사용자가 제스처(PAPER, ROCK, SCISSORS, ONE)와 기능(GestureAction)을 매핑할 수 있는 화면(Fragment)
@@ -19,17 +28,15 @@ import com.square.aircommand.gesture.GestureLabel
  */
 class GestureSettingFragment : Fragment() {
 
-    // ViewBinding 객체 (Fragment의 레이아웃 요소에 접근하기 위함)
     private var _binding: FragmentGestureSettingBinding? = null
     private val binding get() = _binding!!
 
-    // SharedPreferences 저장소 이름 정의
     private val prefsName = "gesture_prefs"
-
-    // 현재 선택된 제스처 → 동작 매핑 (GestureAction.NONE은 제외)
     private val selectedActions = mutableMapOf<GestureLabel, GestureAction>()
 
-    // Fragment의 View 생성 및 바인딩 연결
+    // PowerMenu를 Gesture마다 따로 관리하기 위해 Map으로 관리
+    private val powerMenus = mutableMapOf<GestureLabel, PowerMenu>()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -38,93 +45,97 @@ class GestureSettingFragment : Fragment() {
         return binding.root
     }
 
-    // View 생성 후 초기 설정 수행 (SharedPreferences 불러오기, Spinner 연결 등)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
         val prefs = requireContext().getSharedPreferences(prefsName, 0)
-        val options = resources.getStringArray(R.array.gesture_action_options) // 스피너 항목 목록
+        val options = resources.getStringArray(R.array.gesture_action_options)
         val noneDisplay = GestureAction.NONE.displayName
 
-        // SharedPreferences에서 각 제스처의 초기 설정값 불러오기 (기본값 지정)
-        val paperAction = prefs.getString("gesture_paper_action", GestureAction.NONE.displayName) ?: noneDisplay
-        val rockAction = prefs.getString("gesture_rock_action", GestureAction.NONE.displayName) ?: noneDisplay
-        val scissorsAction = prefs.getString("gesture_scissors_action", GestureAction.NONE.displayName) ?: noneDisplay
-        val oneAction = prefs.getString("gesture_one_action", GestureAction.NONE.displayName) ?: noneDisplay
+        // 각 제스처별 이전에 저장된 값 불러오기
+        val paperAction = prefs.getString("gesture_paper_action", noneDisplay) ?: noneDisplay
+        val rockAction = prefs.getString("gesture_rock_action", noneDisplay) ?: noneDisplay
+        val scissorsAction = prefs.getString("gesture_scissors_action", noneDisplay) ?: noneDisplay
+        val oneAction = prefs.getString("gesture_one_action", noneDisplay) ?: noneDisplay
 
-        // 각 Spinner에 동작 설정 로직 연결
-        setupSpinner(binding.spinnerPaper, GestureLabel.PAPER, paperAction, "gesture_paper_action", options)
-        setupSpinner(binding.spinnerRock, GestureLabel.ROCK, rockAction, "gesture_rock_action", options)
-        setupSpinner(binding.spinnerScissors, GestureLabel.SCISSORS, scissorsAction, "gesture_scissors_action", options)
-        setupSpinner(binding.spinnerOne, GestureLabel.ONE, oneAction, "gesture_one_action", options)
+        // 텍스트뷰 + 파워메뉴 방식으로 설정
+        setupGestureDropdown(binding.paperTextView, GestureLabel.PAPER, paperAction, "gesture_paper_action", options)
+        setupGestureDropdown(binding.rockTextView, GestureLabel.ROCK, rockAction, "gesture_rock_action", options)
+        setupGestureDropdown(binding.scissorsTextView, GestureLabel.SCISSORS, scissorsAction, "gesture_scissors_action", options)
+        setupGestureDropdown(binding.oneTextView, GestureLabel.ONE, oneAction, "gesture_one_action", options)
 
-        // 뒤로가기 버튼 클릭 시 이전 화면으로 돌아감
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
     }
 
     /**
-     * 각 제스처에 대해 Spinner를 초기화하고 선택 이벤트를 처리하는 함수
-     * @param spinner 현재 연결할 Spinner
-     * @param label 해당 Spinner와 연결된 제스처 라벨
-     * @param initialValue 초기 선택값 (SharedPreferences에서 불러온 값)
-     * @param prefsKey SharedPreferences에 저장될 키
-     * @param options Spinner 항목 목록 (displayName 배열)
+     * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
      */
-    private fun setupSpinner(
-        spinner: Spinner,
+    private fun setupGestureDropdown(
+        targetView: TextView,
         label: GestureLabel,
         initialValue: String,
         prefsKey: String,
         options: Array<String>
     ) {
-        val context = requireContext()
-        val prefs = context.getSharedPreferences(prefsName, 0)
+        val prefs = requireContext().getSharedPreferences(prefsName, 0)
 
-        // Spinner에 어댑터 설정 (텍스트 색상 포함된 레이아웃 사용)
-        spinner.adapter = ArrayAdapter(
-            context,
-            R.layout.spinner_text,   // Spinner의 기본 표시용 레이아웃
-            options
-        ).also {
-            it.setDropDownViewResource(R.layout.spinner_text) // 드롭다운 항목 레이아웃도 동일
-        }
+        // 초기 텍스트 셋팅
+        targetView.text = initialValue
 
-        // 초기 선택값 설정
-        spinner.setSelection(options.indexOf(initialValue).coerceAtLeast(0))
+        // 기존에 저장된 PowerMenu 있으면 제거
+        powerMenus[label]?.dismiss()
 
-        // 초기 선택값이 NONE이 아니면 Map에 등록
-        GestureAction.entries.firstOrNull { it.displayName == initialValue }?.let { action ->
-            if (action != GestureAction.NONE) selectedActions[label] = action
-        }
+        targetView.setOnClickListener {
+            // 클릭 시마다 이전 메뉴 닫기
+            powerMenus[label]?.dismiss()
 
-        // Spinner 아이템 선택 이벤트 처리
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedDisplayName = options[position]
-                val selectedAction = GestureAction.entries.firstOrNull { it.displayName == selectedDisplayName }
-                    ?: GestureAction.NONE
+            val currentText = targetView.text.toString()
 
-                // 중복 허용: 같은 기능을 여러 제스처에 매핑할 수 있음
-                // SharedPreferences에 선택 결과 저장
-                prefs.edit().putString(prefsKey, selectedDisplayName).apply()
+            // 클릭 시점의 현재 텍스트 기준으로 선택 상태 표시하며 PowerMenu 생성
+            val powerMenu = PowerMenu.Builder(requireContext())
+                .addItemList(options.map { PowerMenuItem(it, it == currentText) })
+                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+                .setMenuRadius(10f)
+                .setMenuShadow(10f)
+                .setCircularEffect(CircularEffect.BODY)
+                .setTextColor(ContextCompat.getColor(requireContext(), R.color.md_grey_800))
+                .setTextGravity(Gravity.CENTER)
+                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
+                .setSelectedTextColor(0xFFFFFFFF.toInt())  // 흰색
+                .setMenuColor(0xFF000000.toInt())
+                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                .setOnMenuItemClickListener { position, item ->
+                    targetView.text = item.title
+                    prefs.edit().putString(prefsKey, item.title.toString()).apply()
 
-                // 선택 상태 업데이트
-                if (selectedAction == GestureAction.NONE) {
-                    selectedActions.remove(label)
-                } else {
-                    selectedActions[label] = selectedAction
+                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
+                        ?: GestureAction.NONE
+
+                    if (selectedAction == GestureAction.NONE) {
+                        selectedActions.remove(label)
+                    } else {
+                        selectedActions[label] = selectedAction
+                    }
+
+                    powerMenus[label]?.dismiss()
                 }
-            }
+                .build()
 
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
+            powerMenus[label] = powerMenu
+            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
         }
     }
 
-    // 뷰가 파괴될 때 바인딩 해제하여 메모리 누수 방지
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        // 모든 PowerMenu 종료
+        powerMenus.values.forEach { it.dismiss() }
+        powerMenus.clear()
     }
 }
+

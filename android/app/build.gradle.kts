@@ -162,4 +162,7 @@ dependencies {
 
     // https://github.com/KeepSafe/TapTargetView
     implementation ("com.getkeepsafe.taptargetview:taptargetview:1.13.3")
+
+    // powermenu in gesture setting spinner
+    implementation ("com.github.skydoves:powermenu:2.2.4")
 }

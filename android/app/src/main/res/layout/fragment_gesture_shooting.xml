@@ -31,22 +31,9 @@
         android:textColor="@android:color/black"
         app:layout_constraintStart_toEndOf="@id/backButton"
         app:layout_constraintTop_toTopOf="@id/backButton"
-        app:layout_constraintEnd_toStartOf="@id/editButton"
         app:layout_constraintBottom_toBottomOf="@id/backButton"
         app:layout_constraintHorizontal_bias="0" />
 
-    <!-- 편집 버튼 -->
-    <TextView
-        android:id="@+id/editButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="편집"
-        android:textColor="@android:color/black"
-        android:textSize="17sp"
-        android:textStyle="bold"
-        app:layout_constraintTop_toTopOf="@id/titleText"
-        app:layout_constraintBottom_toBottomOf="@id/titleText"
-        app:layout_constraintEnd_toEndOf="parent" />
 
     <!-- 설명 문구 -->
     <TextView

@@ -31,6 +31,8 @@ import android.widget.ImageView
 import android.widget.Toast
 import com.getkeepsafe.taptargetview.TapTarget
 import com.getkeepsafe.taptargetview.TapTargetView
+import android.widget.TextView
+
 
 
 class AirCommandFragment : Fragment() {
@@ -170,22 +172,24 @@ class AirCommandFragment : Fragment() {
             findNavController().navigate(R.id.action_airCommand_to_testFragment)
         }
 
-        val targetView = binding.root.findViewById<ImageView>(R.id.star_count)
 
-        // Targer Tap View
+        val devTargetView = binding.root.findViewById<ImageView>(R.id.developer_circle)
+        val infoTargetView = binding.root.findViewById<TextView>(R.id.description_circle)
 
-        targetView.setOnClickListener {
+
+        infoTargetView.setOnClickListener {
             TapTargetView.showFor(
                 requireActivity(),
                 TapTarget.forView(
-                    targetView,
-                    "Hansung University",
-                    "2025 Computer Engineering Capstone Design"
+                    infoTargetView,
+                    "제스처 제어 앱 서비스",
+                    "터치 없이 나만의 제스처를 등록해 사용"
                 )
                     .outerCircleColor(R.color.white)
-                    .outerCircleAlpha(0.95f)
+                    .outerCircleAlpha(0.90f)
                     .targetCircleColor(R.color.white)
                     .titleTextColor(R.color.black)
+                    .descriptionTextSize(13)
                     .descriptionTextColor(R.color.black)
                     .textTypeface(Typeface.SANS_SERIF)
                     .dimColor(R.color.black)
@@ -193,11 +197,39 @@ class AirCommandFragment : Fragment() {
                     .cancelable(false)
                     .tintTarget(true)
                     .transparentTarget(true)
-                    .targetRadius(30),
+                    .targetRadius(50),
                 object : TapTargetView.Listener() {
                     override fun onTargetClick(view: TapTargetView) {
                         super.onTargetClick(view)
-                        Toast.makeText(requireContext(), "프로필 클릭!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+        }
+
+        // Targer Tap View
+        devTargetView.setOnClickListener {
+            TapTargetView.showFor(
+                requireActivity(),
+                TapTarget.forView(
+                    devTargetView,
+                    "Hansung University",
+                    "2025 Computer Engineering \n Capstone Design" +
+                            "\n\n 박상우, 박흥준, 장도윤, 최현혜"
+                )
+                    .outerCircleColor(R.color.white)
+                    .outerCircleAlpha(0.90f)
+                    .targetCircleColor(R.color.white)
+                    .titleTextColor(R.color.black)
+                    .descriptionTextColor(R.color.black)
+                    .dimColor(R.color.black)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(50),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
                     }
                 }
             )
