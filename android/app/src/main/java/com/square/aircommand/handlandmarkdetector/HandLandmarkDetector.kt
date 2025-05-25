@@ -3,8 +3,10 @@ package com.square.aircommand.handlandmarkdetector
 import android.content.Context
 import android.graphics.Bitmap
 import android.util.Log
+import androidx.compose.runtime.mutableStateListOf
 import com.square.aircommand.tflite.AIHubDefaults
 import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.ui.theme.listener.TrainingProgressListener
 import com.square.aircommand.utils.ModelStorageManager
 import com.square.aircommand.utils.ModelStorageManager.getSavedModelCode
 import com.square.aircommand.utils.ModelStorageManager.saveModelCode
@@ -29,7 +31,8 @@ import java.util.concurrent.TimeUnit
 class HandLandmarkDetector(
     private val context: Context,
     modelPath: String,
-    delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>
+    delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>,
+    private var progressListener: TrainingProgressListener? = null
 ) : AutoCloseable {
 
     private val interpreter: Interpreter
@@ -44,7 +47,7 @@ class HandLandmarkDetector(
     private val inputFloatArray: FloatArray
     private val inputMatAbgr: Mat
     private val inputMatRgb: Mat
-    private val landmarkSequence = mutableListOf<List<Triple<Double, Double, Double>>>()
+    private val _landmarkSequence = mutableStateListOf<List<Triple<Double, Double, Double>>>()
     private var frameCounter = 0
     private val frameInterval = 3
     private val client = OkHttpClient.Builder()
@@ -54,7 +57,6 @@ class HandLandmarkDetector(
         .build()
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
-    var normalizedLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var lastHandedness: String = "Left" // 원래 Right임
 
     init {
@@ -99,7 +101,15 @@ class HandLandmarkDetector(
         return convertMatToBitmap(image)
     }
 
-    fun transfer(image: Bitmap, sensorOrientation: Int, gestureName: String): Bitmap {
+    fun transfer(
+        image: Bitmap,
+        sensorOrientation: Int,
+        gestureName: String,
+        trainingProgressListener: TrainingProgressListener?
+    ): Bitmap {
+
+        progressListener = trainingProgressListener
+
         if (!isCollecting) {
             ThrottledLogger.log("HandLandmarkDetector", "⏸️ 현재 수집 중이 아님 (isCollecting = false)")
             return image
@@ -117,26 +127,24 @@ class HandLandmarkDetector(
         lastHandedness = if (handedness > 0.5f) "Right" else "Left"
         extractLandmarks(landmarks)
 
-        if (landmarkSequence.size < 100) {
+        if (_landmarkSequence.size < 100) {
             if (frameCounter % frameInterval == 0) {
                 extract63Landmarks(landmarks, image.width, image.height)
-                ThrottledLogger.log("HandLandmarkDetector", "✅ 랜드마크 수집 중 (${landmarkSequence.size}/100)")
+                val percent = (_landmarkSequence.size * 100) / 100
+                Log.d("HandLandmarkDetector", "랜드마크 수집 중 (총 ${_landmarkSequence.size})")
+                progressListener?.onCollectionProgress(percent) // 👈 콜백 호출
             }
             frameCounter++
         }
 
-        if (landmarkSequence.size == 100) {
-            Log.d("HandLandmarkDetector", "📦 수집된 랜드마크 시퀀스 (총 ${landmarkSequence.size} 프레임)")
-            landmarkSequence.forEachIndexed { i, frame ->
-                Log.d("HandLandmarkDetector", "프레임 $i: ${frame.joinToString { "(${String.format("%.2f", it.first)}, ${String.format("%.2f", it.second)}, ${String.format("%.2f", it.third)})" }}")
-            }
-
+        if (_landmarkSequence.size == 100) {
+            Log.d("HandLandmarkDetector", "📦 수집된 랜드마크 시퀀스 (총 ${_landmarkSequence.size} 프레임)")
             val modelCode = getSavedModelCode(context)
-
+            progressListener?.onTrainingStarted()
             sendTrainData(
                 modelCode = modelCode,
                 gesture = gestureName,
-                landmarkSequence = landmarkSequence
+                landmarkSequence = _landmarkSequence
             ) { newModelCode, modelUrl ->
 
                 // 1) 모델 코드 저장
@@ -149,11 +157,11 @@ class HandLandmarkDetector(
                 val modelUrlFile = File(context.filesDir, "model_url.json")
                 modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
 
+                progressListener?.onModelDownloadStarted()
                 // 4) 모델 다운로드 -> 모델 교체
                 ModelStorageManager.downloadAndReplaceModel(context)
-
-
-                Log.d("HandLandmarkDetector", "✅ 서버 전송 완료 - 새 모델 코드: $newModelCode")
+                Log.d("HandLandmarkDetector", "✅ 모델 학습 및 저장 완료 - 새 모델 코드: $newModelCode")
+                progressListener?.onModelDownloadComplete()
             }
 
             stopCollecting()
@@ -166,7 +174,7 @@ class HandLandmarkDetector(
 
     fun startCollecting() {
         isCollecting = true
-        landmarkSequence.clear()
+        _landmarkSequence.clear()
     }
 
     fun stopCollecting() {
@@ -179,7 +187,7 @@ class HandLandmarkDetector(
             val (fx, fy, fz) = landmarks[0][i]
             frameLandmarks.add(Triple(fx.toDouble(), fy.toDouble(), fz.toDouble()))
         }
-        landmarkSequence.add(frameLandmarks)
+        _landmarkSequence.add(frameLandmarks)
     }
 
     private fun preprocessImage(image: Bitmap, sensorOrientation: Int) {

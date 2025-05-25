@@ -52,18 +52,10 @@ class HandAnalyzers(
                     latestPoints.addAll(points)
 
                     for (point in points) {
-                        if (isTrainingMode) {
-                            // ✅ 학습 모드일 때만 서버 전송을 위한 transfer 호출
-                            landmarkDetector.transfer(bitmap, orientation, trainingGestureName)
 
-                            if (!landmarkDetector.isCollecting) {
-                                gestureText.value = "학습 완료"
-                                onTrainingComplete?.invoke()
-                            }
-                        } else {
-                            // ✅ 일반 모드에서는 예측만 수행
-                            landmarkDetector.predict(bitmap, orientation)
-                        }
+                        // ✅ 일반 모드에서는 예측만 수행
+                        landmarkDetector.predict(bitmap, orientation)
+
 
                         val landmarks = landmarkDetector.lastLandmarks
 
