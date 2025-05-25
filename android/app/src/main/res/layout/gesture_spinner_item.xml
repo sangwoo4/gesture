@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:paddingVertical="12dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp">
+
+    <!-- 사용자 정의 제스처 이름 -->
+    <TextView
+        android:id="@+id/gestureName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="사용자 제스처"
+        android:textColor="@color/black"
+        android:textSize="20sp" />
+
+    <!-- 제스처에 연결할 기능 선택용 Spinner -->
+    <Spinner
+        android:id="@+id/gestureSpinner"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:spinnerMode="dropdown"
+        android:popupBackground="@drawable/spinner_background"
+        android:layout_marginStart="8dp" />
+</LinearLayout>
