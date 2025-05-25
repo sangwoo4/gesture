@@ -159,4 +159,7 @@ dependencies {
     implementation("com.daimajia.numberprogressbar:library:1.4@aar")
     implementation("com.github.markushi:circlebutton:1.1")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // https://github.com/KeepSafe/TapTargetView
+    implementation ("com.getkeepsafe.taptargetview:taptargetview:1.13.3")
 }

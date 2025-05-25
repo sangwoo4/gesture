@@ -72,16 +72,17 @@
         android:layout_height="50dp"
         android:layout_marginBottom="8dp"
         android:background="@drawable/circle_background"
-
         android:src="@drawable/profile_hsu"
         android:gravity="center"
         android:layout_alignTop="@id/header"
         android:layout_alignParentEnd="true"
         android:layout_marginEnd="30dp"
-        android:layout_marginTop="60dp"/>
+        android:layout_marginTop="60dp"
+        android:clickable="true"
+        android:focusable="true"/>
 
 
-    <!-- 아래 내용 들어갈 영역 (임시 박스) -->
+    <!-- 아래 내용 들어갈 영역 -->
     <LinearLayout
         android:id="@+id/bottom_content"
         android:layout_below="@id/header"
@@ -284,4 +285,5 @@
             android:textStyle="bold"/>
 
     </LinearLayout>
+
 </RelativeLayout>

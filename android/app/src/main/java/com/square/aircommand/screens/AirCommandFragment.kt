@@ -25,6 +25,14 @@ import com.square.aircommand.R
 import com.square.aircommand.backgroundcamera.CameraService
 import com.square.aircommand.databinding.FragmentAirCommandBinding
 
+// TapTargetView import
+import android.graphics.Typeface
+import android.widget.ImageView
+import android.widget.Toast
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
+
+
 class AirCommandFragment : Fragment() {
 
     private var _binding: FragmentAirCommandBinding? = null
@@ -160,6 +168,39 @@ class AirCommandFragment : Fragment() {
 
         binding.btnTest.setOnClickListener {
             findNavController().navigate(R.id.action_airCommand_to_testFragment)
+        }
+
+        val targetView = binding.root.findViewById<ImageView>(R.id.star_count)
+
+        // Targer Tap View
+
+        targetView.setOnClickListener {
+            TapTargetView.showFor(
+                requireActivity(),
+                TapTarget.forView(
+                    targetView,
+                    "Hansung University",
+                    "2025 Computer Engineering Capstone Design"
+                )
+                    .outerCircleColor(R.color.white)
+                    .outerCircleAlpha(0.95f)
+                    .targetCircleColor(R.color.white)
+                    .titleTextColor(R.color.black)
+                    .descriptionTextColor(R.color.black)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.black)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(30),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                        Toast.makeText(requireContext(), "프로필 클릭!", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
         }
 
         return binding.root
