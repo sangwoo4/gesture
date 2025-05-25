@@ -154,4 +154,9 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
 
     implementation("com.google.android.material:material:1.11.0")
+    implementation("io.github.shashank02051997:FancyToast:2.0.2")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
+    implementation("com.daimajia.numberprogressbar:library:1.4@aar")
+    implementation("com.github.markushi:circlebutton:1.1")
+    implementation("com.github.bumptech.glide:glide:4.16.0")
 }

@@ -1,7 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <style name="Theme.AirCommand" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <!-- 기본 폰트 설정 -->
-        <item name="android:fontFamily">@font/font1</item>
+        <!-- 폰트만 전체 적용 가능 -->
+        <item name="android:fontFamily">@font/binggrae1</item>
+
+        <!-- 애니메이션 적용 -->
+        <item name="android:windowActivityTransitions">true</item>
+
+        <!-- 개별 위젯 스타일 오버라이드 -->
+        <item name="textAppearanceBody1">@style/CustomTextAppearance</item>
+        <item name="textAppearanceHeadline6">@style/CustomTextAppearance</item>
+        <item name="textAppearanceButton">@style/CustomTextAppearance</item>
     </style>
+
+    <style name="CustomTextAppearance" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="android:fontFamily">@font/binggrae1</item>
+        <item name="android:textSize">10sp</item> <!-- 원하는 크기 -->
+    </style>
+
 </resources>

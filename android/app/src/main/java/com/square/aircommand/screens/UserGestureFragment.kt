@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
+import com.bumptech.glide.Glide
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentUserGestureBinding
 
@@ -60,6 +61,12 @@ class UserGestureFragment : Fragment() {
                     binding.duplicateCheckResultText.text =
                         "등록할 수 있는 이름입니다. [제스처 촬영]을 눌러 촬영을 시작해주세요"
                     binding.btnStartGestureShooting.isEnabled = true
+
+                    Glide.with(this)
+                        .asGif()
+                        .load(R.raw.checkgif) // res/raw/checkgif.gif
+                        .into(binding.checkPassedGif)
+                    binding.checkPassedGif.visibility = View.VISIBLE // ✅ 체크 아이콘 보이기
                 }
             }
 
