@@ -165,4 +165,10 @@ dependencies {
 
     // powermenu in gesture setting spinner
     implementation ("com.github.skydoves:powermenu:2.2.4")
+
+    // progress circle bar -> 이거 넣었더니 자꾸 강제종료되서 코드들에 잠깐 주석처리해둠
+    implementation ("com.mikhaellopez:circularprogressbar:3.1.0")
+
+    // complete uer gesture shooting
+    implementation ("com.github.jorgecastilloprz:fabprogresscircle:1.01@aar")
 }

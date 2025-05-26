@@ -3,6 +3,7 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,6 +19,7 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
+
 
 class GestureShootingFragment : Fragment() {
 
@@ -67,6 +69,8 @@ class GestureShootingFragment : Fragment() {
 
         // 초기 상태
         binding.numberProgress.progress = 0
+//        binding.circleProgress.progress = 0f
+
         progress = 0
 
         // 뒤로가기 버튼
@@ -78,6 +82,8 @@ class GestureShootingFragment : Fragment() {
         binding.retakeButton.setOnClickListener {
             progress = 0
             binding.numberProgress.progress = 0
+//            binding.circleProgress.progress = 0f
+
             binding.statusMessage.text = ""
             showCameraCompose()
         }
@@ -105,8 +111,10 @@ class GestureShootingFragment : Fragment() {
     // Fragment 내부에 추가
     private fun updateProgress(percent: Int) {
         requireActivity().runOnUiThread {
+
             progress = percent.coerceAtMost(100)
             binding.numberProgress.progress = progress
+//            binding.circleProgress.progress = progress.toFloat()
 
             if (progress >= 100) {
                 binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
@@ -159,6 +167,7 @@ class GestureShootingFragment : Fragment() {
                 }
             )
         }
+
     }
 
 
@@ -167,4 +176,5 @@ class GestureShootingFragment : Fragment() {
         _binding = null
         ModelRepository.closeAll() // 👉 모든 모델 리소스를 일괄 해제
     }
+
 }
