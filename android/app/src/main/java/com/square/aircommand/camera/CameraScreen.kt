@@ -50,8 +50,7 @@ fun CameraScreen(
     gestureClassifier: GestureClassifier,
     isTrainingMode: Boolean = false,
     trainingGestureName: String = "",
-    gestureStatusText: MutableState<String>? = null,
-    onTrainingComplete: (() -> Unit)? = null
+    gestureStatusText: MutableState<String>? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -86,8 +85,7 @@ fun CameraScreen(
     val analyzer = remember(
         context, handDetector, landmarkDetector, gestureClassifier,
         gestureLabelMapper, gestureText, detectionFrameCount,
-        latestPoints, landmarksState, isTrainingMode,
-        trainingGestureName, gestureStatusText, onTrainingComplete
+        latestPoints, landmarksState, isTrainingMode
     ) {
         HandAnalyzer(
             context = context,

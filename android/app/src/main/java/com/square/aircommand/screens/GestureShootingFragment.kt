@@ -3,11 +3,14 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -19,8 +22,7 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.tflite.ModelRepository.initModels
-import com.square.aircommand.tflite.TFLiteHelpers
+import com.square.aircommand.ui.theme.listener.TrainingProgressListener
 
 class GestureShootingFragment : Fragment() {
 
@@ -70,9 +72,18 @@ class GestureShootingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        // 💾 저장 버튼 → 사용자 제스처 등록 화면으로 이동
+        //저장하기
         binding.saveButton.setOnClickListener {
-            findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+            landmarkDetector.sendToServerIfReady(requireContext()) {
+                Handler(Looper.getMainLooper()).post {
+                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+                }
+            }
+        }
+
+        // 다시 촬영
+        binding.retakeButton.setOnClickListener {
+            landmarkDetector.resetCollection()
         }
 
         // 📷 카메라 권한 확인 후 초기화
@@ -111,15 +122,6 @@ class GestureShootingFragment : Fragment() {
                 gestureClassifier = gestureClassifier,
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
-                onTrainingComplete = {
-                    // 🎉 학습 완료 시 토스트 한 번만 표시
-                    if (!toastShown) {
-                        toastShown = true
-                        requireActivity().runOnUiThread {
-                            Toast.makeText(requireContext(), "학습이 완료되었습니다.", Toast.LENGTH_SHORT).show()
-                        }
-                    }
-                },
                 gestureStatusText = gestureStatusText // ✅ 상태 전달
             )
         }

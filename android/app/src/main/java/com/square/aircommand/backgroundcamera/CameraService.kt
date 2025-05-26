@@ -31,7 +31,6 @@ import com.square.aircommand.gesture.GestureAccessibilityService
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.tflite.TFLiteHelpers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
