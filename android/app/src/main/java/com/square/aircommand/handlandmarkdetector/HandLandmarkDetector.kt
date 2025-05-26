@@ -47,6 +47,7 @@ class HandLandmarkDetector(
     private val inputFloatArray: FloatArray
     private val inputMatAbgr: Mat
     private val inputMatRgb: Mat
+    private val landmarkSequence = mutableListOf<List<Triple<Double, Double, Double>>>()
     private val _landmarkSequence = mutableStateListOf<List<Triple<Double, Double, Double>>>()
     private var frameCounter = 0
     private val frameInterval = 3

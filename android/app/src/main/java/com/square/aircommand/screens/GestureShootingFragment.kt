@@ -2,6 +2,7 @@ package com.square.aircommand.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -10,7 +11,6 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
@@ -22,7 +22,6 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.ui.theme.listener.TrainingProgressListener
 
 class GestureShootingFragment : Fragment() {
 
@@ -43,7 +42,8 @@ class GestureShootingFragment : Fragment() {
         gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
-    // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
+    // 🔄 전달받은 사용자 정의 제스처 이
+    // 름 (없으면 "unknown")
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
@@ -122,6 +122,25 @@ class GestureShootingFragment : Fragment() {
                 gestureClassifier = gestureClassifier,
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
+                onTrainingComplete = {
+                    if (!toastShown) {
+                        toastShown = true
+
+                        // ✅ 진동
+                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(50)
+                        }
+
+                        // ✅ 토스트
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(requireContext(), "학습이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                },
                 gestureStatusText = gestureStatusText // ✅ 상태 전달
             )
         }

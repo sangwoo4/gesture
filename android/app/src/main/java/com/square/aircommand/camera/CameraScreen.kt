@@ -50,7 +50,8 @@ fun CameraScreen(
     gestureClassifier: GestureClassifier,
     isTrainingMode: Boolean = false,
     trainingGestureName: String = "",
-    gestureStatusText: MutableState<String>? = null
+    gestureStatusText: MutableState<String>? = null,
+    onTrainingComplete: (() -> Unit)? = null
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -203,29 +204,34 @@ class HandAnalyzer(
                     ThrottledLogger.log("HandAnalyzer", "손 감지 성공: ${points.size}")
                     latestPoints.clear()
                     latestPoints.addAll(points)
-                    // ✅ 전이 학습 시에만 transfer() 호출
-                    landmarkDetector.transfer(bitmap, orientation, trainingGestureName, trainingProgressListener)
 
-                    if (!landmarkDetector.isCollecting) {
-                        onTrainingComplete?.invoke()
-                    }
+                    for (point in points) {
+                        if (isTrainingMode) {
+                            // ✅ 전이 학습 시에만 transfer() 호출
+                            landmarkDetector.transfer(bitmap, orientation, trainingGestureName, trainingProgressListener)
 
-                    val landmarks = landmarkDetector.lastLandmarks
+                            if (!landmarkDetector.isCollecting) {
+                                onTrainingComplete?.invoke()
+                            }
+                        } else {
+                            // ✅ 일반 예측 모드에서는 transfer()가 아니라 predict() 호출
+                            landmarkDetector.predict(bitmap, orientation)
+                        }
 
-                    if (!isTrainingMode && landmarks.size == 21) {
-                        landmarksState.value = landmarks.toList()
-                        val (gestureIndex, confidence) = gestureClassifier.classify(
-                            landmarks,
-                            landmarkDetector.lastHandedness
-                        )
-                        val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                        gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
-                        ThrottledLogger.log(
-                            "HandAnalyzer",
-                            "$gestureName ($gestureIndex, $confidence)"
-                        )
+                        val landmarks = landmarkDetector.lastLandmarks
 
-                        onGestureDetected?.invoke(gestureName)
+                        if (!isTrainingMode && landmarks.size == 21) {
+                            landmarksState.value = landmarks.toList()
+                            val (gestureIndex, confidence) = gestureClassifier.classify(
+                                landmarks,
+                                landmarkDetector.lastHandedness
+                            )
+                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+                            ThrottledLogger.log("HandAnalyzer", "$gestureName ($gestureIndex, $confidence)")
+
+                            onGestureDetected?.invoke(gestureName)
+                        }
                     }
                 } else {
                     ThrottledLogger.log("HandAnalyzer", "감지 누적 중 (${detectionFrameCount.value})")
@@ -242,6 +248,7 @@ class HandAnalyzer(
         }
     }
 }
+
 fun getBackCameraSensorOrientation(context: Context): Int {
     val manager = context.getSystemService(Context.CAMERA_SERVICE) as CameraManager
     for (cameraId in manager.cameraIdList) {
