@@ -159,4 +159,19 @@ dependencies {
     implementation("com.daimajia.numberprogressbar:library:1.4@aar")
     implementation("com.github.markushi:circlebutton:1.1")
     implementation("com.github.bumptech.glide:glide:4.16.0")
+
+    // https://github.com/KeepSafe/TapTargetView
+    implementation ("com.getkeepsafe.taptargetview:taptargetview:1.13.3")
+
+    // powermenu in gesture setting spinner
+    implementation ("com.github.skydoves:powermenu:2.2.4")
+
+    // progress circle bar -> 이거 넣었더니 자꾸 강제종료되서 코드들에 잠깐 주석처리해둠
+    implementation ("com.mikhaellopez:circularprogressbar:3.1.0")
+
+    // complete uer gesture shooting
+    implementation ("com.github.jorgecastilloprz:fabprogresscircle:1.01@aar")
+
+    // lottie
+    implementation ("com.airbnb.android:lottie:6.0.0")
 }

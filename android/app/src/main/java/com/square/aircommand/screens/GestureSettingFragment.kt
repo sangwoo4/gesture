@@ -4,12 +4,18 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.*
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.LinearLayout
+import android.widget.Spinner
+import android.widget.TextView
 import androidx.fragment.app.Fragment
+import com.skydoves.powermenu.PowerMenu
 import com.square.aircommand.R
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
+import com.square.aircommand.gesture.GestureLabel
 
 /**
  * 제스처 기능 설정 화면 (GestureSettingFragment)
@@ -24,11 +30,10 @@ class GestureSettingFragment : Fragment() {
     private val prefsName = "gesture_prefs"
     private val selectedActions = mutableMapOf<String, GestureAction>()
 
+    // PowerMenu를 Gesture마다 따로 관리하기 위해 Map으로 관리
+    private val powerMenus = mutableMapOf<GestureLabel, PowerMenu>()
+
     private lateinit var gestureLabelMapper: GestureLabelMapper
-
-    // 제외할 기본 제스처
-    private val excludedLabels = listOf("NONE", "UNKNOWN")
-
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -44,7 +49,6 @@ class GestureSettingFragment : Fragment() {
         val prefs = requireContext().getSharedPreferences(prefsName, 0)
         val options = resources.getStringArray(R.array.gesture_action_options)
         val noneDisplay = GestureAction.NONE.displayName
-
         val allLabels = gestureLabelMapper.getAllLabels().values
 
         // ✅ 1. 기본 제스처 (상단 고정)
@@ -74,7 +78,6 @@ class GestureSettingFragment : Fragment() {
             val savedValue = prefs.getString(prefsKey, noneDisplay) ?: noneDisplay
             setupSpinner(spinner, label, savedValue, prefsKey, options)
         }
-
         // 🔙 뒤로가기 버튼 처리
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
@@ -82,8 +85,66 @@ class GestureSettingFragment : Fragment() {
     }
 
     /**
-     * Spinner UI 설정 및 SharedPreferences 저장 처리
+<<<<<<< HEAD
+     * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
      */
+//    private fun setupGestureDropdown(
+//        targetView: TextView,
+//        label: GestureLabel,
+//        initialValue: String,
+//        prefsKey: String,
+//        options: Array<String>
+//    ) {
+//        val prefs = requireContext().getSharedPreferences(prefsName, 0)
+//
+//        // 초기 텍스트 셋팅
+//        targetView.text = initialValue
+//
+//        // 기존에 저장된 PowerMenu 있으면 제거
+//        powerMenus[label]?.dismiss()
+//
+//        targetView.setOnClickListener {
+//            // 클릭 시마다 이전 메뉴 닫기
+//            powerMenus[label]?.dismiss()
+//
+//            val currentText = targetView.text.toString()
+//
+//            // 클릭 시점의 현재 텍스트 기준으로 선택 상태 표시하며 PowerMenu 생성
+//            val powerMenu = PowerMenu.Builder(requireContext())
+//                .addItemList(options.map { PowerMenuItem(it, it == currentText) })
+//                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+//                .setMenuRadius(50f)
+//                .setMenuShadow(15f)
+//                .setCircularEffect(CircularEffect.BODY)
+//                .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
+//                .setTextGravity(Gravity.CENTER)
+//                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
+//                .setSelectedTextColor(0xFFFFFFFF.toInt())  // 흰색
+//                .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
+//
+//                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+//                .setOnMenuItemClickListener { position, item ->
+//                    targetView.text = item.title
+//                    prefs.edit().putString(prefsKey, item.title.toString()).apply()
+//
+//                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
+//                        ?: GestureAction.NONE
+//
+//                    if (selectedAction == GestureAction.NONE) {
+//                        selectedActions.remove(label)
+//                    } else {
+//                        selectedActions[label] = selectedAction
+//                    }
+//
+//                    powerMenus[label]?.dismiss()
+//                }
+//                .build()
+//
+//            powerMenus[label] = powerMenu
+//            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
+//        }
+//    }
+
     private fun setupSpinner(
         spinner: Spinner,
         label: String,
@@ -121,7 +182,6 @@ class GestureSettingFragment : Fragment() {
                     selectedActions[label] = selectedAction
                 }
             }
-
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
     }
@@ -170,5 +230,9 @@ class GestureSettingFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+        // 모든 PowerMenu 종료
+        powerMenus.values.forEach { it.dismiss() }
+        powerMenus.clear()
     }
 }
+

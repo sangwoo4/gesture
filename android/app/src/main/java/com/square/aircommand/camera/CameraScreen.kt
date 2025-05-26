@@ -38,6 +38,7 @@ import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.ui.theme.listener.TrainingProgressListener
+import com.square.aircommand.utils.GestureStatus
 import com.square.aircommand.utils.ThrottledLogger
 import com.square.aircommand.utils.toBitmapCompat
 import java.util.concurrent.Executor
@@ -50,8 +51,14 @@ fun CameraScreen(
     gestureClassifier: GestureClassifier,
     isTrainingMode: Boolean = false,
     trainingGestureName: String = "",
-    gestureStatusText: MutableState<String>? = null,
-    onTrainingComplete: (() -> Unit)? = null
+    gestureStatusText: MutableState<GestureStatus>? = null,
+    onTrainingComplete: (() -> Unit)? = null,
+
+    // 상태바 초기화
+    onProgressUpdate: ((Int) -> Unit)? = null,
+    onModelDownloadStarted: (() -> Unit)? = null, // ⬅️ 추가
+    onModelDownloadComplete: (() -> Unit)? = null  // ⬅️ 추가
+
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -66,19 +73,23 @@ fun CameraScreen(
     val trainingListener = remember {
         object : TrainingProgressListener {
             override fun onCollectionProgress(percent: Int) {
-                gestureStatusText?.value = "🔄 수집 중... ($percent%)"
+                gestureStatusText?.value = GestureStatus.Collecting
+                // 상태바 퍼센티지 연동
+                onProgressUpdate?.invoke(percent)
             }
 
             override fun onTrainingStarted() {
-                gestureStatusText?.value = "🧠 학습 중..."
+                gestureStatusText?.value = GestureStatus.Training
             }
 
             override fun onModelDownloadStarted() {
-                gestureStatusText?.value = "⬇️ 모델 다운로드 중..."
+                gestureStatusText?.value = GestureStatus.DownloadingModel
+                onModelDownloadStarted?.invoke() // ✅ 시작 신호
             }
 
             override fun onModelDownloadComplete() {
-                gestureStatusText?.value = "✅ 모델 적용 완료!"
+                gestureStatusText?.value = GestureStatus.ModelApplied
+                onModelDownloadComplete?.invoke() // ✅ 완료 신호
             }
         }
     }
@@ -86,7 +97,7 @@ fun CameraScreen(
     val analyzer = remember(
         context, handDetector, landmarkDetector, gestureClassifier,
         gestureLabelMapper, gestureText, detectionFrameCount,
-        latestPoints, landmarksState, isTrainingMode
+        latestPoints, landmarksState, isTrainingMode, onTrainingComplete
     ) {
         HandAnalyzer(
             context = context,
@@ -102,7 +113,10 @@ fun CameraScreen(
             isTrainingMode = isTrainingMode,
             trainingGestureName = trainingGestureName,
             onGestureDetected = {},
-            trainingProgressListener = trainingListener
+            trainingProgressListener = trainingListener,
+            onTrainingComplete = {
+                onTrainingComplete?.invoke()
+            },
         )
     }
 
@@ -122,18 +136,18 @@ fun CameraScreen(
             modifier = Modifier.fillMaxSize()
         )
 
-        // ✅ 학습 완료 UI 상태 메시지 (하단)
-        if (!gestureStatusText?.value.isNullOrBlank()) {
-            Text(
-                text = gestureStatusText?.value ?: "",
-                color = Color.Green,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Medium,
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 24.dp)
-            )
-        }
+//        // ✅ 학습 완료 UI 상태 메시지 (하단)
+//        if (!gestureStatusText?.value.isNullOrBlank()) {
+//            Text(
+//                text = gestureStatusText?.value ?: "",
+//                color = Color.Green,
+//                fontSize = 18.sp,
+//                fontWeight = FontWeight.Medium,
+//                modifier = Modifier
+//                    .align(Alignment.BottomCenter)
+//                    .padding(bottom = 24.dp)
+//            )
+//        }
     }
 }
 
