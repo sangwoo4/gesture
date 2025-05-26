@@ -41,7 +41,7 @@ object GestureActionExecutor {
         val cooldown = cooldownPerAction[action] ?: DEFAULT_COOLDOWN_MS
 
         if (now - lastTime < cooldown) {
-            Log.d("GestureAction", "⏱️ $action 쿨다운 중 (${now - lastTime}ms < $cooldown ms)")
+            ThrottledLogger.log("GestureAction", "⏱️ $action 쿨다운 중 (${now - lastTime}ms < $cooldown ms)")
             return
         }
 

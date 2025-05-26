@@ -7,11 +7,7 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import java.io.File
-import java.io.FileInputStream
-import java.nio.MappedByteBuffer
-import java.nio.channels.FileChannel
 import java.io.FileNotFoundException
-
 
 object ModelRepository {
     private var handDetector: HandDetector? = null
@@ -20,6 +16,7 @@ object ModelRepository {
 
     private var initialized = false
 
+    /** ✅ 모델 초기화 (이미 되어있으면 스킵) */
     fun initModels(context: Context) {
         if (initialized) return
 
@@ -42,7 +39,7 @@ object ModelRepository {
                 loadDelegateOrder(BuildConfig.HAND_LANDMARK_MODEL)
             )
 
-            // ✅ GestureClassifier만 내부 저장소 모델 고정 사용
+            // ✅ GestureClassifier만 내부 저장소에서 로드
             val internalModelName = "update_gesture_model_cnns.tflite"
             val internalModelFile = File(context.filesDir, internalModelName)
             if (!internalModelFile.exists()) {
@@ -54,12 +51,17 @@ object ModelRepository {
                 loadDelegateOrder(internalModelName)
             )
 
-
             initialized = true
         } catch (e: Exception) {
             Log.e("ModelRepository", "❌ 모델 초기화 실패: ${e.message}", e)
             throw RuntimeException("모델 초기화 실패: ${e.message}")
         }
+    }
+
+    /** ✅ 모델을 강제로 재초기화 */
+    fun resetModels(context: Context) {
+        closeAll()
+        initModels(context)
     }
 
     fun getHandDetector(): HandDetector {
