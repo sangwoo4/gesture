@@ -113,56 +113,53 @@
                 android:layout_marginTop="30dp"
                 android:layout_gravity="center">
 
-                <!-- Percentage Chart View-->
-
+                <!-- 카메라 프리뷰 -->
                 <SurfaceView
                     android:id="@+id/cameraPreview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
 
-
+                <!-- Overlay Compose View -->
                 <androidx.compose.ui.platform.ComposeView
                     android:id="@+id/landmarkOverlay"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
                     android:layout_gravity="center"
-                    android:background="@android:color/transparent" >
+                    android:background="@android:color/transparent" />
 
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/lottieLoadingView"
+                    android:layout_width="305dp"
+                    android:layout_height="305dp"
+                    android:layout_gravity="center"
+                    app:lottie_autoPlay="false"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/loadingscene" />
 
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/lottieSuecessView"
+                    android:layout_width="305dp"
+                    android:layout_height="305dp"
+                    android:layout_gravity="center"
+                    app:lottie_autoPlay="false"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/successscene" />
 
-<!--                    <com.mikhaellopez.circularprogressbar.CircularProgressBar-->
-<!--                        android:id="@+id/circle_progress"-->
-<!--                        android:layout_width="350dp"-->
-<!--                        android:layout_height="350dp"-->
-<!--                        android:layout_gravity="center"-->
-<!--                        app:cpb_background_progressbar_color="#0E96D0"-->
-<!--                        app:cpb_background_progressbar_width="30dp"-->
-<!--                        app:cpb_start_angle="90"-->
-<!--                        app:cpb_progress_direction="to_right"-->
-<!--                        app:cpb_progressbar_color="#3f51b5"-->
-<!--                        app:cpb_progressbar_width="20dp"-->
-<!--                        app:cpb_round_border="true" />-->
+                <!--                    <com.mikhaellopez.circularprogressbar.CircularProgressBar-->
+                <!--                        android:id="@+id/circle_progress"-->
+                <!--                        android:layout_width="350dp"-->
+                <!--                        android:layout_height="350dp"-->
+                <!--                        android:layout_gravity="center"-->
+                <!--                        app:cpb_background_progressbar_color="#0E96D0"-->
+                <!--                        app:cpb_background_progressbar_width="30dp"-->
+                <!--                        app:cpb_start_angle="90"-->
+                <!--                        app:cpb_progress_direction="to_right"-->
+                <!--                        app:cpb_progressbar_color="#3f51b5"-->
+                <!--                        app:cpb_progressbar_width="20dp"-->
+                <!--                        app:cpb_round_border="true" />-->
 
-                </androidx.compose.ui.platform.ComposeView>
-
-                <!-- ✅ FABProgressCircle: 카메라 프레임과 겹치게 추가 -->
-                <com.github.jorgecastilloprz.FABProgressCircle
-                    android:id="@+id/fabProgressCircle"
-                    android:layout_width="match_parent"
-                    android:layout_height="match_parent"
-                    android:layout_gravity="center">
-
-                    <com.google.android.material.floatingactionbutton.FloatingActionButton
-                        android:id="@+id/fab"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_gravity="center"
-                        android:src="@mipmap/ic_intro_icon"
-                        app:rippleColor="@color/black"
-                        app:elevation="5dp"
-                        app:borderWidth="0dp" />
-                </com.github.jorgecastilloprz.FABProgressCircle>
             </FrameLayout>
+
 
 
             <!-- 버튼 영역 -->
@@ -201,3 +198,4 @@
     </ScrollView>
 
 </androidx.constraintlayout.widget.ConstraintLayout>
+

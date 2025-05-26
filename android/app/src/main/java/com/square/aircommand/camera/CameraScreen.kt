@@ -54,7 +54,9 @@ fun CameraScreen(
     onTrainingComplete: (() -> Unit)? = null,
 
     // 상태바 초기화
-    onProgressUpdate: ((Int) -> Unit)? = null
+    onProgressUpdate: ((Int) -> Unit)? = null,
+    onModelDownloadStarted: (() -> Unit)? = null, // ⬅️ 추가
+    onModelDownloadComplete: (() -> Unit)? = null  // ⬅️ 추가
 
 ) {
     val context = LocalContext.current
@@ -70,7 +72,7 @@ fun CameraScreen(
     val trainingListener = remember {
         object : TrainingProgressListener {
             override fun onCollectionProgress(percent: Int) {
-                //gestureStatusText?.value = "🔄 수집 중... ($percent%)"
+                gestureStatusText?.value = "🔄 수집 중... ($percent%)"
 
                 // 상태바 퍼센티지 연동
                 onProgressUpdate?.invoke(percent)
@@ -82,10 +84,12 @@ fun CameraScreen(
 
             override fun onModelDownloadStarted() {
                 gestureStatusText?.value = "⬇️ 모델 다운로드 중..."
+                onModelDownloadStarted?.invoke() // ✅ 시작 신호
             }
 
             override fun onModelDownloadComplete() {
                 gestureStatusText?.value = "✅ 모델 적용 완료!"
+                onModelDownloadComplete?.invoke() // ✅ 완료 신호
             }
         }
     }

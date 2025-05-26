@@ -3,14 +3,16 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.content.pm.PackageManager
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.snapshotFlow
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.square.aircommand.R
 import com.square.aircommand.camera.CameraScreen
@@ -19,6 +21,9 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 
 
 class GestureShootingFragment : Fragment() {
@@ -33,7 +38,7 @@ class GestureShootingFragment : Fragment() {
     private lateinit var landmarkDetector: HandLandmarkDetector
     private lateinit var gestureClassifier: GestureClassifier
 
-//    private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
+    private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
 
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
@@ -106,6 +111,43 @@ class GestureShootingFragment : Fragment() {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+        observeGestureStatusText()
+    }
+
+    private fun observeGestureStatusText() {
+        lifecycleScope.launch {
+            snapshotFlow { gestureStatusText.value }
+                .distinctUntilChanged()
+                .collectLatest { status ->
+                    binding.statusMessage.text = status
+
+                    when (status) {
+                        "⬇️ 모델 다운로드 중..." -> {
+                            binding.lottieLoadingView.visibility = View.VISIBLE
+                            binding.lottieLoadingView.playAnimation()
+
+                            binding.lottieSuecessView.visibility = View.GONE
+                            binding.lottieSuecessView.pauseAnimation()
+                        }
+                        "✅ 모델 적용 완료!" -> {
+                            binding.lottieLoadingView.visibility = View.GONE
+                            binding.lottieLoadingView.pauseAnimation()
+
+                            binding.lottieSuecessView.visibility = View.VISIBLE
+                            binding.lottieSuecessView.repeatCount = 0
+                            binding.lottieSuecessView.playAnimation()
+
+                        }
+                        else -> {
+                            binding.lottieLoadingView.visibility = View.GONE
+                            binding.lottieLoadingView.pauseAnimation()
+
+                            binding.lottieSuecessView.visibility = View.GONE
+                            binding.lottieSuecessView.pauseAnimation()
+                        }
+                    }
+                }
+        }
     }
 
     // Fragment 내부에 추가
@@ -121,6 +163,11 @@ class GestureShootingFragment : Fragment() {
                 binding.landmarkOverlay.setContent {
                     // 카메라 중지 - 빈 화면
                 }
+                binding.lottieLoadingView.visibility = View.VISIBLE
+                binding.lottieLoadingView.playAnimation()
+            } else {
+                binding.lottieLoadingView.visibility = View.GONE
+                binding.lottieLoadingView.pauseAnimation()
             }
         }
     }
@@ -149,7 +196,7 @@ class GestureShootingFragment : Fragment() {
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
 
-//                gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
+                gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
 
                 onTrainingComplete = {
                     // 🎉 학습 완료 시 토스트 한 번만 표시
@@ -169,7 +216,6 @@ class GestureShootingFragment : Fragment() {
         }
 
     }
-
 
     override fun onDestroyView() {
         super.onDestroyView()
