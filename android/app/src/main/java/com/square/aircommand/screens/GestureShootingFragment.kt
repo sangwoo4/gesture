@@ -2,6 +2,7 @@ package com.square.aircommand.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -41,7 +42,8 @@ class GestureShootingFragment : Fragment() {
         gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
-    // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
+    // 🔄 전달받은 사용자 정의 제스처 이
+    // 름 (없으면 "unknown")
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
@@ -112,9 +114,19 @@ class GestureShootingFragment : Fragment() {
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
                 onTrainingComplete = {
-                    // 🎉 학습 완료 시 토스트 한 번만 표시
                     if (!toastShown) {
                         toastShown = true
+
+                        // ✅ 진동
+                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(50)
+                        }
+
+                        // ✅ 토스트
                         requireActivity().runOnUiThread {
                             Toast.makeText(requireContext(), "학습이 완료되었습니다.", Toast.LENGTH_SHORT).show()
                         }
