@@ -47,6 +47,7 @@ class HandLandmarkDetector(
     private val inputFloatArray: FloatArray
     private val inputMatAbgr: Mat
     private val inputMatRgb: Mat
+    private val landmarkSequence = mutableListOf<List<Triple<Double, Double, Double>>>()
     private val _landmarkSequence = mutableStateListOf<List<Triple<Double, Double, Double>>>()
     private var frameCounter = 0
     private val frameInterval = 3
@@ -58,6 +59,9 @@ class HandLandmarkDetector(
 
     val lastLandmarks = mutableListOf<Triple<Double, Double, Double>>()
     var lastHandedness: String = "Left" // 원래 Right임
+    private var isReadyToSend = false
+    private var savedGestureName: String? = null
+    var percent = 0
 
     init {
         OpenCVNativeLoader().init()
@@ -101,6 +105,54 @@ class HandLandmarkDetector(
         return convertMatToBitmap(image)
     }
 
+    fun sendToServerIfReady(context: Context, onFinished: () -> Unit) {
+        if (!isReadyToSend || savedGestureName == null || _landmarkSequence.size != 100) {
+            Log.w("HandLandmarkDetector", "❗ 저장 조건 불충분 - 서버에 전송하지 않음")
+            return
+        }
+
+        val modelCode = getSavedModelCode(context)
+        progressListener?.onTrainingStarted()
+
+        sendTrainData(
+            modelCode = modelCode,
+            gesture = savedGestureName!!,
+            landmarkSequence = _landmarkSequence
+        ) { newModelCode, modelUrl ->
+            // 1) 모델 코드 저장
+            saveModelCode(context, newModelCode)
+
+            // 2) 라벨 저장
+            updateLabelMap(context, savedGestureName!!)
+
+            // 3) model_url.json 생성
+            val modelUrlFile = File(context.filesDir, "model_url.json")
+            modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
+
+            // 4) 모델 다운로드 및 교체
+            progressListener?.onModelDownloadStarted()
+            ModelStorageManager.downloadAndReplaceModel(context)
+            progressListener?.onModelDownloadComplete()
+
+            Log.d("HandLandmarkDetector", "✅ 서버 전송 및 모델 업데이트 완료")
+
+            // 상태 초기화
+            isReadyToSend = false
+            savedGestureName = null
+            _landmarkSequence.clear()
+        }
+    }
+
+    fun resetCollection() {
+        _landmarkSequence.clear()
+        frameCounter = 0
+        isReadyToSend = false
+        savedGestureName = ""
+        isCollecting = true
+        progressListener?.onCollectionProgress(percent)
+        Log.d("HandLandmarkDetector", "🔄 랜드마크 수집 상태 초기화됨")
+    }
+
     fun transfer(
         image: Bitmap,
         sensorOrientation: Int,
@@ -130,7 +182,7 @@ class HandLandmarkDetector(
         if (_landmarkSequence.size < 100) {
             if (frameCounter % frameInterval == 0) {
                 extract63Landmarks(landmarks, image.width, image.height)
-                val percent = (_landmarkSequence.size * 100) / 100
+                percent = (_landmarkSequence.size * 100) / 100
                 Log.d("HandLandmarkDetector", "랜드마크 수집 중 (총 ${_landmarkSequence.size})")
                 progressListener?.onCollectionProgress(percent) // 👈 콜백 호출
             }
@@ -138,36 +190,11 @@ class HandLandmarkDetector(
         }
 
         if (_landmarkSequence.size == 100) {
-            Log.d("HandLandmarkDetector", "📦 수집된 랜드마크 시퀀스 (총 ${_landmarkSequence.size} 프레임)")
-            val modelCode = getSavedModelCode(context)
-            progressListener?.onTrainingStarted()
-            sendTrainData(
-                modelCode = modelCode,
-                gesture = gestureName,
-                landmarkSequence = _landmarkSequence
-            ) { newModelCode, modelUrl ->
-
-                // 1) 모델 코드 저장
-                saveModelCode(context, newModelCode)
-
-                // 2) 라벨 . 저장
-                updateLabelMap(context, gestureName)
-
-                // 3) model_url.json 생성
-                val modelUrlFile = File(context.filesDir, "model_url.json")
-                modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
-
-                progressListener?.onModelDownloadStarted()
-                // 4) 모델 다운로드 -> 모델 교체
-                ModelStorageManager.downloadAndReplaceModel(context)
-                Log.d("HandLandmarkDetector", "✅ 모델 학습 및 저장 완료 - 새 모델 코드: $newModelCode")
-                progressListener?.onModelDownloadComplete()
-            }
-
+            isReadyToSend = true
+            savedGestureName = gestureName
             stopCollecting()
-            Log.d("HandLandmarkDetector", "🛑 랜드마크 수집 종료")
+            Log.d("HandLandmarkDetector", "🛑 랜드마크 수집 완료 - 저장 버튼 대기 상태")
         }
-
         drawLandmarks(image.width, image.height)
         return convertMatToBitmap(image)
     }
@@ -295,7 +322,7 @@ class HandLandmarkDetector(
         )
 
         val request = Request.Builder()
-            .url("http://192.168.196.130:8000/train_model/")
+            .url("http://13.125.161.99:8000/train_model/")
             .post(body)
             .build()
 

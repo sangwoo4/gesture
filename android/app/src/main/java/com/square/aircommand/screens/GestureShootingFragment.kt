@@ -2,7 +2,10 @@ package com.square.aircommand.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -19,8 +22,6 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.tflite.ModelRepository.initModels
-import com.square.aircommand.tflite.TFLiteHelpers
 
 class GestureShootingFragment : Fragment() {
 
@@ -41,7 +42,8 @@ class GestureShootingFragment : Fragment() {
         gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
-    // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
+    // 🔄 전달받은 사용자 정의 제스처 이
+    // 름 (없으면 "unknown")
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
@@ -70,9 +72,18 @@ class GestureShootingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-        // 💾 저장 버튼 → 사용자 제스처 등록 화면으로 이동
+        //저장하기
         binding.saveButton.setOnClickListener {
-            findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+            landmarkDetector.sendToServerIfReady(requireContext()) {
+                Handler(Looper.getMainLooper()).post {
+                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+                }
+            }
+        }
+
+        // 다시 촬영
+        binding.retakeButton.setOnClickListener {
+            landmarkDetector.resetCollection()
         }
 
         // 📷 카메라 권한 확인 후 초기화
@@ -112,9 +123,19 @@ class GestureShootingFragment : Fragment() {
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
                 onTrainingComplete = {
-                    // 🎉 학습 완료 시 토스트 한 번만 표시
                     if (!toastShown) {
                         toastShown = true
+
+                        // ✅ 진동
+                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(50)
+                        }
+
+                        // ✅ 토스트
                         requireActivity().runOnUiThread {
                             Toast.makeText(requireContext(), "학습이 완료되었습니다.", Toast.LENGTH_SHORT).show()
                         }

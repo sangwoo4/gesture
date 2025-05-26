@@ -26,12 +26,10 @@ import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.gesture.GestureActionExecutor
 import com.square.aircommand.gesture.GestureActionMapper
-import com.square.aircommand.gesture.GestureLabel
 import com.square.aircommand.gesture.GestureAccessibilityService
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
-import com.square.aircommand.tflite.TFLiteHelpers
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -98,11 +96,11 @@ class CameraService : Service() {
             latestPoints = latestPoints,
             landmarksState = landmarksState,
             validDetectionThreshold = 20,
-            onGestureDetected = { gestureLabel ->
-                if (gestureLabel != GestureLabel.NONE) {
-                    val action = GestureActionMapper.getSavedGestureAction(this, gestureLabel)
+            onGestureDetected = { gestureName ->
+                if (gestureName != "NONE") {
+                    val action = GestureActionMapper.getSavedGestureAction(this, gestureName)
                     GestureActionExecutor.execute(action, this)
-                    Log.d(tag, "🙌 제스처: $gestureLabel → 동작: $action 실행됨")
+                    Log.d(tag, "🙌 제스처: $gestureName → 동작: $action 실행됨")
                 }
             }
         )
