@@ -105,7 +105,7 @@ fun CameraScreenTest(
                 modifier = Modifier
                     .align(Alignment.TopCenter)
                     .padding(top = 32.dp),
-                color = Color.White,
+                color = Color.Black,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -141,30 +141,30 @@ class HandAnalyzerTest(
                     latestPoints.clear()
                     latestPoints.addAll(points)
 
-                        // ✅ 일반 모드에서는 예측만 수행
-                        landmarkDetector.predict(bitmap, orientation)
-                        val landmarks = landmarkDetector.lastLandmarks
+                    // ✅ 일반 모드에서는 예측만 수행
+                    landmarkDetector.predict(bitmap, orientation)
+                    val landmarks = landmarkDetector.lastLandmarks
 
-                        if (!isTrainingMode && landmarks.size == 21) {
-                            landmarksState.value = landmarks.toList()
-                            val (gestureIndex, confidence) = gestureClassifier.classify(
-                                landmarks,
-                                landmarkDetector.lastHandedness
-                            )
+                    if (!isTrainingMode && landmarks.size == 21) {
+                        landmarksState.value = landmarks.toList()
+                        val (gestureIndex, confidence) = gestureClassifier.classify(
+                            landmarks,
+                            landmarkDetector.lastHandedness
+                        )
 
-                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+                        val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                        gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
 
-                            ThrottledLogger.log(
-                                "HandAnalyzer",
-                                "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
-                            )
+                        ThrottledLogger.log(
+                            "HandAnalyzer",
+                            "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
+                        )
 
-                            onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex).toString())
-                        } else if (!isTrainingMode) {
-                            gestureText.value = "제스처 없음"
-                            ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
-                        }
+                        onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex).toString())
+                    } else if (!isTrainingMode) {
+                        gestureText.value = "제스처 없음"
+                        ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
+                    }
                 } else {
                     ThrottledLogger.log("HandAnalyzer", "감지 누적 중 (${detectionFrameCount.value})")
                 }

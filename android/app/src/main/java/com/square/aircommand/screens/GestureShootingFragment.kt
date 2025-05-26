@@ -2,11 +2,13 @@ package com.square.aircommand.screens
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.snapshotFlow
 import androidx.core.app.ActivityCompat
@@ -25,7 +27,6 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
-
 class GestureShootingFragment : Fragment() {
 
     private var _binding: FragmentGestureShootingBinding? = null
@@ -38,7 +39,7 @@ class GestureShootingFragment : Fragment() {
     private lateinit var landmarkDetector: HandLandmarkDetector
     private lateinit var gestureClassifier: GestureClassifier
 
-    private val gestureStatusText = mutableStateOf("제스처 수집 중...") // ✅ 상태 추가
+    private val gestureStatusText = mutableStateOf("제스처 수집 ...") // ✅ 상태 추가
 
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
@@ -48,7 +49,8 @@ class GestureShootingFragment : Fragment() {
         gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
-    // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
+    // 🔄 전달받은 사용자 정의 제스처 이
+    // 름 (없으면 "unknown")
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
@@ -83,6 +85,7 @@ class GestureShootingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
+
         // 다시 촬영
         binding.retakeButton.setOnClickListener {
             progress = 0
@@ -95,7 +98,16 @@ class GestureShootingFragment : Fragment() {
 
         // 저장 버튼
         binding.saveButton.setOnClickListener {
-            findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+            landmarkDetector.sendToServerIfReady(requireContext()) {
+                Handler(Looper.getMainLooper()).post {
+                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+                }
+            }
+        }
+
+        // 다시 촬영
+        binding.retakeButton.setOnClickListener {
+            landmarkDetector.resetCollection()
         }
 
 
@@ -199,11 +211,16 @@ class GestureShootingFragment : Fragment() {
                 gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
 
                 onTrainingComplete = {
-                    // 🎉 학습 완료 시 토스트 한 번만 표시
                     if (!toastShown) {
                         toastShown = true
-                        requireActivity().runOnUiThread {
-                            Toast.makeText(requireContext(), "학습이 완료되었습니다.", Toast.LENGTH_SHORT).show()
+
+                        // ✅ 진동
+                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                        } else {
+                            @Suppress("DEPRECATION")
+                            vibrator?.vibrate(50)
                         }
                     }
                 },

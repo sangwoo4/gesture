@@ -9,9 +9,9 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
-import com.square.aircommand.gesture.GestureLabel
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
+import com.square.aircommand.ui.theme.listener.TrainingProgressListener
 import com.square.aircommand.utils.ThrottledLogger
 import com.square.aircommand.utils.toBitmapCompat
 
@@ -32,8 +32,9 @@ class HandAnalyzers(
     private val validDetectionThreshold: Int,
     private val isTrainingMode: Boolean = false,
     private val trainingGestureName: String = "",
-    private val onGestureDetected: ((GestureLabel) -> Unit)? = null,
-    private val onTrainingComplete: (() -> Unit)? = null
+    private val onGestureDetected: ((String) -> Unit)? = null, // ✅ String 기반으로 수정
+    private val onTrainingComplete: (() -> Unit)? = null,
+    private val trainingProgressListener: TrainingProgressListener? = null
 ) : ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: ImageProxy) {
@@ -52,10 +53,8 @@ class HandAnalyzers(
                     latestPoints.addAll(points)
 
                     for (point in points) {
-
                         // ✅ 일반 모드에서는 예측만 수행
                         landmarkDetector.predict(bitmap, orientation)
-
 
                         val landmarks = landmarkDetector.lastLandmarks
 
@@ -74,7 +73,7 @@ class HandAnalyzers(
                                 "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
                             )
 
-                            onGestureDetected?.invoke(GestureLabel.fromId(gestureIndex))
+                            onGestureDetected?.invoke(gestureName) // ✅ 문자열 제스처 이름 전달
                         } else if (!isTrainingMode) {
                             gestureText.value = "제스처 없음"
                             ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
