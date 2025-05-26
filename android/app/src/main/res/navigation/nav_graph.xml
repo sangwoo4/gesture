@@ -5,6 +5,8 @@
     android:id="@+id/nav_graph"
     app:startDestination="@id/introSceneFragment">
 
+
+
     <!-- 인트로 화면 -->
     <fragment
         android:id="@+id/introSceneFragment"
@@ -12,7 +14,11 @@
         android:label="Intro Scene" >
         <action
             android:id="@+id/action_introSceneFragment_to_airCommandFragment"
-            app:destination="@id/airCommandFragment" />
+            app:destination="@id/airCommandFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
     </fragment>
 
     <!-- AirCommand 메인 화면 -->
@@ -23,15 +29,27 @@
 
         <action
             android:id="@+id/action_airCommand_to_gestureSetting"
-            app:destination="@id/gestureSettingFragment" />
+            app:destination="@id/gestureSettingFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
 
         <action
             android:id="@+id/action_airCommand_to_userGesture"
-            app:destination="@id/userGestureFragment" />
+            app:destination="@id/userGestureFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
 
         <action
             android:id="@+id/action_airCommand_to_testFragment"
-            app:destination="@id/testFragment" />
+            app:destination="@id/testFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
     </fragment>
 
     <!-- 제스처 기능 설정 화면 -->
@@ -48,7 +66,11 @@
 
         <action
             android:id="@+id/action_userGestureFragment_to_gestureShootingFragment"
-            app:destination="@id/gestureShootingFragment" />
+            app:destination="@id/gestureShootingFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
     </fragment>
 
     <!-- 제스처 촬영 화면 -->
@@ -60,7 +82,11 @@
 
         <action
             android:id="@+id/action_gestureShooting_to_userGesture"
-            app:destination="@id/userGestureFragment" />
+            app:destination="@id/userGestureFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
     </fragment>
 
     <!-- 테스트 프래그먼트 -->

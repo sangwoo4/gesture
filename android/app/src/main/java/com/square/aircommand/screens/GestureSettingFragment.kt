@@ -97,14 +97,16 @@ class GestureSettingFragment : Fragment() {
             val powerMenu = PowerMenu.Builder(requireContext())
                 .addItemList(options.map { PowerMenuItem(it, it == currentText) })
                 .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
-                .setMenuRadius(10f)
-                .setMenuShadow(10f)
+                .setMenuRadius(50f)
+                .setMenuShadow(15f)
                 .setCircularEffect(CircularEffect.BODY)
-                .setTextColor(ContextCompat.getColor(requireContext(), R.color.md_grey_800))
+                .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
                 .setTextGravity(Gravity.CENTER)
                 .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
                 .setSelectedTextColor(0xFFFFFFFF.toInt())  // 흰색
-                .setMenuColor(0xFF000000.toInt())
+//                .setMenuColor(0xFF000000.toInt())
+                .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
+
                 .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
                 .setOnMenuItemClickListener { position, item ->
                     targetView.text = item.title
