@@ -87,6 +87,14 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"/>
+
+        <action
+            android:id="@+id/action_gestureShooting_to_airCommand"
+            app:destination="@id/airCommandFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out" />
     </fragment>
 
     <!-- 테스트 프래그먼트 -->

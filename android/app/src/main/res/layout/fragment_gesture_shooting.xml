@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
- >
+    >
 
     <!-- 헤더 영역 -->
     <LinearLayout
@@ -82,7 +82,7 @@
                 android:id="@+id/statusMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="프레임 안에 제스처를 유지해주세요."
+                android:text="📷 손을 카메라에 잘 보여주세요 🙌"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#D08855"
@@ -114,7 +114,7 @@
                 android:layout_gravity="center">
 
                 <!-- 카메라 프리뷰 -->
-                <SurfaceView
+                <TextView
                     android:id="@+id/cameraPreview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
@@ -136,6 +136,7 @@
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/loadingscene" />
 
+
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/lottieSuecessView"
                     android:layout_width="305dp"
@@ -143,56 +144,62 @@
                     android:layout_gravity="center"
                     app:lottie_autoPlay="false"
                     app:lottie_loop="true"
-                    app:lottie_rawRes="@raw/successscene" />
-
-                <!--                    <com.mikhaellopez.circularprogressbar.CircularProgressBar-->
-                <!--                        android:id="@+id/circle_progress"-->
-                <!--                        android:layout_width="350dp"-->
-                <!--                        android:layout_height="350dp"-->
-                <!--                        android:layout_gravity="center"-->
-                <!--                        app:cpb_background_progressbar_color="#0E96D0"-->
-                <!--                        app:cpb_background_progressbar_width="30dp"-->
-                <!--                        app:cpb_start_angle="90"-->
-                <!--                        app:cpb_progress_direction="to_right"-->
-                <!--                        app:cpb_progressbar_color="#3f51b5"-->
-                <!--                        app:cpb_progressbar_width="20dp"-->
-                <!--                        app:cpb_round_border="true" />-->
-
+                    app:lottie_rawRes="@raw/success2" />
             </FrameLayout>
 
 
-
             <!-- 버튼 영역 -->
-            <LinearLayout
+            <!-- 버튼 영역 -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginTop="30dp">
 
-                <Button
-                    android:id="@+id/retakeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="다시촬영"
-                    android:textSize="15sp"
-                    android:background="@drawable/rounded_box"
-                    android:textColor="@android:color/black"
-                    app:backgroundTint="@null"
-                    android:layout_marginEnd="8dp" />
+                <!-- 다시촬영 & 저장하기 버튼 그룹 -->
+                <LinearLayout
+                    android:id="@+id/actionButtonGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
+                    <Button
+                        android:id="@+id/retakeButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="다시촬영"
+                        android:textSize="15sp"
+                        android:background="@drawable/rounded_box"
+                        android:textColor="@android:color/black"
+                        app:backgroundTint="@null"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/saveButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="저장하기"
+                        android:textSize="15sp"
+                        android:background="@drawable/rounded_box"
+                        android:textColor="@android:color/black"
+                        app:backgroundTint="@null"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <!-- 메인화면으로 이동 버튼 (처음엔 숨김) -->
                 <Button
-                    android:id="@+id/saveButton"
-                    android:layout_width="0dp"
+                    android:id="@+id/moveButton"
+                    android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="저장하기"
+                    android:text="메인화면으로 이동하기"
                     android:textSize="15sp"
                     android:background="@drawable/rounded_box"
                     android:textColor="@android:color/black"
                     app:backgroundTint="@null"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
+                    android:visibility="gone" />
+            </FrameLayout>
+
 
         </LinearLayout>
     </ScrollView>
