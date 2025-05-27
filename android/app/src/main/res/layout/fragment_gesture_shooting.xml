@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#FFFFFF"
- >
+    >
 
     <!-- 헤더 영역 -->
     <LinearLayout
@@ -82,7 +82,7 @@
                 android:id="@+id/statusMessage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="프레임 안에 제스처를 유지해주세요."
+                android:text="📷 손을 카메라에 잘 보여주세요 🙌"
                 android:textSize="13sp"
                 android:textStyle="bold"
                 android:textColor="#D08855"
@@ -114,7 +114,7 @@
                 android:layout_gravity="center">
 
                 <!-- 카메라 프리뷰 -->
-                <SurfaceView
+                <TextView
                     android:id="@+id/cameraPreview"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
@@ -136,7 +136,6 @@
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/loadingscene" />
 
-<!--                android:visibility="gone"-->
 
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/lottieSuecessView"
@@ -146,16 +145,7 @@
                     app:lottie_autoPlay="false"
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/success2" />
-
-<!--                <ImageView-->
-<!--                    android:id="@+id/imgSuccessView"-->
-<!--                    android:layout_width="match_parent"-->
-<!--                    android:layout_height="match_parent"-->
-<!--                    android:src="@drawable/successpic"-->
-<!--                    android:visibility="gone" />-->
-
             </FrameLayout>
-
 
 
             <!-- 버튼 영역 -->
