@@ -1,26 +1,27 @@
 package com.square.aircommand.screens
 
 import android.os.Bundle
+import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
 import android.widget.LinearLayout
-import android.widget.Spinner
 import android.widget.TextView
+import android.graphics.Typeface
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import com.skydoves.powermenu.CircularEffect
+import com.skydoves.powermenu.MenuAnimation
 import com.skydoves.powermenu.PowerMenu
+import com.skydoves.powermenu.PowerMenuItem
 import com.square.aircommand.R
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
-import com.square.aircommand.gesture.GestureLabel
 
 /**
  * 제스처 기능 설정 화면 (GestureSettingFragment)
- * - gesture_labels.json 파일에서 제스처 목록을 불러옴
- * - NONE 및 UNKNOWN만 제외하고 모든 제스처 표시
+ * - gesture_labels.json 파일에서 제스처 목록을 불러와 설정 UI를 동적으로 생성
  */
 class GestureSettingFragment : Fragment() {
 
@@ -29,11 +30,10 @@ class GestureSettingFragment : Fragment() {
 
     private val prefsName = "gesture_prefs"
     private val selectedActions = mutableMapOf<String, GestureAction>()
-
-    // PowerMenu를 Gesture마다 따로 관리하기 위해 Map으로 관리
-    private val powerMenus = mutableMapOf<GestureLabel, PowerMenu>()
+    private val powerMenus = mutableMapOf<String, PowerMenu>()
 
     private lateinit var gestureLabelMapper: GestureLabelMapper
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -51,43 +51,152 @@ class GestureSettingFragment : Fragment() {
         val noneDisplay = GestureAction.NONE.displayName
         val allLabels = gestureLabelMapper.getAllLabels().values
 
-        // ✅ 1. 기본 제스처 (상단 고정)
         val defaultOrder = listOf("paper", "rock", "scissors", "one")
         val basicGestures = allLabels.filter { it.lowercase() in defaultOrder }
-
         for (label in basicGestures) {
-            val (rowLayout, spinner) = createGestureRow(label)
+            val (rowLayout, labelView) = createGestureRow(label)
             binding.customGestureContainer.addView(rowLayout)
 
             val prefsKey = "gesture_${label.lowercase()}_action"
             val savedValue = prefs.getString(prefsKey, noneDisplay) ?: noneDisplay
-            setupSpinner(spinner, label, savedValue, prefsKey, options)
+            setupGestureDropdown(labelView, label, savedValue, prefsKey, options)
         }
 
-        // ✅ 2. 사용자 정의 제스처 (알파벳순, 하단에 추가)
         val excludedLabels = listOf("none", "unknown") + defaultOrder
-        val userGestures = allLabels
-            .filter { it.lowercase() !in excludedLabels }
-            .sorted()
-
+        val userGestures = allLabels.filter { it.lowercase() !in excludedLabels }.sorted()
         for (label in userGestures) {
-            val (rowLayout, spinner) = createGestureRow(label)
+            val (rowLayout, labelView) = createGestureRow(label)
             binding.customGestureContainer.addView(rowLayout)
 
             val prefsKey = "gesture_${label.lowercase()}_action"
             val savedValue = prefs.getString(prefsKey, noneDisplay) ?: noneDisplay
-            setupSpinner(spinner, label, savedValue, prefsKey, options)
+            setupGestureDropdown(labelView, label, savedValue, prefsKey, options)
         }
-        // 🔙 뒤로가기 버튼 처리
+
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
     }
 
-    /**
+    private fun setupGestureDropdown(
+        targetView: TextView,
+        label: String,
+        initialValue: String,
+        prefsKey: String,
+        options: Array<String>
+    ) {
+        val prefs = requireContext().getSharedPreferences(prefsName, 0)
+        targetView.text = initialValue
+        powerMenus[label]?.dismiss()
+
+        targetView.setOnClickListener {
+            powerMenus[label]?.dismiss()
+            val currentText = targetView.text.toString()
+
+            val powerMenu = PowerMenu.Builder(requireContext())
+                .addItemList(options.map { PowerMenuItem(it, it == currentText) })
+                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+                .setMenuRadius(50f)
+                .setMenuShadow(15f)
+                .setCircularEffect(CircularEffect.BODY)
+                .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
+                .setTextGravity(Gravity.CENTER)
+                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
+                .setSelectedTextColor(0xFFFFFFFF.toInt())
+                .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
+                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                .setOnMenuItemClickListener { _, item ->
+                    targetView.text = item.title
+                    prefs.edit().putString(prefsKey, item.title.toString()).apply()
+                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
+                        ?: GestureAction.NONE
+                    if (selectedAction == GestureAction.NONE) {
+                        selectedActions.remove(label)
+                    } else {
+                        selectedActions[label] = selectedAction
+                    }
+                    powerMenus[label]?.dismiss()
+                }
+                .build()
+
+            powerMenus[label] = powerMenu
+            powerMenu.showAsAnchorLeftBottom(targetView)
+        }
+    }
+
+    private fun createGestureRow(label: String): Pair<LinearLayout, TextView> {
+        val context = requireContext()
+        val displayLabel = when (label.lowercase()) {
+            "paper" -> "보 제스처"
+            "rock" -> "주먹 제스처"
+            "scissors" -> "가위 제스처"
+            "one" -> "하나 제스처"
+            else -> "$label 제스처"
+        }
+
+        val rowLayout = LinearLayout(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.MATCH_PARENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, dp(12), 0, dp(12))
+            }
+            orientation = LinearLayout.HORIZONTAL
+            setPadding(dp(16), dp(12), dp(16), dp(12))
+        }
+
+        val labelText = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
+            text = displayLabel
+            textSize = 12f
+            setTextColor(context.getColor(R.color.black))
+        }
+
+        val actionTextView = TextView(context).apply {
+            layoutParams = LinearLayout.LayoutParams(
+                LinearLayout.LayoutParams.WRAP_CONTENT,
+                LinearLayout.LayoutParams.WRAP_CONTENT
+            )
+            id = View.generateViewId()
+            setBackgroundResource(R.drawable.spinner_background)
+            setPadding(dp(12), dp(6), dp(12), dp(6))
+            setTextColor(context.getColor(R.color.black))
+        }
+
+        rowLayout.addView(labelText)
+        rowLayout.addView(actionTextView)
+
+        return Pair(rowLayout, actionTextView)
+    }
+
+    private fun dp(value: Int): Int {
+        return (value * resources.displayMetrics.density).toInt()
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
+        powerMenus.values.forEach { it.dismiss() }
+        powerMenus.clear()
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**
 <<<<<<< HEAD
-     * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
-     */
+ * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
+ */
 //    private fun setupGestureDropdown(
 //        targetView: TextView,
 //        label: GestureLabel,
@@ -144,95 +253,4 @@ class GestureSettingFragment : Fragment() {
 //            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
 //        }
 //    }
-
-    private fun setupSpinner(
-        spinner: Spinner,
-        label: String,
-        initialValue: String,
-        prefsKey: String,
-        options: Array<String>
-    ) {
-        val context = requireContext()
-        val prefs = context.getSharedPreferences(prefsName, 0)
-
-        spinner.adapter = ArrayAdapter(
-            context,
-            R.layout.spinner_text,
-            options
-        ).also {
-            it.setDropDownViewResource(R.layout.spinner_text)
-        }
-
-        // 초기 선택값 설정
-        spinner.setSelection(options.indexOf(initialValue).coerceAtLeast(0))
-
-        // 선택 항목에 따라 SharedPreferences 저장
-        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
-                val selectedDisplayName = options[position]
-                val selectedAction = GestureAction.entries.firstOrNull {
-                    it.displayName == selectedDisplayName
-                } ?: GestureAction.NONE
-
-                prefs.edit().putString(prefsKey, selectedDisplayName).apply()
-
-                if (selectedAction == GestureAction.NONE) {
-                    selectedActions.remove(label)
-                } else {
-                    selectedActions[label] = selectedAction
-                }
-            }
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-    }
-
-    /**
-     * 제스처 행 동적 생성 (TextView + Spinner)
-     */
-    private fun createGestureRow(label: String): Pair<LinearLayout, Spinner> {
-        val context = requireContext()
-
-        val rowLayout = LinearLayout(context).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 24, 0, 0)
-            }
-            orientation = LinearLayout.HORIZONTAL
-            setPadding(0, 12, 0, 12)
-        }
-
-        val textView = TextView(context).apply {
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT, 1f)
-            text = "$label 제스처"
-            textSize = 15f
-            setTextColor(resources.getColor(R.color.black, null))
-        }
-
-        val spinner = Spinner(context).apply {
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(8, 0, 0, 0)
-            }
-            id = View.generateViewId()
-            setPopupBackgroundResource(R.drawable.spinner_background)
-        }
-
-        rowLayout.addView(textView)
-        rowLayout.addView(spinner)
-
-        return Pair(rowLayout, spinner)
-    }
-
-    override fun onDestroyView() {
-        super.onDestroyView()
-        _binding = null
-        // 모든 PowerMenu 종료
-        powerMenus.values.forEach { it.dismiss() }
-        powerMenus.clear()
-    }
-}
 

@@ -1,6 +1,7 @@
 package com.square.aircommand.screens
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -27,13 +28,14 @@ import com.square.aircommand.utils.GestureStatus
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
 
 class GestureShootingFragment : Fragment() {
 
     private var _binding: FragmentGestureShootingBinding? = null
     private val binding get() = _binding!!
 
-    // 상태 진행바 초기화
     private var progress = 0
 
     private lateinit var handDetector: HandDetector
@@ -42,27 +44,15 @@ class GestureShootingFragment : Fragment() {
 
     private val gestureStatusText = mutableStateOf(GestureStatus.Idle)
 
-    // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
-    private fun initModels() {
-        ModelRepository.initModels(requireContext())
-        handDetector = ModelRepository.getHandDetector()
-        landmarkDetector = ModelRepository.getLandmarkDetector()
-        gestureClassifier = ModelRepository.getGestureClassifier()
-    }
-
-    // 🔄 전달받은 사용자 정의 제스처 이
-    // 름 (없으면 "unknown")
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
 
-    // 🧭 토스트 중복 방지 플래그
     private var toastShown = false
 
     companion object {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 10
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -75,48 +65,36 @@ class GestureShootingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 초기 상태
         binding.numberProgress.progress = 0
-//        binding.circleProgress.progress = 0f
-
         progress = 0
 
-        // 뒤로가기 버튼
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-
-        // 다시 촬영
         binding.retakeButton.setOnClickListener {
             progress = 0
             binding.numberProgress.progress = 0
-//            binding.circleProgress.progress = 0f
-
             binding.statusMessage.text = ""
+            landmarkDetector.resetCollection()
             showCameraCompose()
         }
 
-        // 저장 버튼
         binding.saveButton.setOnClickListener {
             landmarkDetector.sendToServerIfReady(requireContext()) {
+                // ✅ 저장
+                saveIfDefaultGesture(requireContext(), gestureName)
+
                 Handler(Looper.getMainLooper()).post {
                     findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
                 }
             }
         }
 
-        // 다시 촬영
-        binding.retakeButton.setOnClickListener {
-            landmarkDetector.resetCollection()
-        }
-
-
-        // 📷 카메라 권한 확인 후 초기화
         if (allPermissionsGranted()) {
-            initModels()         // 👉 모델 로딩
-            startTraining()      // 👉 전이 학습 시작
-            showCameraCompose()  // 👉 카메라 UI 표시
+            initModels()
+            startTraining()
+            showCameraCompose()
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -124,6 +102,7 @@ class GestureShootingFragment : Fragment() {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+
         observeGestureStatusText()
     }
 
@@ -136,7 +115,6 @@ class GestureShootingFragment : Fragment() {
                         GestureStatus.DownloadingModel -> {
                             binding.lottieLoadingView.visibility = View.VISIBLE
                             binding.lottieLoadingView.playAnimation()
-
                             binding.lottieSuecessView.visibility = View.GONE
                             binding.lottieSuecessView.pauseAnimation()
                         }
@@ -144,7 +122,6 @@ class GestureShootingFragment : Fragment() {
                         GestureStatus.ModelApplied -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
-
                             binding.lottieSuecessView.visibility = View.VISIBLE
                             binding.lottieSuecessView.repeatCount = 0
                             binding.lottieSuecessView.playAnimation()
@@ -153,7 +130,6 @@ class GestureShootingFragment : Fragment() {
                         else -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
-
                             binding.lottieSuecessView.visibility = View.GONE
                             binding.lottieSuecessView.pauseAnimation()
                         }
@@ -162,19 +138,13 @@ class GestureShootingFragment : Fragment() {
         }
     }
 
-    // Fragment 내부에 추가
     private fun updateProgress(percent: Int) {
         requireActivity().runOnUiThread {
-
             progress = percent.coerceAtMost(100)
             binding.numberProgress.progress = progress
-//            binding.circleProgress.progress = progress.toFloat()
-
             if (progress >= 100) {
                 binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
-                binding.landmarkOverlay.setContent {
-                    // 카메라 중지 - 빈 화면
-                }
+                binding.landmarkOverlay.setContent {}
                 binding.lottieLoadingView.visibility = View.VISIBLE
                 binding.lottieLoadingView.playAnimation()
             } else {
@@ -184,21 +154,6 @@ class GestureShootingFragment : Fragment() {
         }
     }
 
-
-    // ✅ 카메라 권한 확인
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // ✅ 학습 시작 명시
-    private fun startTraining() {
-        // 🟢 반드시 호출해야 `transfer()`가 작동함
-        landmarkDetector.startCollecting()
-    }
-
-    // ✅ Jetpack Compose 기반 카메라 화면
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
             CameraScreen(
@@ -207,14 +162,10 @@ class GestureShootingFragment : Fragment() {
                 gestureClassifier = gestureClassifier,
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
-
-                gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
-
+                gestureStatusText = gestureStatusText,
                 onTrainingComplete = {
                     if (!toastShown) {
                         toastShown = true
-
-                        // ✅ 진동
                         val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
@@ -224,20 +175,54 @@ class GestureShootingFragment : Fragment() {
                         }
                     }
                 },
-
-                // 상태바 퍼센티지 연동
-                onProgressUpdate = { percent ->
-                    updateProgress(percent)
-                }
+                onProgressUpdate = { percent -> updateProgress(percent) }
             )
         }
+    }
 
+    private fun allPermissionsGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun initModels() {
+        ModelRepository.initModels(requireContext())
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
+    }
+
+    private fun startTraining() {
+        landmarkDetector.startCollecting()
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
-        ModelRepository.closeAll() // 👉 모든 모델 리소스를 일괄 해제
+        ModelRepository.closeAll()
     }
 
+    /**
+     * ✅ 기본 제스처(paper, rock, scissors, one)만 저장
+     */
+    private fun saveIfDefaultGesture(context: Context, label: String) {
+        val allowed = listOf("paper", "rock", "scissors", "one")
+        val labelLower = label.lowercase()
+        if (labelLower !in allowed) return
+
+        val file = File(context.filesDir, "gesture_labels.json")
+        val jsonObject = if (file.exists()) JSONObject(file.readText()) else JSONObject()
+
+        val alreadyExists = jsonObject.keys().asSequence()
+            .any { key -> jsonObject.optString(key) == label }
+
+        if (!alreadyExists) {
+            val nextIndex = jsonObject.keys().asSequence()
+                .mapNotNull { it.toIntOrNull() }
+                .maxOrNull()?.plus(1) ?: 0
+            jsonObject.put(nextIndex.toString(), label)
+            file.writeText(jsonObject.toString())
+        }
+    }
 }

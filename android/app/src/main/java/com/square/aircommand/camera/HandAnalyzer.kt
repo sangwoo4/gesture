@@ -32,13 +32,20 @@ class HandAnalyzers(
     private val validDetectionThreshold: Int,
     private val isTrainingMode: Boolean = false,
     private val trainingGestureName: String = "",
-    private val onGestureDetected: ((String) -> Unit)? = null, // ✅ String 기반으로 수정
+    private val onGestureDetected: ((String) -> Unit)? = null,
     private val onTrainingComplete: (() -> Unit)? = null,
     private val trainingProgressListener: TrainingProgressListener? = null
 ) : ImageAnalysis.Analyzer {
 
     override fun analyze(imageProxy: ImageProxy) {
         try {
+            // ✅ Close된 handDetector에 대한 탐지 방지
+            if (handDetector.isClosed()) {
+                ThrottledLogger.log("HandAnalyzer", "❌ HandDetector가 이미 close()되었습니다. 분석 생략.")
+                imageProxy.close()
+                return
+            }
+
             val bitmap = imageProxy.toBitmapCompat()
             val points = handDetector.detect(bitmap)
             val orientation = getBackCameraSensorOrientation(context)
@@ -53,7 +60,6 @@ class HandAnalyzers(
                     latestPoints.addAll(points)
 
                     for (point in points) {
-                        // ✅ 일반 모드에서는 예측만 수행
                         landmarkDetector.predict(bitmap, orientation)
 
                         val landmarks = landmarkDetector.lastLandmarks
@@ -73,14 +79,17 @@ class HandAnalyzers(
                                 "제스처 인식됨: $gestureName (index=$gestureIndex, 신뢰도=${String.format("%.2f", confidence)})"
                             )
 
-                            onGestureDetected?.invoke(gestureName) // ✅ 문자열 제스처 이름 전달
+                            onGestureDetected?.invoke(gestureName)
                         } else if (!isTrainingMode) {
                             gestureText.value = "제스처 없음"
                             ThrottledLogger.log("HandAnalyzer", "랜드마크 포인트가 부족합니다")
                         }
                     }
                 } else {
-                    ThrottledLogger.log("HandAnalyzer", "손 감지 누적 중 (${detectionFrameCount.value}/${validDetectionThreshold})")
+                    ThrottledLogger.log(
+                        "HandAnalyzer",
+                        "손 감지 누적 중 (${detectionFrameCount.value}/${validDetectionThreshold})"
+                    )
                 }
             } else {
                 detectionFrameCount.value = 0

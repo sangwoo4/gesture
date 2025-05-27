@@ -48,6 +48,9 @@ class HandDetector(
     private val inputArray: FloatArray
     private val inputBuffer: ByteBuffer
 
+    // ✅ 내부에서만 상태 관리
+    private var isClosedInternal = false
+
     init {
         OpenCVNativeLoader().init()
         val (i, d, w, h, inputArr, inputBuf) = initInterpreter(context, modelPath, delegatePriorityOrder)
@@ -59,18 +62,20 @@ class HandDetector(
         inputBuffer = inputBuf
     }
 
-    private var isClosed = false
-
     override fun close() {
-        if (!isClosed) {
+        if (!isClosedInternal) {
             interpreter.close()
             delegateStore.values.forEach { it.close() }
-            isClosed = true
+            isClosedInternal = true
         }
     }
 
+    // ✅ 외부에서 안전하게 접근할 수 있도록 공개 getter 추가
+    fun isClosed(): Boolean = isClosedInternal
+
     fun detect(bitmap: Bitmap): List<PointF> {
-        if (isClosed) {
+        // ✅ close() 후 호출 방지 - JNI crash 예방
+        if (isClosedInternal) {
             Log.w("HandDetector", "⚠️ Attempted to call detect() after interpreter was closed.")
             return emptyList()
         }
@@ -198,7 +203,7 @@ class HandDetector(
         return picked
     }
 
-    // --- Kotlin helper class for returning multiple values ---
+    // Kotlin helper class for returning multiple values
     private data class Tuple6<A, B, C, D, E, F>(
         val first: A,
         val second: B,

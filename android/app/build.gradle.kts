@@ -114,6 +114,7 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.appcompat)
+//    implementation(libs.car.ui.lib)
 
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
