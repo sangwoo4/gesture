@@ -24,6 +24,7 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
+import com.square.aircommand.utils.GestureStatus
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -41,7 +42,7 @@ class GestureShootingFragment : Fragment() {
     private lateinit var landmarkDetector: HandLandmarkDetector
     private lateinit var gestureClassifier: GestureClassifier
 
-    private val gestureStatusText = mutableStateOf("제스처 수집 ...")
+    private val gestureStatusText = mutableStateOf(GestureStatus.Idle)
 
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
@@ -110,21 +111,22 @@ class GestureShootingFragment : Fragment() {
             snapshotFlow { gestureStatusText.value }
                 .distinctUntilChanged()
                 .collectLatest { status ->
-                    binding.statusMessage.text = status
                     when (status) {
-                        "⬇️ 모델 다운로드 중..." -> {
+                        GestureStatus.DownloadingModel -> {
                             binding.lottieLoadingView.visibility = View.VISIBLE
                             binding.lottieLoadingView.playAnimation()
                             binding.lottieSuecessView.visibility = View.GONE
                             binding.lottieSuecessView.pauseAnimation()
                         }
-                        "✅ 모델 적용 완료!" -> {
+
+                        GestureStatus.ModelApplied -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
                             binding.lottieSuecessView.visibility = View.VISIBLE
                             binding.lottieSuecessView.repeatCount = 0
                             binding.lottieSuecessView.playAnimation()
                         }
+
                         else -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
