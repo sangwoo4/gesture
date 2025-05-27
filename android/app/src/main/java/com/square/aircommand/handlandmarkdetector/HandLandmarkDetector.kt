@@ -152,7 +152,7 @@ class HandLandmarkDetector(
         isReadyToSend = false
         savedGestureName = ""
         isCollecting = true
-        progressListener?.onCollectionProgress(percent)
+        progressListener?.onCollectionProgress(0)
         Log.d("HandLandmarkDetector", "🔄 랜드마크 수집 상태 초기화됨")
     }
 
