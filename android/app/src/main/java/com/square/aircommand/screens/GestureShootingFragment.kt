@@ -1,6 +1,8 @@
 package com.square.aircommand.screens
 
 import android.Manifest
+import android.animation.Animator
+import android.animation.AnimatorListenerAdapter
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -23,6 +25,7 @@ import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
+import com.square.aircommand.utils.GestureStatus
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
@@ -39,7 +42,7 @@ class GestureShootingFragment : Fragment() {
     private lateinit var landmarkDetector: HandLandmarkDetector
     private lateinit var gestureClassifier: GestureClassifier
 
-    private val gestureStatusText = mutableStateOf("제스처 수집 ...") // ✅ 상태 추가
+    private val gestureStatusText = mutableStateOf(GestureStatus.Idle)
 
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
@@ -76,8 +79,6 @@ class GestureShootingFragment : Fragment() {
 
         // 초기 상태
         binding.numberProgress.progress = 0
-//        binding.circleProgress.progress = 0f
-
         progress = 0
 
         // 뒤로가기 버튼
@@ -85,25 +86,40 @@ class GestureShootingFragment : Fragment() {
             parentFragmentManager.popBackStack()
         }
 
-
         // 다시 촬영
         binding.retakeButton.setOnClickListener {
             progress = 0
             binding.numberProgress.progress = 0
-//            binding.circleProgress.progress = 0f
 
             binding.statusMessage.text = ""
             showCameraCompose()
         }
 
+
         // 저장 버튼
         binding.saveButton.setOnClickListener {
+            binding.lottieLoadingView.visibility = View.VISIBLE
+            binding.lottieLoadingView.playAnimation()
+
+            // 👉 로딩 애니메이션 뷰를 앞으로 가져오기
+            binding.lottieLoadingView.bringToFront()
+//            gestureStatusText.value = GestureStatus.DownloadingModel
+
+            // 👉 카메라 미리보기 제거 (중지)
+            binding.landmarkOverlay.setContent { }
+
+            // 서버 전송 시작
             landmarkDetector.sendToServerIfReady(requireContext()) {
+                // ⭐ 모델 적용 완료 상태 설정 (성공 애니메이션 시작)
+//                gestureStatusText.value = GestureStatus.ModelApplied
+
+                // UI 작업
                 Handler(Looper.getMainLooper()).post {
                     findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
                 }
             }
         }
+
 
         // 다시 촬영
         binding.retakeButton.setOnClickListener {
@@ -131,31 +147,46 @@ class GestureShootingFragment : Fragment() {
             snapshotFlow { gestureStatusText.value }
                 .distinctUntilChanged()
                 .collectLatest { status ->
-                    binding.statusMessage.text = status
-
                     when (status) {
-                        "⬇️ 모델 다운로드 중..." -> {
+                        GestureStatus.DownloadingModel -> {
                             binding.lottieLoadingView.visibility = View.VISIBLE
                             binding.lottieLoadingView.playAnimation()
 
                             binding.lottieSuecessView.visibility = View.GONE
                             binding.lottieSuecessView.pauseAnimation()
+
+//                            binding.imgSuccessView.visibility = View.GONE
                         }
-                        "✅ 모델 적용 완료!" -> {
+
+                        GestureStatus.ModelApplied -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
 
                             binding.lottieSuecessView.visibility = View.VISIBLE
-                            binding.lottieSuecessView.repeatCount = 0
-                            binding.lottieSuecessView.playAnimation()
+//                            binding.lottieSuecessView.repeatCount = 0
 
+                            // 중복 리스너 제거
+//                            binding.lottieSuecessView.removeAllAnimatorListeners()
+
+                            // 애니메이션 끝나고 이미지 보이기
+//                            binding.lottieSuecessView.addAnimatorListener(object : AnimatorListenerAdapter() {
+//                                override fun onAnimationEnd(animation: Animator) {
+////                                    binding.imgSuccessView.visibility = View.VISIBLE
+//                                }
+//                            })
+
+                            binding.lottieSuecessView.playAnimation()
                         }
+
+
                         else -> {
                             binding.lottieLoadingView.visibility = View.GONE
                             binding.lottieLoadingView.pauseAnimation()
 
                             binding.lottieSuecessView.visibility = View.GONE
                             binding.lottieSuecessView.pauseAnimation()
+
+//                            binding.imgSuccessView.visibility = View.GONE
                         }
                     }
                 }
@@ -168,18 +199,12 @@ class GestureShootingFragment : Fragment() {
 
             progress = percent.coerceAtMost(100)
             binding.numberProgress.progress = progress
-//            binding.circleProgress.progress = progress.toFloat()
 
             if (progress >= 100) {
                 binding.statusMessage.text = "촬영을 완료하였습니다. 저장하기를 눌러주세요"
-                binding.landmarkOverlay.setContent {
-                    // 카메라 중지 - 빈 화면
-                }
-                binding.lottieLoadingView.visibility = View.VISIBLE
-                binding.lottieLoadingView.playAnimation()
-            } else {
-                binding.lottieLoadingView.visibility = View.GONE
-                binding.lottieLoadingView.pauseAnimation()
+//                binding.landmarkOverlay.setContent {
+//                    // 카메라 중지 - 빈 화면
+//                }
             }
         }
     }

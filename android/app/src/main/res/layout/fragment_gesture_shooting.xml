@@ -136,6 +136,8 @@
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/loadingscene" />
 
+<!--                android:visibility="gone"-->
+
                 <com.airbnb.lottie.LottieAnimationView
                     android:id="@+id/lottieSuecessView"
                     android:layout_width="305dp"
@@ -143,20 +145,14 @@
                     android:layout_gravity="center"
                     app:lottie_autoPlay="false"
                     app:lottie_loop="true"
-                    app:lottie_rawRes="@raw/successscene" />
+                    app:lottie_rawRes="@raw/success2" />
 
-                <!--                    <com.mikhaellopez.circularprogressbar.CircularProgressBar-->
-                <!--                        android:id="@+id/circle_progress"-->
-                <!--                        android:layout_width="350dp"-->
-                <!--                        android:layout_height="350dp"-->
-                <!--                        android:layout_gravity="center"-->
-                <!--                        app:cpb_background_progressbar_color="#0E96D0"-->
-                <!--                        app:cpb_background_progressbar_width="30dp"-->
-                <!--                        app:cpb_start_angle="90"-->
-                <!--                        app:cpb_progress_direction="to_right"-->
-                <!--                        app:cpb_progressbar_color="#3f51b5"-->
-                <!--                        app:cpb_progressbar_width="20dp"-->
-                <!--                        app:cpb_round_border="true" />-->
+<!--                <ImageView-->
+<!--                    android:id="@+id/imgSuccessView"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="match_parent"-->
+<!--                    android:src="@drawable/successpic"-->
+<!--                    android:visibility="gone" />-->
 
             </FrameLayout>
 
