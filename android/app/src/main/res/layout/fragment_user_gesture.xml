@@ -83,8 +83,6 @@
                 android:orientation="horizontal"
                 android:background="@drawable/rounded_box"
                 android:padding="12dp"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="12dp">
 
                 <!-- 제스처 이름 입력 -->
@@ -113,7 +111,6 @@
                         android:layout_width="40dp"
                         android:layout_height="40dp"
                         android:layout_gravity="center_vertical"
-                        android:layout_marginStart="8dp"
                         android:src="@raw/checkgif"
                         android:visibility="gone"
                         app:cb_color="#99CC00"
@@ -132,7 +129,6 @@
                     app:backgroundTint="@color/cardview_light_background" />
             </LinearLayout>
 
-
             <!-- 중복검사 결과 -->
             <TextView
                 android:id="@+id/duplicateCheckResultText"
@@ -142,9 +138,6 @@
                 android:textStyle="bold"
                 android:textColor="#D08855"
                 android:visibility="gone"
-                app:layout_constraintTop_toBottomOf="@id/gestureNameContainer"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
                 android:layout_marginTop="8dp" />
 
             <!-- 제스처 촬영 버튼 -->
@@ -157,74 +150,26 @@
                 android:text="제스처 촬영"
                 android:textColor="@color/black"
                 android:textSize="12sp"
-                app:backgroundTint="@null"
-                app:layout_constraintEnd_toEndOf="parent"
-                app:layout_constraintHorizontal_bias="0.0"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/duplicateCheckResultText" />
+                app:backgroundTint="@null" />
 
-            <!--  TODO: 하드코딩 해 놓은 곳임 나중에 삭제도 되게 해야하고, -->
-            <!--  TODO: 초기 사용자는 가위, 바위, 보, 하나 제스처가 디폴트로 존재해야함  -->
-            <!-- 등록됨 레이블 -->
+            <!-- 등록된 제스처 레이블 -->
             <TextView
                 android:id="@+id/installedLabel"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="등록됨"
+                android:text="등록된 제스처 목록"
                 android:textStyle="bold"
                 android:textColor="@android:color/black"
                 android:textSize="12sp"
-                app:layout_constraintTop_toBottomOf="@id/btnStartGestureShooting"
-                app:layout_constraintStart_toStartOf="parent"
                 android:layout_marginTop="20dp" />
-
-            <!-- 예: 가위 제스처 -->
+ㅎ
+            <!-- 동적 제스처 목록을 표시할 컨테이너 -->
             <LinearLayout
-                android:id="@+id/gesture1"
+                android:id="@+id/customGestureContainer"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="12dp"
-                android:background="@drawable/rounded_box"
-                app:layout_constraintTop_toBottomOf="@id/installedLabel"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="8dp">
-
-                <TextView
-                    android:layout_width="1dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginLeft="10dp"
-                    android:text="가위 제스처"
-                    android:textColor="@android:color/black"
-                    android:layout_weight="1"
-                    android:textSize="12sp" />
-            </LinearLayout>
-
-            <!-- 두 번째 제스처 -->
-            <LinearLayout
-                android:id="@+id/gesture2"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingVertical="12dp"
-                android:background="@drawable/rounded_box"
-                app:layout_constraintTop_toBottomOf="@id/gesture1"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintEnd_toEndOf="parent"
-                android:layout_marginTop="8dp">
-
-                <TextView
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:text="주먹 제스처"
-                    android:textColor="@android:color/black"
-                    android:layout_marginLeft="10dp"
-                    android:layout_weight="1"
-                    android:textSize="12sp" />
-            </LinearLayout>
+                android:orientation="vertical"
+                android:layout_marginTop="8dp" />
         </LinearLayout>
-
     </ScrollView>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

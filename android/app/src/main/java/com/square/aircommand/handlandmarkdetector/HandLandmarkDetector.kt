@@ -93,10 +93,13 @@ class HandLandmarkDetector(
 
     fun predict(image: Bitmap, sensorOrientation: Int): Bitmap {
         preprocessImage(image, sensorOrientation)
+
         val (landmarks, score, handedness) = runInference()
 
         lastLandmarks.clear()
-        if (score < 0.005f) return image
+        if (score < 0.005f) {
+            return image
+        }
 
         lastHandedness = if (handedness > 0.5f) "Right" else "Left"
         extractLandmarks(landmarks)
@@ -149,7 +152,7 @@ class HandLandmarkDetector(
         isReadyToSend = false
         savedGestureName = ""
         isCollecting = true
-        progressListener?.onCollectionProgress(percent)
+        progressListener?.onCollectionProgress(0)
         Log.d("HandLandmarkDetector", "🔄 랜드마크 수집 상태 초기화됨")
     }
 
@@ -229,11 +232,13 @@ class HandLandmarkDetector(
 
         val resizedInputMat = Mat()
         Imgproc.resize(inputMatRgb, resizedInputMat, Size(inputWidth.toDouble(), inputHeight.toDouble()))
+
         resizedInputMat.convertTo(resizedInputMat, CvType.CV_32FC3, 1.0 / 255.0)
         resizedInputMat.get(0, 0, inputFloatArray)
 
         inputBuffer.rewind()
         inputBuffer.asFloatBuffer().put(inputFloatArray)
+
     }
 
     private fun runInference(): Triple<Array<Array<FloatArray>>, Float, Float> {
@@ -253,9 +258,6 @@ class HandLandmarkDetector(
 
         interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
 
-        ThrottledLogger.log("LandmarkDetector", "outputScore = ${outputScores[0]}")
-        ThrottledLogger.log("LandmarkDetector", "handedness = ${if (outputLR[0] > 0.5f) "Right" else "Left"}")
-
         return Triple(outputLandmarks, outputScores[0], outputLR[0])
     }
 
@@ -267,7 +269,7 @@ class HandLandmarkDetector(
     }
 
     private fun drawLandmarks(imgW: Int, imgH: Int) {
-        for ((x, y, _) in lastLandmarks) {
+        lastLandmarks.forEachIndexed { idx, (x, y, _) ->
             val px = (x * imgW).toInt().coerceIn(0, imgW - 1)
             val py = (y * imgH).toInt().coerceIn(0, imgH - 1)
             Imgproc.circle(inputMatRgb, Point(px.toDouble(), py.toDouble()), 5, Scalar(0.0, 255.0, 0.0), -1)

@@ -136,19 +136,6 @@ fun CameraScreen(
             },
             modifier = Modifier.fillMaxSize()
         )
-
-//        // ✅ 학습 완료 UI 상태 메시지 (하단)
-//        if (!gestureStatusText?.value.isNullOrBlank()) {
-//            Text(
-//                text = gestureStatusText?.value ?: "",
-//                color = Color.Green,
-//                fontSize = 18.sp,
-//                fontWeight = FontWeight.Medium,
-//                modifier = Modifier
-//                    .align(Alignment.BottomCenter)
-//                    .padding(bottom = 24.dp)
-//            )
-//        }
     }
 }
 
@@ -205,48 +192,44 @@ class HandAnalyzer(
     private val onTrainingComplete: (() -> Unit)? = null, // ✅ 추가됨
     private val trainingProgressListener: TrainingProgressListener? = null
 ) : ImageAnalysis.Analyzer {
-
     override fun analyze(imageProxy: ImageProxy) {
         try {
             val bitmap = imageProxy.toBitmapCompat()
-            val points = handDetector.detect(bitmap)
             val orientation = getBackCameraSensorOrientation(context)
 
-            if (points.isNotEmpty()) {
+            // 1. detectHandAndGetInfo 사용(탑-1 손, crop/회전 포함)
+            val detectionResult = handDetector.detectHandAndGetInfo(bitmap, orientation)
+            if (detectionResult != null) {
                 detectionFrameCount.value += 1
-
                 if (detectionFrameCount.value >= validDetectionThreshold) {
-                    ThrottledLogger.log("HandAnalyzer", "손 감지 성공: ${points.size}")
-                    latestPoints.clear()
-                    latestPoints.addAll(points)
+                    ThrottledLogger.log("HandAnalyzer", "손 감지 성공")
 
-                    for (point in points) {
-                        if (isTrainingMode) {
-                            // ✅ 전이 학습 시에만 transfer() 호출
-                            landmarkDetector.transfer(bitmap, orientation, trainingGestureName, trainingProgressListener)
+                    // 2. crop된 손 이미지만 사용
+                    val croppedHand = detectionResult.croppedHand
 
-                            if (!landmarkDetector.isCollecting) {
-                                onTrainingComplete?.invoke()
-                            }
-                        } else {
-                            // ✅ 일반 예측 모드에서는 transfer()가 아니라 predict() 호출
-                            landmarkDetector.predict(bitmap, orientation)
-                        }
+                    Log.d("HandAnalyzer", "[analyze] [학습 모드] transfer 호출")
 
-                        val landmarks = landmarkDetector.lastLandmarks
+                    landmarkDetector.transfer(croppedHand, 0, trainingGestureName, trainingProgressListener)
+                    if (!landmarkDetector.isCollecting) {
+                        Log.d("HandAnalyzer", "[analyze] [학습모드] landmarkDetector.isCollecting = false → onTrainingComplete()")
+                        onTrainingComplete?.invoke()
+                    }
 
-                        if (!isTrainingMode && landmarks.size == 21) {
-                            landmarksState.value = landmarks.toList()
-                            val (gestureIndex, confidence) = gestureClassifier.classify(
-                                landmarks,
-                                landmarkDetector.lastHandedness
-                            )
-                            val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                            gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
-                            ThrottledLogger.log("HandAnalyzer", "$gestureName ($gestureIndex, $confidence)")
+                    // 3. landmark 결과 활용
+                    val landmarks = landmarkDetector.lastLandmarks
+                    Log.d("HandAnalyzer", "[analyze] Landmarks 개수: ${landmarks.size}")
 
-                            onGestureDetected?.invoke(gestureName)
-                        }
+                    if (!isTrainingMode && landmarks.size == 21) {
+                        landmarksState.value = landmarks.toList()
+                        val (gestureIndex, confidence) = gestureClassifier.classify(
+                            landmarks,
+                            landmarkDetector.lastHandedness
+                        )
+                        val gestureName = gestureLabelMapper.getLabel(gestureIndex)
+                        gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
+                        ThrottledLogger.log("HandAnalyzer", "$gestureName ($gestureIndex, $confidence)")
+
+                        onGestureDetected?.invoke(gestureName)
                     }
                 } else {
                     ThrottledLogger.log("HandAnalyzer", "감지 누적 중 (${detectionFrameCount.value})")

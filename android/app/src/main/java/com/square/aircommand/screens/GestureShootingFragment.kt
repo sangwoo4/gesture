@@ -3,6 +3,9 @@ package com.square.aircommand.screens
 import android.Manifest
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
+
+import android.content.Context
+
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -30,13 +33,14 @@ import com.square.aircommand.utils.GestureStatus
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import org.json.JSONObject
+import java.io.File
 
 class GestureShootingFragment : Fragment() {
 
     private var _binding: FragmentGestureShootingBinding? = null
     private val binding get() = _binding!!
 
-    // 상태 진행바 초기화
     private var progress = 0
 
     private lateinit var handDetector: HandDetector
@@ -53,7 +57,6 @@ class GestureShootingFragment : Fragment() {
         }
     }
 
-
     // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
     private fun initModels() {
         ModelRepository.initModels(requireContext())
@@ -63,17 +66,17 @@ class GestureShootingFragment : Fragment() {
     }
 
     // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
+
+
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
 
-    // 🧭 토스트 중복 방지 플래그
     private var toastShown = false
 
     companion object {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 10
     }
-
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -86,7 +89,6 @@ class GestureShootingFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 초기 상태
         binding.numberProgress.progress = 0
         progress = 0
 
@@ -124,7 +126,6 @@ class GestureShootingFragment : Fragment() {
 
         }
 
-
         // 저장 버튼
         binding.saveButton.setOnClickListener {
             binding.saveButton.apply {
@@ -151,8 +152,9 @@ class GestureShootingFragment : Fragment() {
             // 서버 전송 시작
             landmarkDetector.sendToServerIfReady(requireContext()) {
                 gestureStatusText.value = GestureStatus.Training
+                // ✅ 저장
+                saveIfDefaultGesture(requireContext(), gestureName)
 
-                // UI 작업
                 Handler(Looper.getMainLooper()).post {
                     findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
                 }
@@ -167,9 +169,9 @@ class GestureShootingFragment : Fragment() {
 
         // 📷 카메라 권한 확인 후 초기화
         if (allPermissionsGranted()) {
-            initModels()         // 👉 모델 로딩
-            startTraining()      // 👉 전이 학습 시작
-            showCameraCompose()  // 👉 카메라 UI 표시
+            initModels()
+            startTraining()
+            showCameraCompose()
         } else {
             ActivityCompat.requestPermissions(
                 requireActivity(),
@@ -177,6 +179,7 @@ class GestureShootingFragment : Fragment() {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
+
         observeGestureStatusText()
     }
 
@@ -225,7 +228,6 @@ class GestureShootingFragment : Fragment() {
         }
     }
 
-    // Fragment 내부에 추가
     private fun updateProgress(percent: Int) {
         requireActivity().runOnUiThread {
             progress = percent.coerceAtMost(100)
@@ -238,26 +240,10 @@ class GestureShootingFragment : Fragment() {
                     isEnabled = true
                     alpha = 1.0f
                 }
-
             }
         }
     }
 
-
-    // ✅ 카메라 권한 확인
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-
-    // ✅ 학습 시작 명시
-    private fun startTraining() {
-        // 🟢 반드시 호출해야 `transfer()`가 작동함
-        landmarkDetector.startCollecting()
-    }
-
-    // ✅ Jetpack Compose 기반 카메라 화면
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
             CameraScreen(
@@ -266,14 +252,10 @@ class GestureShootingFragment : Fragment() {
                 gestureClassifier = gestureClassifier,
                 isTrainingMode = true,
                 trainingGestureName = gestureName,
-
-                gestureStatusText = gestureStatusText, // ✅ 쉼표 추가!!
-
+                gestureStatusText = gestureStatusText,
                 onTrainingComplete = {
                     if (!toastShown) {
                         toastShown = true
-
-                        // ✅ 진동
                         val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                             vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
@@ -283,14 +265,19 @@ class GestureShootingFragment : Fragment() {
                         }
                     }
                 },
-
-                // 상태바 퍼센티지 연동
-                onProgressUpdate = { percent ->
-                    updateProgress(percent)
-                }
+                onProgressUpdate = { percent -> updateProgress(percent) }
             )
         }
+    }
 
+    private fun allPermissionsGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun startTraining() {
+        landmarkDetector.startCollecting()
     }
 
     override fun onDestroyView() {
@@ -302,4 +289,26 @@ class GestureShootingFragment : Fragment() {
         ModelRepository.closeAll()
     }
 
+    /**
+     * ✅ 기본 제스처(paper, rock, scissors, one)만 저장
+     */
+    private fun saveIfDefaultGesture(context: Context, label: String) {
+        val allowed = listOf("paper", "rock", "scissors", "one")
+        val labelLower = label.lowercase()
+        if (labelLower !in allowed) return
+
+        val file = File(context.filesDir, "gesture_labels.json")
+        val jsonObject = if (file.exists()) JSONObject(file.readText()) else JSONObject()
+
+        val alreadyExists = jsonObject.keys().asSequence()
+            .any { key -> jsonObject.optString(key) == label }
+
+        if (!alreadyExists) {
+            val nextIndex = jsonObject.keys().asSequence()
+                .mapNotNull { it.toIntOrNull() }
+                .maxOrNull()?.plus(1) ?: 0
+            jsonObject.put(nextIndex.toString(), label)
+            file.writeText(jsonObject.toString())
+        }
+    }
 }

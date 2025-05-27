@@ -72,11 +72,14 @@ class TestFragment : Fragment() {
         landmarkDetector = ModelRepository.getLandmarkDetector()
         gestureClassifier = ModelRepository.getGestureClassifier()
 
+        val lifecycleOwner = viewLifecycleOwner
+
         binding.landmarkOverlay.setContent {
             CameraScreenTest(
                 handDetector = handDetector,
                 landmarkDetector = landmarkDetector,
-                gestureClassifier = gestureClassifier
+                gestureClassifier = gestureClassifier,
+                lifecycleOwner = lifecycleOwner
             )
         }
     }
