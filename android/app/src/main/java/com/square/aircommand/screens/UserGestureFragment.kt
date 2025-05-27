@@ -1,31 +1,32 @@
 package com.square.aircommand.screens
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentUserGestureBinding
+import org.json.JSONObject
+import java.io.File
 
-/**
- * [사용자 제스처 등록 화면]
- * - 사용자가 새 제스처의 이름을 등록하고, 중복 확인을 거친 후 촬영을 시작할 수 있는 화면
- */
 class UserGestureFragment : Fragment() {
 
     private var _binding: FragmentUserGestureBinding? = null
     private val binding get() = _binding!!
 
-    private lateinit var gestureNameList: List<String> // 📌 string-array에 정의된 기존 제스처 이름 목록
+    private lateinit var defaultGestures: List<String>  // 기본 제스처 (중복 검사용)
+    private lateinit var customGestureList: List<String>  // json 기반 사용자 제스처
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        // 🔧 뷰 바인딩 초기화
         _binding = FragmentUserGestureBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -33,18 +34,17 @@ class UserGestureFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        // 🔄 기존 등록된 제스처 이름 목록 불러오기 (res/values/strings.xml > gesture_name_list)
-        gestureNameList = resources.getStringArray(R.array.gesture_name_list).toList()
+        defaultGestures = resources.getStringArray(R.array.gesture_name_list).toList()
+        customGestureList = loadCustomGestureList(requireContext(), defaultGestures)
 
-        // 🚫 제스처 촬영 버튼은 이름이 중복되지 않을 때만 활성화됨
+        showCustomGestures() // ✅ 사용자 제스처만 UI에 표시
+
         binding.btnStartGestureShooting.isEnabled = false
 
-        // 🔙 뒤로가기 버튼 → 이전 화면으로 이동
         binding.backButton.setOnClickListener {
             parentFragmentManager.popBackStack()
         }
 
-        // ✅ [중복 확인] 버튼 클릭 이벤트 처리
         binding.btnCheckDuplicate.setOnClickListener {
             val gestureName = binding.gestureNameEditText.text.toString().trim()
 
@@ -64,16 +64,15 @@ class UserGestureFragment : Fragment() {
 
                     Glide.with(this)
                         .asGif()
-                        .load(R.raw.checkgif) // res/raw/checkgif.gif
+                        .load(R.raw.checkgif)
                         .into(binding.checkPassedGif)
-                    binding.checkPassedGif.visibility = View.VISIBLE // ✅ 체크 아이콘 보이기
+                    binding.checkPassedGif.visibility = View.VISIBLE
                 }
             }
 
             binding.duplicateCheckResultText.visibility = View.VISIBLE
         }
 
-        // 🎥 [제스처 촬영] 버튼 클릭 → GestureShootingFragment로 이동
         binding.btnStartGestureShooting.setOnClickListener {
             val gestureName = binding.gestureNameEditText.text.toString().trim()
 
@@ -88,11 +87,60 @@ class UserGestureFragment : Fragment() {
         }
     }
 
-    /**
-     * 🔎 입력한 이름이 기존 제스처 이름과 중복되는지 검사
-     */
     private fun isGestureNameDuplicate(name: String): Boolean {
-        return gestureNameList.contains(name)
+        return defaultGestures.contains(name) || customGestureList.contains(name)
+    }
+
+    private fun loadCustomGestureList(context: Context, excludeList: List<String>): List<String> {
+        val file = File(context.filesDir, "gesture_labels.json")
+        if (!file.exists()) return emptyList()
+
+        return try {
+            val jsonObject = JSONObject(file.readText())
+            jsonObject.keys().asSequence()
+                .mapNotNull { key -> jsonObject.optString(key, null) }
+                .filter { it !in excludeList && it.lowercase() != "none" && it.lowercase() != "unknown" }
+                .toList()
+        } catch (e: Exception) {
+            emptyList()
+        }
+    }
+
+    private fun getDisplayLabel(label: String): String {
+        return when (label.lowercase()) {
+            "paper" -> "보 제스처"
+            "rock" -> "주먹 제스처"
+            "scissors" -> "가위 제스처"
+            "none", "unknown" -> ""
+            else -> if (label.lowercase().contains("제스처")) label else "$label 제스처"
+        }
+    }
+
+    private fun showCustomGestures() {
+        val container = binding.customGestureContainer
+        container.removeAllViews()
+
+        for (gesture in customGestureList) {
+            val displayName = getDisplayLabel(gesture)
+            if (displayName.isBlank()) continue
+
+            val textView = TextView(requireContext()).apply {
+                text = displayName
+                textSize = 12f
+                setTextColor(ContextCompat.getColor(context, android.R.color.black))
+                setPadding(16, 12, 16, 12)
+                background = ContextCompat.getDrawable(context, R.drawable.rounded_box)
+            }
+
+            val layoutParams = ViewGroup.MarginLayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
+            ).apply {
+                setMargins(0, 8, 0, 0)
+            }
+
+            container.addView(textView, layoutParams)
+        }
     }
 
     override fun onDestroyView() {

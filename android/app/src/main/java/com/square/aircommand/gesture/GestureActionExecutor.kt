@@ -17,15 +17,15 @@ object GestureActionExecutor {
 
     // 제스처별 쿨다운 시간 (ms) - 없으면 기본값 사용
     private val cooldownPerAction = mapOf(
-        GestureAction.TOGGLE_FLASH to 1000L,
-        GestureAction.SWIPE_RIGHT to 1000L,
-        GestureAction.SWIPE_DOWN to 1000L,
+        GestureAction.TOGGLE_FLASH to 1500L,
+        GestureAction.SWIPE_RIGHT to 1500L,
+        GestureAction.SWIPE_DOWN to 1500L,
 
-        GestureAction.SWIPE_LEFT to 1000L,
-        GestureAction.SWIPE_UP to 1000L,
+        GestureAction.SWIPE_LEFT to 1500L,
+        GestureAction.SWIPE_UP to 1500L,
 
-        GestureAction.VOLUME_UP to 1000L,
-        GestureAction.VOLUME_DOWN to 1000L,
+        GestureAction.VOLUME_UP to 1500L,
+        GestureAction.VOLUME_DOWN to 1500L,
 
         )
 
@@ -41,7 +41,7 @@ object GestureActionExecutor {
         val cooldown = cooldownPerAction[action] ?: DEFAULT_COOLDOWN_MS
 
         if (now - lastTime < cooldown) {
-            Log.d("GestureAction", "⏱️ $action 쿨다운 중 (${now - lastTime}ms < $cooldown ms)")
+            ThrottledLogger.log("GestureAction", "⏱️ $action 쿨다운 중 (${now - lastTime}ms < $cooldown ms)")
             return
         }
 
