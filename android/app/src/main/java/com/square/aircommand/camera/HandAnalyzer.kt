@@ -32,51 +32,35 @@ class HandAnalyzers(
     private val validDetectionThreshold: Int,
     private val isTrainingMode: Boolean = false,
     private val trainingGestureName: String = "",
-    private val onGestureDetected: ((String) -> Unit)? = null, // ✅ String 기반으로 수정
+    private val onGestureDetected: ((String) -> Unit)? = null,
     private val onTrainingComplete: (() -> Unit)? = null,
     private val trainingProgressListener: TrainingProgressListener? = null
 ) : ImageAnalysis.Analyzer {
     override fun analyze(imageProxy: ImageProxy) {
         try {
+            if (handDetector.isClosed()) {
+                ThrottledLogger.log("HandAnalyzer", "❌ HandDetector가 이미 close()되었습니다. 분석 생략.")
+                imageProxy.close()
+                return
+            }
+
             val bitmap = imageProxy.toBitmapCompat()
             val orientation = getBackCameraSensorOrientation(context)
-            Log.d("HandAnalyzer", "[analyze] 프레임 분석 시작 - Bitmap: ${bitmap.width}x${bitmap.height}, orientation: $orientation")
 
             // 1. HandDetector로 bbox/crop 등 모두 얻기
             val detectionResult = handDetector.detectHandAndGetInfo(bitmap, orientation)
             if (detectionResult != null) {
                 detectionFrameCount.value += 1
-                Log.d("HandAnalyzer", "[analyze] 손 감지됨! (frameCount=${detectionFrameCount.value})")
-                Log.d("HandAnalyzer", "[analyze] Detected BBox: ${detectionResult.bbox}")
-                Log.d("HandAnalyzer", "[analyze] ROI Crop Size: ${detectionResult.croppedHand.width}x${detectionResult.croppedHand.height}")
-
                 if (detectionFrameCount.value >= validDetectionThreshold) {
                     ThrottledLogger.log("HandAnalyzer", "손 감지 성공")
 
                     // 2. crop된 손 이미지 landmark 추론에 사용
                     val croppedHand = detectionResult.croppedHand
 
-                    // 전이학습 모드: transfer 사용, 일반 모드: predict 사용
-                    if (isTrainingMode) {
-                        Log.d("HandAnalyzer", "[analyze] [학습 모드] transfer 호출")
-                        landmarkDetector.transfer(
-                            croppedHand,
-                            0,
-                            trainingGestureName,
-                            trainingProgressListener
-                        )
-                        if (!landmarkDetector.isCollecting) {
-                            Log.d("HandAnalyzer", "[analyze] [학습모드] landmarkDetector.isCollecting = false → onTrainingComplete()")
-                            onTrainingComplete?.invoke()
-                        }
-                    } else {
-                        Log.d("HandAnalyzer", "[analyze] [실시간] predict 호출")
-                        landmarkDetector.predict(croppedHand, 0)
-                    }
+                    landmarkDetector.predict(croppedHand, 0)
 
                     // landmark 결과 활용
                     val landmarks = landmarkDetector.lastLandmarks
-                    Log.d("HandAnalyzer", "[analyze] Landmarks 개수: ${landmarks.size}")
 
                     if (!isTrainingMode && landmarks.size == 21) {
                         landmarksState.value = landmarks.toList()

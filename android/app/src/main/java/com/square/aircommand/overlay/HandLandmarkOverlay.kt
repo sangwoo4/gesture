@@ -19,11 +19,6 @@ fun HandLandmarkOverlay(
             Offset(((1.0 - x) * size.width).toFloat(), (y * size.height).toFloat())
         }
 
-        // 🔎 각 랜드마크 좌표를 로그로 출력
-        points.forEachIndexed { idx, pt ->
-            Log.d("HandLandmarkOverlay", "Canvas Landmark[$idx]: (x=${pt.x}, y=${pt.y}), canvasSize=(${size.width}, ${size.height})")
-        }
-
         val connections = listOf(
             listOf(0, 1, 2, 3, 4),     // Thumb
             listOf(0, 5, 6, 7, 8),     // Index

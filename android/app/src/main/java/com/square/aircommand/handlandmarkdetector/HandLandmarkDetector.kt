@@ -92,28 +92,17 @@ class HandLandmarkDetector(
     }
 
     fun predict(image: Bitmap, sensorOrientation: Int): Bitmap {
-        Log.d("HandLandmarkDetector", "[predict] 입력 이미지 크기: ${image.width}x${image.height} orientation: $sensorOrientation")
-
         preprocessImage(image, sensorOrientation)
-        Log.d("HandLandmarkDetector", "[predict] inputFloatArray 첫값: ${inputFloatArray.take(6)} ...")
 
         val (landmarks, score, handedness) = runInference()
-        Log.d("HandLandmarkDetector", "[predict] 랜드마크 추론 점수(score): $score, handedness: $handedness")
 
         lastLandmarks.clear()
         if (score < 0.005f) {
-            Log.w("HandLandmarkDetector", "[predict] 점수 낮음 (score=$score), landmark 추출/시각화 스킵")
             return image
         }
 
         lastHandedness = if (handedness > 0.5f) "Right" else "Left"
-        Log.d("HandLandmarkDetector", "[predict] 추정 handedness: $lastHandedness")
         extractLandmarks(landmarks)
-        Log.d("HandLandmarkDetector", "[predict] 랜드마크 21개:")
-        lastLandmarks.forEachIndexed { idx, (x, y, z) ->
-            Log.d("HandLandmarkDetector", "  Landmark[$idx]: ($x, $y, $z)")
-        }
-
         drawLandmarks(image.width, image.height)
 
         return convertMatToBitmap(image)
@@ -234,7 +223,6 @@ class HandLandmarkDetector(
     private fun preprocessImage(image: Bitmap, sensorOrientation: Int) {
         Utils.bitmapToMat(image, inputMatAbgr)
         Imgproc.cvtColor(inputMatAbgr, inputMatRgb, Imgproc.COLOR_BGRA2RGB)
-        Log.d("HandLandmarkDetector", "[preprocessImage] 변환 후: inputMatAbgr(${inputMatAbgr.width()}x${inputMatAbgr.height()}), inputMatRgb(${inputMatRgb.width()}x${inputMatRgb.height()})")
 
         when (sensorOrientation) {
             90 -> Core.rotate(inputMatRgb, inputMatRgb, Core.ROTATE_90_CLOCKWISE)
@@ -244,14 +232,12 @@ class HandLandmarkDetector(
 
         val resizedInputMat = Mat()
         Imgproc.resize(inputMatRgb, resizedInputMat, Size(inputWidth.toDouble(), inputHeight.toDouble()))
-        Log.d("HandLandmarkDetector", "[preprocessImage] resizedInputMat: ${resizedInputMat.width()}x${resizedInputMat.height()}")
 
         resizedInputMat.convertTo(resizedInputMat, CvType.CV_32FC3, 1.0 / 255.0)
         resizedInputMat.get(0, 0, inputFloatArray)
 
         inputBuffer.rewind()
         inputBuffer.asFloatBuffer().put(inputFloatArray)
-        Log.d("HandLandmarkDetector", "[preprocessImage] inputBuffer size: ${inputBuffer.capacity()}")
 
     }
 
@@ -271,14 +257,6 @@ class HandLandmarkDetector(
         }
 
         interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
-        Log.d("HandLandmarkDetector", "[runInference] outputScore = ${outputScores[0]}")
-        Log.d("HandLandmarkDetector", "[runInference] handedness = ${if (outputLR[0] > 0.5f) "Right" else "Left"}")
-//        ThrottledLogger.log("LandmarkDetector", "outputScore = ${outputScores[0]}")
-//        ThrottledLogger.log("LandmarkDetector", "handedness = ${if (outputLR[0] > 0.5f) "Right" else "Left"}")
-        for (i in 0 until 21) {
-            val (fx, fy, fz) = outputLandmarks[0][i]
-            Log.d("HandLandmarkDetector", "[runInference] landmark[$i] = ($fx, $fy, $fz)")
-        }
 
         return Triple(outputLandmarks, outputScores[0], outputLR[0])
     }
@@ -294,7 +272,6 @@ class HandLandmarkDetector(
         lastLandmarks.forEachIndexed { idx, (x, y, _) ->
             val px = (x * imgW).toInt().coerceIn(0, imgW - 1)
             val py = (y * imgH).toInt().coerceIn(0, imgH - 1)
-            Log.d("HandLandmarkDetector", "[drawLandmarks] Landmark[$idx] Canvas: ($px, $py)")
             Imgproc.circle(inputMatRgb, Point(px.toDouble(), py.toDouble()), 5, Scalar(0.0, 255.0, 0.0), -1)
         }
     }

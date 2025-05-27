@@ -25,6 +25,16 @@ import com.square.aircommand.R
 import com.square.aircommand.backgroundcamera.CameraService
 import com.square.aircommand.databinding.FragmentAirCommandBinding
 
+// TapTargetView import
+import android.graphics.Typeface
+import android.widget.ImageView
+import android.widget.Toast
+import com.getkeepsafe.taptargetview.TapTarget
+import com.getkeepsafe.taptargetview.TapTargetView
+import android.widget.TextView
+
+
+
 class AirCommandFragment : Fragment() {
 
     private var _binding: FragmentAirCommandBinding? = null
@@ -160,6 +170,69 @@ class AirCommandFragment : Fragment() {
 
         binding.btnTest.setOnClickListener {
             findNavController().navigate(R.id.action_airCommand_to_testFragment)
+        }
+
+
+        val devTargetView = binding.root.findViewById<ImageView>(R.id.developer_circle)
+        val infoTargetView = binding.root.findViewById<TextView>(R.id.description_circle)
+
+
+        infoTargetView.setOnClickListener {
+            TapTargetView.showFor(
+                requireActivity(),
+                TapTarget.forView(
+                    infoTargetView,
+                    "제스처 제어 앱 서비스",
+                    "터치 없이 나만의 제스처를 등록해 사용"
+                )
+                    .outerCircleColor(R.color.white)
+                    .outerCircleAlpha(0.90f)
+                    .targetCircleColor(R.color.white)
+                    .titleTextColor(R.color.black)
+                    .descriptionTextSize(13)
+                    .descriptionTextColor(R.color.black)
+                    .textTypeface(Typeface.SANS_SERIF)
+                    .dimColor(R.color.black)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(50),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                    }
+                }
+            )
+        }
+
+        // Targer Tap View
+        devTargetView.setOnClickListener {
+            TapTargetView.showFor(
+                requireActivity(),
+                TapTarget.forView(
+                    devTargetView,
+                    "Hansung University",
+                    "2025 Computer Engineering \n Capstone Design" +
+                            "\n\n 박상우, 박흥준, 장도윤, 최현혜"
+                )
+                    .outerCircleColor(R.color.white)
+                    .outerCircleAlpha(0.90f)
+                    .targetCircleColor(R.color.white)
+                    .titleTextColor(R.color.black)
+                    .descriptionTextColor(R.color.black)
+                    .dimColor(R.color.black)
+                    .drawShadow(true)
+                    .cancelable(false)
+                    .tintTarget(true)
+                    .transparentTarget(true)
+                    .targetRadius(50),
+                object : TapTargetView.Listener() {
+                    override fun onTargetClick(view: TapTargetView) {
+                        super.onTargetClick(view)
+                    }
+                }
+            )
         }
 
         return binding.root

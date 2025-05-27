@@ -26,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.lifecycle.LifecycleOwner
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.gesture.GestureLabel
@@ -45,7 +46,8 @@ fun CameraScreenTest(
     isTrainingMode: Boolean = false,
     trainingGestureName: String = "",
     gestureStatusText: MutableState<String>? = null,
-    onTrainingComplete: (() -> Unit)? = null
+    onTrainingComplete: (() -> Unit)? = null,
+    lifecycleOwner: LifecycleOwner
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current

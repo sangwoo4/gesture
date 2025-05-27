@@ -21,6 +21,7 @@ import org.tensorflow.lite.Interpreter
 import java.io.InputStreamReader
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import kotlin.math.atan2
 import kotlin.math.exp
 
 class HandDetector(
@@ -57,6 +58,8 @@ class HandDetector(
     private var anchors: List<Anchor>? = null
     private var lastLetterbox: LetterboxResult? = null
 
+    private var isClosedInternal = false
+
     data class Anchor(
         val cx: Float,
         val cy: Float,
@@ -92,13 +95,11 @@ class HandDetector(
         anchors = loadAnchorsFromJson(context)
     }
 
-    private var isClosed = false
-
     override fun close() {
-        if (!isClosed) {
+        if (!isClosedInternal) {
             interpreter.close()
             delegateStore.values.forEach { it.close() }
-            isClosed = true
+            isClosedInternal = true
         }
     }
 
@@ -116,7 +117,7 @@ class HandDetector(
         val middle = android.graphics.PointF(cx, bbox.top)
         val dx = middle.x - wrist.x
         val dy = middle.y - wrist.y
-        val angle = Math.atan2(dy.toDouble(), dx.toDouble()).toFloat() // 라디안
+        val angle = atan2(dy.toDouble(), dx.toDouble()).toFloat() // 라디안
 
         return HandDetectionResult(
             bbox = bbox,
@@ -127,15 +128,16 @@ class HandDetector(
         )
     }
 
+    fun isClosed(): Boolean = isClosedInternal
+
     fun detect(bitmap: Bitmap, rotationDegrees: Int): Pair<List<RectF>, Bitmap?> {
-        if (isClosed) {
+        if (isClosedInternal) {
             Log.w("HandDetector", "⚠️ Attempted to call detect() after interpreter was closed.")
             return Pair(emptyList(), null)
         }
 
         // 1) 회전 보정 적용
         val rotatedBitmap = rotateBitmap(bitmap, rotationDegrees)
-        Log.d("HandDetector", "[detect] Bitmap size: ${bitmap.width}x${bitmap.height}, Rotated: ${rotatedBitmap.width}x${rotatedBitmap.height} (deg: $rotationDegrees)")
 
         // 2) 전처리
         preprocessImage(rotatedBitmap)
@@ -145,11 +147,9 @@ class HandDetector(
 
         val outputMap = mapOf(
             runCatching { interpreter.getOutputIndex("box_coords") }.getOrElse {
-                Log.e("HandDetector", "❌ Output index 'box_coords' not found: ${it.message}")
                 return Pair(emptyList(), null)
             } to boxCoords,
             runCatching { interpreter.getOutputIndex("box_scores") }.getOrElse {
-                Log.e("HandDetector", "❌ Output index 'box_scores' not found: ${it.message}")
                 return Pair(emptyList(), null)
             } to boxScores
         )
@@ -157,28 +157,22 @@ class HandDetector(
         runCatching {
             interpreter.runForMultipleInputsOutputs(arrayOf(inputBuffer), outputMap)
         }.onFailure {
-            Log.e("HandDetector", "🔥 Inference failed: ${it.message}", it)
             return Pair(emptyList(), null)
         }
         val detectedBoxes = postProcessDetections(rotatedBitmap, boxCoords, boxScores)
-        Log.d("HandDetector", "[detect] Detected boxes: ${detectedBoxes.size}")
         if (detectedBoxes.isEmpty()) {
-            Log.w("HandDetector", "[detect] No hand detected (detectedBoxes.isEmpty())")
             return Pair(emptyList(), null)
         }
 
         // ③ ROI(정사각형) 계산 및 crop (탑-1 박스)
         val handBox = detectedBoxes.first()
-        Log.d("HandDetector", "[detect] Hand BBox (original image): $handBox")
         val squareROI = computeSquareROI(handBox, rotatedBitmap.width, rotatedBitmap.height)
-        Log.d("HandDetector", "[detect] Square ROI (before clip): $squareROI")
         val cropRect = android.graphics.Rect(
             squareROI.left.toInt(),
             squareROI.top.toInt(),
             squareROI.right.toInt(),
             squareROI.bottom.toInt()
         )
-        Log.d("HandDetector", "[detect] CropRect: $cropRect | CropW: ${cropRect.width()}, CropH: ${cropRect.height()}")
 
         val cropW = cropRect.width().coerceAtLeast(1)
         val cropH = cropRect.height().coerceAtLeast(1)
@@ -189,39 +183,8 @@ class HandDetector(
             cropW,
             cropH
         )
-        Log.d("HandDetector", "[detect] Cropped image size: ${cropped.width}x${cropped.height}")
         val landmarkInput = Bitmap.createScaledBitmap(cropped, 256, 256, true)
-        Log.d("HandDetector", "[detect] Landmark input size: ${landmarkInput.width}x${landmarkInput.height}")
-
         return Pair(detectedBoxes, landmarkInput)
-    }
-
-    // --- Private Methods ---
-
-    private fun initInterpreter(
-        context: Context,
-        modelPath: String,
-        delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>
-    ): Tuple6<Interpreter, Map<TFLiteHelpers.DelegateType, Delegate>, Int, Int, FloatArray, ByteBuffer> {
-        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
-
-        val (interpreter, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
-            modelBuffer,
-            delegatePriorityOrder,
-            AIHubDefaults.numCPUThreads,
-            context.applicationInfo.nativeLibraryDir,
-            context.cacheDir.absolutePath,
-            hash
-        )
-
-        val inputTensor = interpreter.getInputTensor(0)
-        val shape = inputTensor.shape()
-        val height = shape[1]
-        val width = shape[2]
-        val inputArr = FloatArray(height * width * 3)
-        val inputBuf = ByteBuffer.allocateDirect(inputArr.size * 4).order(ByteOrder.nativeOrder())
-
-        return Tuple6(interpreter, delegates, width, height, inputArr, inputBuf)
     }
 
     private fun preprocessImage(bitmap: Bitmap) {
@@ -263,18 +226,10 @@ class HandDetector(
                 if (score > maxScore) maxScore = score
             }
         }
-        Log.d("HandDetector", "[postProcessDetections] results.size: ${results.size}, maxScore: $maxScore")
 
 
         val lb = lastLetterbox
-        if (lb != null) {
-            Log.d("HandDetector", "[postProcessDetections] Letterbox: scale=${lb.scale}, padX=${lb.padX}, padY=${lb.padY}")
-        }
 
-        // 2) 정규화 좌표 → letterbox 픽셀 → 원본 픽셀 복원
-        results.forEachIndexed { idx, (rect, score) ->
-            Log.d("HandDetector", "[postProcessDetections] Result[$idx]: $rect (score=$score)")
-        }
         val (scale, padXf, padYf) = lb?.let { Triple(it.scale, it.padX.toFloat(), it.padY.toFloat()) } ?: Triple(1f, 0f, 0f)
         return results
             .sortedByDescending { it.second }
@@ -289,10 +244,10 @@ class HandDetector(
                 val ox2 = (lx2 - padXf) / scale
                 val oy2 = (ly2 - padYf) / scale
 
-                Log.d("HandDetector", "[postProcessDetections] BBox mapping: ox1=$ox1, oy1=$oy1, ox2=$ox2, oy2=$oy2")
                 RectF(ox1, oy1, ox2, oy2)
             }
     }
+
 
     //Json 파일 로드 함수
     private fun loadAnchorsFromJson(context: Context, fileName: String = "hand_anchors.json"): List<Anchor> {
@@ -416,9 +371,6 @@ class HandDetector(
         roiRight = roiRight.coerceIn(roiLeft + 1f, imgWidth.toFloat())
         roiBottom = roiBottom.coerceIn(roiTop + 1f, imgHeight.toFloat())
 
-        // 6. 로그로 디버깅 (추가)
-        Log.d("HandDetector", "[computeSquareROI] bbox=$bbox, margin=$margin, roiSize=$roiSize, ROI=($roiLeft,$roiTop,$roiRight,$roiBottom) img=($imgWidth,$imgHeight)")
-
         return RectF(roiLeft, roiTop, roiRight, roiBottom)
     }
 
@@ -432,4 +384,31 @@ class HandDetector(
         val fifth: E,
         val sixth: F
     )
+
+    private fun initInterpreter(
+        context: Context,
+        modelPath: String,
+        delegatePriorityOrder: Array<Array<TFLiteHelpers.DelegateType>>
+    ): Tuple6<Interpreter, Map<TFLiteHelpers.DelegateType, Delegate>, Int, Int, FloatArray, ByteBuffer> {
+        val (modelBuffer, hash) = TFLiteHelpers.loadModelFile(context.assets, modelPath)
+
+        val (interpreter, delegates) = TFLiteHelpers.createInterpreterAndDelegatesFromOptions(
+            modelBuffer,
+            delegatePriorityOrder,
+            AIHubDefaults.numCPUThreads,
+            context.applicationInfo.nativeLibraryDir,
+            context.cacheDir.absolutePath,
+            hash
+        )
+
+        val inputTensor = interpreter.getInputTensor(0)
+        val shape = inputTensor.shape()
+        val height = shape[1]
+        val width = shape[2]
+        val inputArr = FloatArray(height * width * 3)
+        val inputBuf = ByteBuffer.allocateDirect(inputArr.size * 4).order(ByteOrder.nativeOrder())
+
+        return Tuple6(interpreter, delegates, width, height, inputArr, inputBuf)
+    }
+
 }
