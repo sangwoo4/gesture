@@ -95,7 +95,8 @@ class GestureSettingFragment : Fragment() {
 
             val powerMenu = PowerMenu.Builder(requireContext())
                 .addItemList(options.map { PowerMenuItem(it, it == currentText) })
-                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+//                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+                .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                 .setMenuRadius(50f)
                 .setMenuShadow(15f)
                 .setCircularEffect(CircularEffect.BODY)
@@ -121,6 +122,7 @@ class GestureSettingFragment : Fragment() {
 
             powerMenus[label] = powerMenu
             powerMenu.showAsAnchorLeftBottom(targetView)
+            powerMenu.showAtCenter(targetView)
         }
     }
 
