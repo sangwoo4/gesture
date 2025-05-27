@@ -129,10 +129,18 @@ class GestureShootingFragment : Fragment() {
         binding.saveButton.setOnClickListener {
             binding.saveButton.apply {
                 isEnabled = false
-                alpha = 0.3f
+                alpha = 0.0f
             }
 
             binding.retakeButton.apply {
+                isEnabled = false
+                alpha = 0.0f
+            }
+
+            // 이동 버튼 보이게 설정
+            binding.moveButton.visibility = View.VISIBLE
+
+            binding.moveButton.apply {
                 isEnabled = false
                 alpha = 0.3f
             }
@@ -149,6 +157,11 @@ class GestureShootingFragment : Fragment() {
                     findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
                 }
             }
+        }
+
+        // 이동 버튼 클릭 리스너
+        binding.moveButton.setOnClickListener {
+            findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
         }
 
 
@@ -191,6 +204,13 @@ class GestureShootingFragment : Fragment() {
                             binding.lottieSuecessView.playAnimation()
 
                             binding.statusMessage.text = "다운로드 완료! 🎉"
+
+                            binding.moveButton.apply {
+                                isEnabled = true
+                                alpha = 1.0f
+                            }
+
+
                         }
 
                         else -> {

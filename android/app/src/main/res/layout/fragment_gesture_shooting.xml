@@ -149,36 +149,57 @@
 
 
             <!-- 버튼 영역 -->
-            <LinearLayout
+            <!-- 버튼 영역 -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:orientation="horizontal"
                 android:layout_marginTop="30dp">
 
-                <Button
-                    android:id="@+id/retakeButton"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="다시촬영"
-                    android:textSize="15sp"
-                    android:background="@drawable/rounded_box"
-                    android:textColor="@android:color/black"
-                    app:backgroundTint="@null"
-                    android:layout_marginEnd="8dp" />
+                <!-- 다시촬영 & 저장하기 버튼 그룹 -->
+                <LinearLayout
+                    android:id="@+id/actionButtonGroup"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="horizontal">
 
+                    <Button
+                        android:id="@+id/retakeButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="다시촬영"
+                        android:textSize="15sp"
+                        android:background="@drawable/rounded_box"
+                        android:textColor="@android:color/black"
+                        app:backgroundTint="@null"
+                        android:layout_marginEnd="8dp" />
+
+                    <Button
+                        android:id="@+id/saveButton"
+                        android:layout_width="0dp"
+                        android:layout_height="48dp"
+                        android:layout_weight="1"
+                        android:text="저장하기"
+                        android:textSize="15sp"
+                        android:background="@drawable/rounded_box"
+                        android:textColor="@android:color/black"
+                        app:backgroundTint="@null"
+                        android:layout_marginStart="8dp" />
+                </LinearLayout>
+
+                <!-- 메인화면으로 이동 버튼 (처음엔 숨김) -->
                 <Button
-                    android:id="@+id/saveButton"
-                    android:layout_width="0dp"
+                    android:id="@+id/moveButton"
+                    android:layout_width="match_parent"
                     android:layout_height="48dp"
-                    android:layout_weight="1"
-                    android:text="저장하기"
+                    android:text="메인화면으로 이동하기"
                     android:textSize="15sp"
                     android:background="@drawable/rounded_box"
                     android:textColor="@android:color/black"
                     app:backgroundTint="@null"
-                    android:layout_marginStart="8dp" />
-            </LinearLayout>
+                    android:visibility="gone" />
+            </FrameLayout>
+
 
         </LinearLayout>
     </ScrollView>
