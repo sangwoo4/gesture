@@ -1,8 +1,6 @@
 package com.square.aircommand.screens
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 
 import android.content.Context
 
@@ -11,6 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -23,7 +23,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.square.aircommand.R
-import com.square.aircommand.camera.CameraScreen
+import com.square.aircommand.cameraServies.TrainingCameraScreen
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
@@ -246,7 +246,7 @@ class GestureShootingFragment : Fragment() {
 
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
-            CameraScreen(
+            TrainingCameraScreen(
                 handDetector = handDetector,
                 landmarkDetector = landmarkDetector,
                 gestureClassifier = gestureClassifier,
@@ -256,9 +256,9 @@ class GestureShootingFragment : Fragment() {
                 onTrainingComplete = {
                     if (!toastShown) {
                         toastShown = true
-                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        val vibrator = ContextCompat.getSystemService(requireContext(), Vibrator::class.java)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                            vibrator?.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
                         } else {
                             @Suppress("DEPRECATION")
                             vibrator?.vibrate(50)
@@ -281,12 +281,25 @@ class GestureShootingFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        // ✅ Surface 해제 (Compose 내 Preview 사용 중지)
+        Log.d(tag, "🛑 onDestroyView() 호출됨 - 리소스 정리 시작")
+
+        // 1. Compose 내 카메라 UI 제거
         _binding?.landmarkOverlay?.setContent {}
+        Log.d(tag, "📷 Compose 카메라 UI 제거 완료")
+
+        // 2. CameraX 종료 (CameraExecutor, CameraProvider)
+        TrainingCameraManager.releaseCamera() // ← 직접 구현 필요
+        Log.d(tag, "🎥 CameraX 리소스 해제 완료")
+        // 3. 모델 해제
+        ModelRepository.closeAll()
+        Log.d(tag, "🧠 모델 리소스 해제 완료")
+
+        // 4. 뷰 바인딩 해제
+        _binding = null
+        Log.d(tag, "🧹 ViewBinding 해제 완료")
 
         super.onDestroyView()
-        _binding = null
-        ModelRepository.closeAll()
+        Log.d(tag, "✅ onDestroyView() 종료")
     }
 
     /**
@@ -303,7 +316,7 @@ class GestureShootingFragment : Fragment() {
         val alreadyExists = jsonObject.keys().asSequence()
             .any { key -> jsonObject.optString(key) == label }
 
-        if (!alreadyExists) {
+        if (!alreadyExists) {1
             val nextIndex = jsonObject.keys().asSequence()
                 .mapNotNull { it.toIntOrNull() }
                 .maxOrNull()?.plus(1) ?: 0
