@@ -73,7 +73,12 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
-
+        <meta-data
+            android:name="com.skt.tmap"
+            android:value="@string/tmap_api_key"/>
+        <queries>
+            <package android:name="com.skt.tmap.ku"/>
+        </queries>
     </application>
 
 </manifest>

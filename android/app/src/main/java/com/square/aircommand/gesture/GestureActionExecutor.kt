@@ -1,12 +1,14 @@
 package com.square.aircommand.gesture
 
 import android.content.Context
+import android.content.Intent
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+import android.net.Uri
 import android.util.Log
+import android.widget.Toast
 import com.square.aircommand.utils.ThrottledLogger
-
 /**
  * 제스처에 대응하는 실제 기능을 실행하는 객체
  */
@@ -14,6 +16,11 @@ object GestureActionExecutor {
 
     // 마지막 실행 시간 기록용 맵
     private val lastActionTimeMap = mutableMapOf<GestureAction, Long>()
+    private const val PREFS_NAME      = "gesture_prefs"
+    private const val KEY_HOME_LAT    = "home_lat"
+    private const val KEY_HOME_LON    = "home_lon"
+    private const val KEY_OFFICE_LAT  = "office_lat"
+    private const val KEY_OFFICE_LON  = "office_lon"
 
     // 제스처별 쿨다운 시간 (ms) - 없으면 기본값 사용
     private val cooldownPerAction = mapOf(
@@ -57,6 +64,8 @@ object GestureActionExecutor {
             GestureAction.SWIPE_LEFT -> swipeLeft()
             GestureAction.SWIPE_UP -> swipeUp()
 
+            GestureAction.GO_HOME   -> navigateToHome(context)
+            GestureAction.GO_OFFICE -> navigateToOffice(context)
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
     }
@@ -165,6 +174,63 @@ object GestureActionExecutor {
             durationMs = 500L
         )
         ThrottledLogger.log("GestureAction", "👆 위로 스와이프 실행 요청")
+    }
+
+    private fun navigateToHome(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (!prefs.contains(KEY_HOME_LAT) || !prefs.contains(KEY_HOME_LON)) {
+            // T맵 메인 화면으로 돌아가기
+            returnToTmapHome(context)
+            return
+        }
+        // 2) 값 로드
+        val lat = prefs.getFloat(KEY_HOME_LAT, 0f).toDouble()
+        val lon = prefs.getFloat(KEY_HOME_LON, 0f).toDouble()
+        startAutoNavigation(context, lat, lon, "집")
+        Log.d("GestureAction", "🏠 집으로 네비게이션: ($lat, $lon)")
+    }
+
+    // ── 회사로 자동 네비게이션 ─────────────────────────────────────────
+    private fun navigateToOffice(context: Context) {
+        val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        if (!prefs.contains(KEY_HOME_LAT) || !prefs.contains(KEY_HOME_LON)) {
+            // T맵 메인 화면으로 돌아가기
+            returnToTmapHome(context)
+            return
+        }
+        // 2) 값 로드
+        val lat = prefs.getFloat(KEY_OFFICE_LAT, 0f).toDouble()
+        val lon = prefs.getFloat(KEY_OFFICE_LON, 0f).toDouble()
+        startAutoNavigation(context, lat, lon, "회사")
+        Log.d("GestureAction", "🏢 회사로 네비게이션: ($lat, $lon)")
+    }
+
+    private fun startAutoNavigation(
+        context: Context,
+        lat: Double,
+        lon: Double,
+        label: String
+    ) {
+        val uri = Uri.parse(
+            "tmap://route?goalname=${Uri.encode(label)}" +
+                    "&goalx=$lon&goaly=$lat&dev=0&auto=1"
+        )
+        Intent(Intent.ACTION_VIEW, uri).apply {
+            setPackage("com.skt.tmap.ku")
+            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            context.startActivity(this)
+        }
+    }
+
+    private fun returnToTmapHome(context: Context) {
+        val launch = context.packageManager
+            .getLaunchIntentForPackage("com.skt.tmap.ku")
+        if (launch != null) {
+            launch.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP)
+            context.startActivity(launch)
+        } else {
+            Toast.makeText(context, "T맵 앱이 설치되어 있지 않습니다.", Toast.LENGTH_SHORT).show()
+        }
     }
 }
 
