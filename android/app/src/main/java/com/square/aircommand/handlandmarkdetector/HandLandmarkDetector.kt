@@ -301,7 +301,7 @@ class HandLandmarkDetector(
         modelCode: String,
         gesture: String,
         landmarkSequence: MutableList<List<Triple<Double, Double, Double>>>,
-        onSuccess: (newModelCode: String, modelUrl: String) -> Unit
+        onSuccess: (newModelCode: String, modelUrl: String) -> Unit,
     ) {
         val landmarksJsonArray = JSONArray()
         for (frame in landmarkSequence) {

@@ -10,6 +10,7 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.google.android.material.card.MaterialCardView
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentUserGestureBinding
 import org.json.JSONObject
@@ -46,7 +47,8 @@ class UserGestureFragment : Fragment() {
         }
 
         binding.btnCheckDuplicate.setOnClickListener {
-            val gestureName = binding.gestureNameEditText.text.toString().trim()
+            val gestureName = binding.gestureNameEditText.editText?.text.toString().trim()
+
 
             when {
                 gestureName.isEmpty() -> {
@@ -74,7 +76,8 @@ class UserGestureFragment : Fragment() {
         }
 
         binding.btnStartGestureShooting.setOnClickListener {
-            val gestureName = binding.gestureNameEditText.text.toString().trim()
+            val gestureName = binding.gestureNameEditText.editText?.text.toString().trim()
+
 
             val bundle = Bundle().apply {
                 putString("gesture_name", gestureName)
@@ -85,6 +88,24 @@ class UserGestureFragment : Fragment() {
                 bundle
             )
         }
+
+        // EditText 외의 영역 터치 시 키보드 및 포커스 제거
+        binding.root.setOnTouchListener { v, event ->
+            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
+                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
+                val currentFocusView = requireActivity().currentFocus
+                if (currentFocusView != null) {
+                    currentFocusView.clearFocus()
+                    imm.hideSoftInputFromWindow(currentFocusView.windowToken, 0)
+
+                    // 포커스를 root로 옮겨서 EditText에서 포커스 완전히 제거
+                    binding.root.requestFocus()
+                }
+            }
+            false // ← 중요! false로 변경해서 하위 뷰가 터치 이벤트 받을 수 있게
+        }
+
+
     }
 
     private fun isGestureNameDuplicate(name: String): Boolean {
@@ -124,24 +145,62 @@ class UserGestureFragment : Fragment() {
             val displayName = getDisplayLabel(gesture)
             if (displayName.isBlank()) continue
 
+            // 카드 형태로 감싸기
+            val cardView = MaterialCardView(requireContext()).apply {
+                radius = 16f
+                setCardBackgroundColor(ContextCompat.getColor(context, R.color.cardview_light_background))
+                strokeColor = ContextCompat.getColor(context, R.color.black)
+                strokeWidth = 1
+                cardElevation = 4f
+                useCompatPadding = true
+                layoutParams = ViewGroup.MarginLayoutParams(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    setMargins(0, 8, 0, 0)
+                }
+            }
+
+            // 텍스트뷰 추가
             val textView = TextView(requireContext()).apply {
                 text = displayName
-                textSize = 12f
+                textSize = 14f
                 setTextColor(ContextCompat.getColor(context, android.R.color.black))
-                setPadding(16, 12, 16, 12)
-                background = ContextCompat.getDrawable(context, R.drawable.rounded_box)
+                setPadding(24, 16, 24, 16)
             }
 
-            val layoutParams = ViewGroup.MarginLayoutParams(
-                ViewGroup.LayoutParams.MATCH_PARENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-            ).apply {
-                setMargins(0, 8, 0, 0)
-            }
-
-            container.addView(textView, layoutParams)
+            cardView.addView(textView)
+            container.addView(cardView)
         }
     }
+
+
+//    private fun showCustomGestures() {
+//        val container = binding.customGestureContainer
+//        container.removeAllViews()
+//
+//        for (gesture in customGestureList) {
+//            val displayName = getDisplayLabel(gesture)
+//            if (displayName.isBlank()) continue
+//
+//            val textView = TextView(requireContext()).apply {
+//                text = displayName
+//                textSize = 12f
+//                setTextColor(ContextCompat.getColor(context, android.R.color.black))
+//                setPadding(16, 12, 16, 12)
+//                background = ContextCompat.getDrawable(context, R.drawable.rounded_box)
+//            }
+//
+//            val layoutParams = ViewGroup.MarginLayoutParams(
+//                ViewGroup.LayoutParams.MATCH_PARENT,
+//                ViewGroup.LayoutParams.WRAP_CONTENT
+//            ).apply {
+//                setMargins(0, 8, 0, 0)
+//            }
+//
+//            container.addView(textView, layoutParams)
+//        }
+//    }
 
     override fun onDestroyView() {
         super.onDestroyView()

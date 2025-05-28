@@ -1,9 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
+    <color name="black">#000000</color>
     <color name="white">#FFFFFFFF</color>
-    <color name="hintcolor">#888888</color>
-    <color name="menu_text_color">#424141</color>
+    <color name="hintcolor">#4555A0</color>
+    <color name="menu_text_color">#3A3A3A</color>
     <color name="colorPrimary">#061D57</color>
     <color name="menu_color">#C8C8C8</color>
+
+    <color name="cardview_light_background">#FAFAFA</color>
+
 </resources>

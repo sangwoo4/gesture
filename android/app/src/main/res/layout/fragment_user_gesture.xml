@@ -81,53 +81,69 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:background="@drawable/rounded_box"
                 android:padding="12dp"
-                android:layout_marginTop="12dp">
+                android:background="@drawable/rounded_box"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical">
 
                 <!-- 제스처 이름 입력 -->
-                <EditText
+                <com.google.android.material.textfield.TextInputLayout
                     android:id="@+id/gestureNameEditText"
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
-                    android:hint="제스처 이름을 적어주세요"
-                    android:textSize="10sp"
                     android:textColorHint="@color/hintcolor"
-                    android:textColor="@color/black"
-                    android:background="@android:color/transparent"
-                    android:inputType="text" />
+                    android:imeOptions="actionDone"
+                    android:layout_marginEnd="8dp">
 
-                <!-- 체크 버튼 (원형 아이콘) -->
+                    <EditText
+                        android:id="@+id/Edit_ID"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:inputType="text"
+                        android:hint="제스처 이름을 적어주세요"
+                        android:background="@android:color/transparent"
+                        android:layout_gravity="center"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 체크 표시용 버튼 -->
                 <FrameLayout
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_marginEnd="8dp"
-                    android:layout_marginTop="5dp">
+                    android:layout_marginEnd="4dp">
 
                     <at.markushi.ui.CircleButton
                         android:id="@+id/checkPassedGif"
                         android:layout_width="40dp"
                         android:layout_height="40dp"
-                        android:layout_gravity="center_vertical"
                         android:src="@raw/checkgif"
                         android:visibility="gone"
                         app:cb_color="#99CC00"
                         app:cb_pressedRingWidth="6dp" />
-
                 </FrameLayout>
 
-                <!-- 중복 검사 버튼 -->
-                <Button
+                <!-- 중복검사 버튼 -->
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCheckDuplicate"
                     android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
+                    android:layout_height="50dp"
+                    android:minWidth="60dp"
+                    android:layout_gravity="center_vertical"
                     android:text="중복검사"
+                    android:textSize="12sp"
                     android:textColor="@color/black"
-                    android:textSize="10sp"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp"
+                    app:strokeColor="@color/colorPrimary"
+                    app:strokeWidth="1dp"
                     app:backgroundTint="@color/cardview_light_background" />
+
             </LinearLayout>
+
 
             <!-- 중복검사 결과 -->
             <TextView
@@ -141,16 +157,19 @@
                 android:layout_marginTop="8dp" />
 
             <!-- 제스처 촬영 버튼 -->
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnStartGestureShooting"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_box"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
                 android:text="제스처 촬영"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:backgroundTint="@null" />
+                android:textSize="14sp"
+                android:textColor="@color/colorPrimary"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/cardview_light_background" />
+
 
             <!-- 등록된 제스처 레이블 -->
             <TextView
@@ -162,7 +181,7 @@
                 android:textColor="@android:color/black"
                 android:textSize="12sp"
                 android:layout_marginTop="20dp" />
-ㅎ
+
             <!-- 동적 제스처 목록을 표시할 컨테이너 -->
             <LinearLayout
                 android:id="@+id/customGestureContainer"

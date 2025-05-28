@@ -65,9 +65,6 @@ class GestureShootingFragment : Fragment() {
         gestureClassifier = ModelRepository.getGestureClassifier()
     }
 
-    // 🔄 전달받은 사용자 정의 제스처 이름 (없으면 "unknown")
-
-
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
@@ -212,9 +209,30 @@ class GestureShootingFragment : Fragment() {
                                 isEnabled = true
                                 alpha = 1.0f
                             }
-
-
                         }
+
+//                        GestureStatus.DownFailed -> {
+//                            binding.lottieLoadingView.visibility = View.GONE
+//                            binding.lottieLoadingView.pauseAnimation()
+//
+//                            binding.lottieSuecessView.visibility = View.GONE
+//                            binding.lottieSuecessView.playAnimation()
+//
+//                            binding.statusMessage.text = "⚠️ 다운로드 실패. 다시 촬영해주세요."
+//
+//                            binding.saveButton.apply {
+//                                isEnabled = false
+//                                alpha = 0.3f
+//                            }
+//
+//                            binding.retakeButton.apply {
+//                                isEnabled = true
+//                                alpha = 1.0f
+//                            }
+//
+//                            // 이동 버튼 보이게 설정
+//                            binding.moveButton.visibility = View.GONE
+//                        }
 
                         else -> {
                             binding.lottieLoadingView.visibility = View.GONE

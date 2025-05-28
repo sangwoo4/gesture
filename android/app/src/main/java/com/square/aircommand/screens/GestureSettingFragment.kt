@@ -1,5 +1,6 @@
 package com.square.aircommand.screens
 
+import android.content.Context
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -9,7 +10,9 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
+import androidx.core.widget.PopupWindowCompat.showAsDropDown
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.load.model.ByteArrayLoader
 import com.skydoves.powermenu.CircularEffect
 import com.skydoves.powermenu.MenuAnimation
 import com.skydoves.powermenu.PowerMenu
@@ -19,10 +22,6 @@ import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
 
-/**
- * 제스처 기능 설정 화면 (GestureSettingFragment)
- * - gesture_labels.json 파일에서 제스처 목록을 불러와 설정 UI를 동적으로 생성
- */
 class GestureSettingFragment : Fragment() {
 
     private var _binding: FragmentGestureSettingBinding? = null
@@ -33,6 +32,12 @@ class GestureSettingFragment : Fragment() {
     private val powerMenus = mutableMapOf<String, PowerMenu>()
 
     private lateinit var gestureLabelMapper: GestureLabelMapper
+
+    object Converter {
+        fun dpToPx(context: Context, dp: Int): Int {
+            return (dp * context.resources.displayMetrics.density).toInt()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -95,7 +100,6 @@ class GestureSettingFragment : Fragment() {
 
             val powerMenu = PowerMenu.Builder(requireContext())
                 .addItemList(options.map { PowerMenuItem(it, it == currentText) })
-//                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
                 .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                 .setMenuRadius(50f)
                 .setMenuShadow(15f)
@@ -118,10 +122,10 @@ class GestureSettingFragment : Fragment() {
                     }
                     powerMenus[label]?.dismiss()
                 }
+                .setWidth(Converter.dpToPx(requireContext(), 200))
                 .build()
 
             powerMenus[label] = powerMenu
-            powerMenu.showAsAnchorLeftBottom(targetView)
             powerMenu.showAtCenter(targetView)
         }
     }
@@ -187,18 +191,6 @@ class GestureSettingFragment : Fragment() {
 
 
 
-
-
-
-
-
-
-
-
-/**
-<<<<<<< HEAD
- * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
- */
 //    private fun setupGestureDropdown(
 //        targetView: TextView,
 //        label: GestureLabel,
@@ -255,4 +247,3 @@ class GestureSettingFragment : Fragment() {
 //            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
 //        }
 //    }
-

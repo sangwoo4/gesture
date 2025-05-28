@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fragment_ui_test"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -255,6 +256,33 @@
                 android:textColor="#333333"
                 android:textSize="12sp"
                 android:textStyle="bold" />
+
+<!--            <com.google.android.material.button.MaterialButtonToggleGroup-->
+<!--                android:id="@+id/toggleGroup"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_marginTop="8dp"-->
+<!--                app:singleSelection="true"-->
+<!--                app:selectionRequired="false">-->
+
+<!--                <com.google.android.material.button.MaterialButton-->
+<!--                    android:id="@+id/btnSelectTime"-->
+<!--                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"-->
+<!--                    android:layout_width="wrap_content"-->
+<!--                    android:layout_height="wrap_content"-->
+<!--                    android:text="설정 안 함"-->
+<!--                    android:textSize="12sp"-->
+<!--                    android:textColor="@color/black"-->
+<!--                    app:icon="@drawable/ic_arrow_drop_down"-->
+<!--                    app:iconGravity="textEnd"-->
+<!--                    android:padding="8dp"-->
+<!--                    app:iconPadding="8dp"-->
+<!--                    app:cornerRadius="12dp"-->
+<!--                    app:strokeColor="@color/blue"-->
+<!--                    app:strokeWidth="1dp" />-->
+
+<!--            </com.google.android.material.button.MaterialButtonToggleGroup>-->
+
 
             <Button
                 android:id="@+id/btnSelectTime"
