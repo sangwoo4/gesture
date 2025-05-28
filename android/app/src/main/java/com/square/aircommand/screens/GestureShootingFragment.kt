@@ -32,9 +32,13 @@ import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
 import com.square.aircommand.utils.GestureStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 
@@ -120,6 +124,8 @@ class GestureShootingFragment : Fragment() {
             }
         }
 
+
+
         binding.moveButton.setOnClickListener {
             findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
         }
@@ -157,6 +163,8 @@ class GestureShootingFragment : Fragment() {
         }
     }
 
+
+
     private fun startTraining() {
         landmarkDetector.startCollecting()
     }
@@ -171,14 +179,15 @@ class GestureShootingFragment : Fragment() {
                             GestureStatus.Training -> {
                                 lottieLoadingView.playAndShow()
                                 lottieSuecessView.cancelAndHide()
-                                statusMessage.text = "촬영된 제스처 다운로드 중... ⏳"
                             }
 
                             GestureStatus.ModelApplied -> {
                                 lottieLoadingView.cancelAndHide()
                                 lottieSuecessView.playAndShow()
-                                statusMessage.text = "다운로드 완료! 🎉"
                                 moveButton.setEnabled()
+                            }
+
+                            GestureStatus.Failure -> {
                             }
 
                             else -> {

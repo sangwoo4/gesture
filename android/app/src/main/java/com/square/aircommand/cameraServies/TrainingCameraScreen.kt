@@ -48,7 +48,8 @@ fun TrainingCameraScreen(
     // 상태바 초기화
     onProgressUpdate: ((Int) -> Unit)? = null,
     onModelDownloadStarted: (() -> Unit)? = null, // ⬅️ 추가
-    onModelDownloadComplete: (() -> Unit)? = null  // ⬅️ 추가
+    onModelDownloadComplete: (() -> Unit)? = null,  // ⬅️ 추가
+    fail: (() -> Unit)? = null
 
 ) {
     val context = LocalContext.current
@@ -81,6 +82,11 @@ fun TrainingCameraScreen(
             override fun onModelDownloadComplete() {
                 gestureStatusText?.value = GestureStatus.ModelApplied
                 onModelDownloadComplete?.invoke() // ✅ 완료 신호
+            }
+
+            override fun fail() {
+                gestureStatusText?.value = GestureStatus.Failure
+                fail?.invoke() // ✅
             }
         }
     }

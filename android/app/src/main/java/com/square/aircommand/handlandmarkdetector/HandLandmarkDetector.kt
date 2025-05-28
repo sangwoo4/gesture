@@ -292,6 +292,7 @@ class HandLandmarkDetector(
             Utils.matToBitmap(inputMatAbgr, outputBitmap)
             outputBitmap
         } catch (e: CvException) {
+
             Log.e("LandmarkDetector", "matToBitmap 실패: ${e.message}", e)
             original
         }
@@ -330,6 +331,7 @@ class HandLandmarkDetector(
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
+                progressListener?.fail()
                 println("서버 전송 실패: ${e.message}")
             }
 

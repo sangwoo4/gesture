@@ -5,5 +5,6 @@ enum class GestureStatus {
     Collecting,
     Training,
     DownloadingModel,
-    ModelApplied
+    ModelApplied,
+    Failure
 }
