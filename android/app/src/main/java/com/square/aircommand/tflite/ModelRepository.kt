@@ -58,12 +58,6 @@ object ModelRepository {
         }
     }
 
-    /** ✅ 모델을 강제로 재초기화 */
-    fun resetModels(context: Context) {
-        closeAll()
-        initModels(context)
-    }
-
     fun getHandDetector(): HandDetector {
         return handDetector ?: throw IllegalStateException("Model not initialized")
     }

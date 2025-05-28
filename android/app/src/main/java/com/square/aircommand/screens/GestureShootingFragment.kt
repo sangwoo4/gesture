@@ -1,8 +1,6 @@
 package com.square.aircommand.screens
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
 
 import android.content.Context
 
@@ -11,7 +9,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.square.aircommand.R
-import com.square.aircommand.camera.CameraScreen
+import com.square.aircommand.cameraServies.TrainingCameraScreen
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
@@ -246,7 +245,7 @@ class GestureShootingFragment : Fragment() {
 
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
-            CameraScreen(
+            TrainingCameraScreen(
                 handDetector = handDetector,
                 landmarkDetector = landmarkDetector,
                 gestureClassifier = gestureClassifier,
@@ -256,9 +255,9 @@ class GestureShootingFragment : Fragment() {
                 onTrainingComplete = {
                     if (!toastShown) {
                         toastShown = true
-                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+                        val vibrator = ContextCompat.getSystemService(requireContext(), Vibrator::class.java)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+                            vibrator?.vibrate(VibrationEffect.createOneShot(50, VibrationEffect.DEFAULT_AMPLITUDE))
                         } else {
                             @Suppress("DEPRECATION")
                             vibrator?.vibrate(50)
