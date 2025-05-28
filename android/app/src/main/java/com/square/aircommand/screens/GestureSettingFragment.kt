@@ -112,12 +112,18 @@ class GestureSettingFragment : Fragment() {
                 .setTextTypeface(typeface)
                 .setSelectedTextColor(0xFFFFFFFF.toInt())
                 .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
-                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                .setSelectedMenuColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.colorPrimary
+                    )
+                )
                 .setOnMenuItemClickListener { _, item ->
                     targetView.text = item.title
                     prefs.edit().putString(prefsKey, item.title.toString()).apply()
-                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
-                        ?: GestureAction.NONE
+                    val selectedAction =
+                        GestureAction.entries.firstOrNull { it.displayName == item.title }
+                            ?: GestureAction.NONE
                     if (selectedAction == GestureAction.NONE) {
                         selectedActions.remove(label)
                     } else {
@@ -189,64 +195,3 @@ class GestureSettingFragment : Fragment() {
         powerMenus.clear()
     }
 }
-
-
-
-
-
-//    private fun setupGestureDropdown(
-//        targetView: TextView,
-//        label: GestureLabel,
-//        initialValue: String,
-//        prefsKey: String,
-//        options: Array<String>
-//    ) {
-//        val prefs = requireContext().getSharedPreferences(prefsName, 0)
-//
-//        // 초기 텍스트 셋팅
-//        targetView.text = initialValue
-//
-//        // 기존에 저장된 PowerMenu 있으면 제거
-//        powerMenus[label]?.dismiss()
-//
-//        targetView.setOnClickListener {
-//            // 클릭 시마다 이전 메뉴 닫기
-//            powerMenus[label]?.dismiss()
-//
-//            val currentText = targetView.text.toString()
-//
-//            // 클릭 시점의 현재 텍스트 기준으로 선택 상태 표시하며 PowerMenu 생성
-//            val powerMenu = PowerMenu.Builder(requireContext())
-//                .addItemList(options.map { PowerMenuItem(it, it == currentText) })
-//                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
-//                .setMenuRadius(50f)
-//                .setMenuShadow(15f)
-//                .setCircularEffect(CircularEffect.BODY)
-//                .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
-//                .setTextGravity(Gravity.CENTER)
-//                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
-//                .setSelectedTextColor(0xFFFFFFFF.toInt())  // 흰색
-//                .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
-//
-//                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-//                .setOnMenuItemClickListener { position, item ->
-//                    targetView.text = item.title
-//                    prefs.edit().putString(prefsKey, item.title.toString()).apply()
-//
-//                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
-//                        ?: GestureAction.NONE
-//
-//                    if (selectedAction == GestureAction.NONE) {
-//                        selectedActions.remove(label)
-//                    } else {
-//                        selectedActions[label] = selectedAction
-//                    }
-//
-//                    powerMenus[label]?.dismiss()
-//                }
-//                .build()
-//
-//            powerMenus[label] = powerMenu
-//            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
-//        }
-//    }

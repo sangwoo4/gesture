@@ -22,7 +22,7 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.shashank.sony.fancytoastlib.FancyToast
 import com.square.aircommand.R
-import com.square.aircommand.backgroundcamera.CameraService
+import com.square.aircommand.cameraServies.BackgroundCameraService
 import com.square.aircommand.databinding.FragmentAirCommandBinding
 
 // TapTargetView import
@@ -31,12 +31,10 @@ import android.view.Menu
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
-import android.widget.RelativeLayout
-import android.widget.Toast
+
 import com.getkeepsafe.taptargetview.TapTarget
 import com.getkeepsafe.taptargetview.TapTargetView
 import android.widget.TextView
-import androidx.compose.ui.graphics.Color
 
 
 
@@ -126,7 +124,7 @@ class AirCommandFragment : Fragment() {
 
             val context = requireContext()
             val prefs = context.getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
-            val intent = Intent(context, CameraService::class.java)
+            val intent = Intent(context, BackgroundCameraService::class.java)
 
             if (isChecked) {
                 // 스위치 ON → 권한 체크 및 서비스 시작
@@ -302,7 +300,7 @@ class AirCommandFragment : Fragment() {
         // ✅ 백그라운드 카메라 서비스 자동 시작 조건 확인
         if (autoStartEnabled && !binding.switchUse.isChecked && accessibility && cameraGranted) {
             Log.d("AirCommandFragment", "✅ 조건 만족 → CameraService 자동 시작")
-            ContextCompat.startForegroundService(context, Intent(context, CameraService::class.java))
+            ContextCompat.startForegroundService(context, Intent(context, BackgroundCameraService::class.java))
             binding.switchUse.isChecked = true
         }
     }
@@ -318,7 +316,7 @@ class AirCommandFragment : Fragment() {
         if (requestCode == REQUEST_CAMERA_PERMISSIONS) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 Log.d("AirCommandFragment", "📸 카메라 권한 승인됨")
-                val intent = Intent(requireContext(), CameraService::class.java)
+                val intent = Intent(requireContext(), BackgroundCameraService::class.java)
                 ContextCompat.startForegroundService(requireContext(), intent)
             } else {
                 Log.w("AirCommandFragment", "❌ 카메라 권한 거부됨")

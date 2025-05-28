@@ -1,0 +1,569 @@
+kotlin version: 2.0.21
+error message: org.jetbrains.kotlin.backend.common.BackendException: Backend Internal error: Exception during IR lowering
+File being compiled: /Users/park/Desktop/project/2025_capston/init/gesture/android/app/src/main/java/com/square/aircommand/screens/UserGestureFragment.kt
+The root cause java.lang.RuntimeException was thrown at: org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException(CodegenUtil.kt:253)
+	at org.jetbrains.kotlin.backend.common.CodegenUtil.reportBackendException$default(CodegenUtil.kt:236)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:65)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:52)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invoke(performByIrFile.kt:38)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:27)
+	at org.jetbrains.kotlin.backend.common.phaser.CompositePhase.invoke(PhaseBuilders.kt:14)
+	at org.jetbrains.kotlin.backend.common.phaser.NamedCompilerPhase.phaseBody(CompilerPhase.kt:166)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.CompilerPhaseKt.invokeToplevel(CompilerPhase.kt:62)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.invokeCodegen(JvmIrCodegenFactory.kt:371)
+	at org.jetbrains.kotlin.codegen.CodegenFactory.generateModule(CodegenFactory.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.JvmIrCodegenFactory.generateModuleInFrontendIRMode(JvmIrCodegenFactory.kt:433)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.generateCodeFromIr(jvmCompilerPipeline.kt:246)
+	at org.jetbrains.kotlin.cli.jvm.compiler.pipeline.JvmCompilerPipelineKt.compileModulesUsingFrontendIrAndLightTree(jvmCompilerPipeline.kt:142)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:148)
+	at org.jetbrains.kotlin.cli.jvm.K2JVMCompiler.doExecute(K2JVMCompiler.kt:43)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:103)
+	at org.jetbrains.kotlin.cli.common.CLICompiler.execImpl(CLICompiler.kt:49)
+	at org.jetbrains.kotlin.cli.common.CLITool.exec(CLITool.kt:101)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:464)
+	at org.jetbrains.kotlin.incremental.IncrementalJvmCompilerRunner.runCompiler(IncrementalJvmCompilerRunner.kt:73)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.doCompile(IncrementalCompilerRunner.kt:506)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compileImpl(IncrementalCompilerRunner.kt:423)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally$lambda$9$compile(IncrementalCompilerRunner.kt:249)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.tryCompileIncrementally(IncrementalCompilerRunner.kt:267)
+	at org.jetbrains.kotlin.incremental.IncrementalCompilerRunner.compile(IncrementalCompilerRunner.kt:120)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.execIncrementalCompiler(CompileServiceImpl.kt:675)
+	at org.jetbrains.kotlin.daemon.CompileServiceImplBase.access$execIncrementalCompiler(CompileServiceImpl.kt:92)
+	at org.jetbrains.kotlin.daemon.CompileServiceImpl.compile(CompileServiceImpl.kt:1660)
+	at java.base/jdk.internal.reflect.DirectMethodHandleAccessor.invoke(Unknown Source)
+	at java.base/java.lang.reflect.Method.invoke(Unknown Source)
+	at java.rmi/sun.rmi.server.UnicastServerRef.dispatch(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport$1.run(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.Transport.serviceCall(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport.handleMessages(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run0(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.lambda$run$0(Unknown Source)
+	at java.base/java.security.AccessController.doPrivileged(Unknown Source)
+	at java.rmi/sun.rmi.transport.tcp.TCPTransport$ConnectionHandler.run(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor.runWorker(Unknown Source)
+	at java.base/java.util.concurrent.ThreadPoolExecutor$Worker.run(Unknown Source)
+	at java.base/java.lang.Thread.run(Unknown Source)
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:modelReset visibility:private modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment, callback:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?) returnType:kotlin.Unit
+  $this: VALUE_PARAMETER name:<this> type:com.square.aircommand.screens.UserGestureFragment
+  VALUE_PARAMETER name:callback index:0 type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?
+    EXPRESSION_BODY
+      ERROR_EXPR 'Default Stub' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?
+  BLOCK_BODY
+    COMPOSITE type=kotlin.Unit origin=null
+      CALL 'public final fun launch$default (context: kotlin.coroutines.CoroutineContext?, start: kotlinx.coroutines.CoroutineStart?, block: @[ExtensionFunctionType] kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope, kotlin.Unit>, $mask0: kotlin.Int, $handler: kotlin.Any?): kotlinx.coroutines.Job declared in kotlinx.coroutines.BuildersKt' type=kotlinx.coroutines.Job origin=DEFAULT_DISPATCH_CALL
+        $receiver: GET_FIELD 'FIELD PROPERTY_BACKING_FIELD name:serviceScope type:kotlinx.coroutines.CoroutineScope visibility:private [final]' type=kotlinx.coroutines.CoroutineScope origin=null
+          receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment declared in com.square.aircommand.screens.UserGestureFragment.modelReset' type=com.square.aircommand.screens.UserGestureFragment origin=null
+        context: COMPOSITE type=kotlin.coroutines.CoroutineContext? origin=DEFAULT_VALUE
+          CONST Null type=kotlin.coroutines.CoroutineContext? value=null
+        start: COMPOSITE type=kotlinx.coroutines.CoroutineStart? origin=DEFAULT_VALUE
+          CONST Null type=kotlinx.coroutines.CoroutineStart? value=null
+        block: BLOCK type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+          CLASS SUSPEND_LAMBDA CLASS name:<no name provided> modality:FINAL visibility:public/*package*/ superTypes:[kotlin.coroutines.jvm.internal.SuspendLambda; kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, kotlin.coroutines.Continuation<kotlin.Unit>?, kotlin.Any?>]
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+            FIELD name:label type:kotlin.Int visibility:public/*package*/
+            CONSTRUCTOR SUSPEND_LAMBDA visibility:public/*package*/ <> (this$0:com.square.aircommand.screens.UserGestureFragment, $callback:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>?) returnType:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> [primary]
+              VALUE_PARAMETER BOUND_RECEIVER_PARAMETER name:this$0 index:0 type:com.square.aircommand.screens.UserGestureFragment
+              VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$callback index:1 type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?
+              VALUE_PARAMETER name:$completion index:2 type:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>?
+              BLOCK_BODY
+                SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                  value: GET_VAR 'this$0: com.square.aircommand.screens.UserGestureFragment declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                  value: GET_VAR '$callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (arity: kotlin.Int, $completion: kotlin.coroutines.Continuation<kotlin.Any?>?) declared in kotlin.coroutines.jvm.internal.SuspendLambda'
+                  arity: CONST Int type=kotlin.Int value=2
+                  $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.<init>' type=kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>? origin=null
+                BLOCK type=kotlin.Unit origin=null
+            FUN name:invokeSuspend visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>, $result:kotlin.Result<kotlin.Any?>) returnType:kotlin.Any?
+              overridden:
+                protected abstract fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in kotlin.coroutines.jvm.internal.SuspendLambda
+              $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+              VALUE_PARAMETER name:$result index:0 type:kotlin.Result<kotlin.Any?>
+              BLOCK_BODY
+                VAR name:file type:java.io.File [val]
+                  CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] java.io.File?, p1: @[FlexibleNullability] kotlin.String?) declared in java.io.File' type=java.io.File origin=null
+                    p0: CALL 'public abstract fun getFilesDir (): @[FlexibleNullability] java.io.File? declared in android.content.Context' type=@[FlexibleNullability] java.io.File? origin=GET_PROPERTY
+                      $this: CALL 'public final fun requireContext (): @[EnhancedNullability] android.content.Context [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] android.content.Context origin=null
+                        $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                          receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                    p1: CONST String type=kotlin.String value="gesture_labels.json"
+                COMPOSITE type=kotlin.Unit origin=null
+                  WHEN type=kotlin.Int origin=IF
+                    BRANCH
+                      if: CALL 'public open fun exists (): kotlin.Boolean declared in java.io.File' type=kotlin.Boolean origin=null
+                        $this: GET_VAR 'val file: java.io.File [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=java.io.File origin=null
+                      then: BLOCK type=kotlin.Int origin=null
+                        VAR name:deleted type:kotlin.Boolean [val]
+                          CALL 'public open fun delete (): kotlin.Boolean declared in java.io.File' type=kotlin.Boolean origin=null
+                            $this: GET_VAR 'val file: java.io.File [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=java.io.File origin=null
+                        CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+                          p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                            $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                              receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                          p1: WHEN type=kotlin.String origin=IF
+                            BRANCH
+                              if: GET_VAR 'val deleted: kotlin.Boolean [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=kotlin.Boolean origin=null
+                              then: CONST String type=kotlin.String value="\uD83D\uDDD1\uFE0F gesture_labels.json 삭제 성공"
+                            BRANCH
+                              if: CONST Boolean type=kotlin.Boolean value=true
+                              then: CONST String type=kotlin.String value="⚠\uFE0F 파일 삭제 실패"
+                    BRANCH
+                      if: CONST Boolean type=kotlin.Boolean value=true
+                      then: BLOCK type=kotlin.Int origin=null
+                        CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+                          p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                            $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                              receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                          p1: CONST String type=kotlin.String value="ℹ\uFE0F 삭제할 gesture_labels.json 없음"
+                  COMPOSITE type=kotlin.Unit origin=null
+                CALL 'public final fun withContext <T> (context: kotlin.coroutines.CoroutineContext, block: @[ExtensionFunctionType] kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope, T of kotlinx.coroutines.BuildersKt.withContext>, $completion: kotlin.coroutines.Continuation<T of kotlinx.coroutines.BuildersKt.withContext>): kotlin.Any? [suspend] declared in kotlinx.coroutines.BuildersKt' type=kotlin.Unit origin=null
+                  <T>: kotlin.Unit
+                  context: CALL 'public final fun <get-Main> (): kotlinx.coroutines.MainCoroutineDispatcher declared in kotlinx.coroutines.Dispatchers' type=kotlinx.coroutines.MainCoroutineDispatcher origin=GET_PROPERTY
+                  block: BLOCK type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                    CLASS SUSPEND_LAMBDA CLASS name:<no name provided> modality:FINAL visibility:public/*package*/ superTypes:[kotlin.coroutines.jvm.internal.SuspendLambda; kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, kotlin.coroutines.Continuation<kotlin.Unit>?, kotlin.Any?>]
+                      $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                      FIELD name:label type:kotlin.Int visibility:public/*package*/
+                      CONSTRUCTOR SUSPEND_LAMBDA visibility:public/*package*/ <> (this$0:com.square.aircommand.screens.UserGestureFragment, $callback:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) returnType:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> [primary]
+                        VALUE_PARAMETER BOUND_RECEIVER_PARAMETER name:this$0 index:0 type:com.square.aircommand.screens.UserGestureFragment
+                        VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$callback index:1 type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?
+                        VALUE_PARAMETER name:$completion index:2 type:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?
+                        BLOCK_BODY
+                          SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                            value: GET_VAR 'this$0: com.square.aircommand.screens.UserGestureFragment declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                          SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                            value: GET_VAR '$callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                          DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (arity: kotlin.Int, $completion: kotlin.coroutines.Continuation<kotlin.Any?>?) declared in kotlin.coroutines.jvm.internal.SuspendLambda'
+                            arity: CONST Int type=kotlin.Int value=2
+                            $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>? origin=null
+                          BLOCK type=kotlin.Unit origin=null
+                      FUN name:invokeSuspend visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, $result:kotlin.Result<kotlin.Any?>) returnType:kotlin.Any?
+                        overridden:
+                          protected abstract fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in kotlin.coroutines.jvm.internal.SuspendLambda
+                        $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                        VALUE_PARAMETER name:$result index:0 type:kotlin.Result<kotlin.Any?>
+                        BLOCK_BODY
+                          SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:progress type:kotlin.Int visibility:public [final,static] declared in android.R.id' type=kotlin.Unit superQualifierSymbol=android.R.id origin=EQ
+                            value: CONST Int type=kotlin.Int value=0
+                          COMPOSITE type=kotlin.Unit origin=null
+                            CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+                              p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                                $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                              p1: CONST String type=kotlin.String value="\uD83D\uDD04 Progress 초기화 완료"
+                            COMPOSITE type=kotlin.Unit origin=null
+                          COMPOSITE type=kotlin.Unit origin=null
+                            BLOCK type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+                              WHEN type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+                                BRANCH
+                                  if: COMPOSITE type=kotlin.Boolean origin=null
+                                    VAR IR_TEMPORARY_VARIABLE name:tmp0_safe_receiver type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val]
+                                      GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                                        receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                                    CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                                      $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                                        arg0: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                                        arg1: CONST Null type=kotlin.Nothing? value=null
+                                  then: CALL 'public abstract fun onResetComplete (): kotlin.Unit declared in com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback' type=kotlin.Unit origin=null
+                                    $this: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                                BRANCH
+                                  if: CONST Boolean type=kotlin.Boolean value=true
+                                  then: CONST Null type=kotlin.Nothing? value=null
+                      FUN name:create visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, value:kotlin.Any?, $completion:kotlin.coroutines.Continuation<kotlin.Nothing>) returnType:kotlin.coroutines.Continuation<kotlin.Unit>
+                        overridden:
+                          public open fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in kotlin.coroutines.jvm.internal.SuspendLambda
+                        $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                        VALUE_PARAMETER name:value index:0 type:kotlin.Any?
+                        VALUE_PARAMETER name:$completion index:1 type:kotlin.coroutines.Continuation<kotlin.Nothing>
+                        BLOCK_BODY
+                          RETURN type=kotlin.Nothing from='public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                            CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                              this$0: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                                receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                              $callback: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                                receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                              $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<kotlin.Nothing> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=kotlin.coroutines.Continuation<kotlin.Nothing> origin=null
+                      FUN name:invoke visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, p1:kotlinx.coroutines.CoroutineScope, p2:kotlin.coroutines.Continuation<kotlin.Unit>?) returnType:kotlin.Any?
+                        overridden:
+                          public abstract fun invoke (p1: P1 of kotlin.jvm.functions.Function2, p2: P2 of kotlin.jvm.functions.Function2): R of kotlin.jvm.functions.Function2 declared in kotlin.jvm.functions.Function2
+                        $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                        VALUE_PARAMETER name:p1 index:0 type:kotlinx.coroutines.CoroutineScope
+                        VALUE_PARAMETER name:p2 index:1 type:kotlin.coroutines.Continuation<kotlin.Unit>?
+                        BLOCK_BODY
+                          RETURN type=kotlin.Nothing from='public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                            CALL 'public final fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Any? origin=null
+                              $this: TYPE_OP type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=IMPLICIT_CAST typeOperand=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                                CALL 'public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.coroutines.Continuation<kotlin.Unit> origin=null
+                                  $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                                  value: GET_VAR 'p1: kotlinx.coroutines.CoroutineScope declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlinx.coroutines.CoroutineScope origin=null
+                                  $completion: GET_VAR 'p2: kotlin.coroutines.Continuation<kotlin.Unit>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.coroutines.Continuation<kotlin.Unit>? origin=null
+                              $result: CALL 'public final fun <unsafe-coerce> <T, R> (v: T of kotlin.jvm.internal.<unsafe-coerce>): R of kotlin.jvm.internal.<unsafe-coerce> declared in kotlin.jvm.internal' type=kotlin.Result<kotlin.Any?> origin=null
+                                <T>: kotlin.Any?
+                                <R>: kotlin.Result<kotlin.Any?>
+                                v: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:kotlin.Unit visibility:public [final,static] declared in kotlin.Unit' type=kotlin.Unit origin=null
+                      FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final]
+                      FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final]
+                      FUN BRIDGE name:invoke visibility:public modality:OPEN <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, p1:kotlin.Any?, p2:kotlin.Any?) returnType:kotlin.Any?
+                        $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                        VALUE_PARAMETER BRIDGE name:p1 index:0 type:kotlin.Any?
+                        VALUE_PARAMETER BRIDGE name:p2 index:1 type:kotlin.Any?
+                        EXPRESSION_BODY
+                          RETURN type=kotlin.Nothing from='public open fun invoke (p1: kotlin.Any?, p2: kotlin.Any?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                            CALL 'public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Any? origin=BRIDGE_DELEGATION
+                              $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                              p1: TYPE_OP type=kotlinx.coroutines.CoroutineScope origin=IMPLICIT_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                                GET_VAR 'p1: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.Any? origin=null
+                              p2: TYPE_OP type=kotlin.coroutines.Continuation<*> origin=IMPLICIT_CAST typeOperand=kotlin.coroutines.Continuation<*>
+                                GET_VAR 'p2: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.Any? origin=null
+                    CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                      this$0: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                        receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                      $callback: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                        receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                      $completion: CONST Null type=kotlin.Nothing? value=null
+                  $completion: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+            FUN name:create visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>, value:kotlin.Any?, $completion:kotlin.coroutines.Continuation<kotlin.Nothing>) returnType:kotlin.coroutines.Continuation<kotlin.Unit>
+              overridden:
+                public open fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in kotlin.coroutines.jvm.internal.SuspendLambda
+              $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+              VALUE_PARAMETER name:value index:0 type:kotlin.Any?
+              VALUE_PARAMETER name:$completion index:1 type:kotlin.coroutines.Continuation<kotlin.Nothing>
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>'
+                  CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                    this$0: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                      receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                    $callback: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                      receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                    $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<kotlin.Nothing> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.create' type=kotlin.coroutines.Continuation<kotlin.Nothing> origin=null
+            FUN name:invoke visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>, p1:kotlinx.coroutines.CoroutineScope, p2:kotlin.coroutines.Continuation<kotlin.Unit>?) returnType:kotlin.Any?
+              overridden:
+                public abstract fun invoke (p1: P1 of kotlin.jvm.functions.Function2, p2: P2 of kotlin.jvm.functions.Function2): R of kotlin.jvm.functions.Function2 declared in kotlin.jvm.functions.Function2
+              $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+              VALUE_PARAMETER name:p1 index:0 type:kotlinx.coroutines.CoroutineScope
+              VALUE_PARAMETER name:p2 index:1 type:kotlin.coroutines.Continuation<kotlin.Unit>?
+              BLOCK_BODY
+                RETURN type=kotlin.Nothing from='public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>'
+                  CALL 'public final fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=kotlin.Any? origin=null
+                    $this: TYPE_OP type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=IMPLICIT_CAST typeOperand=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+                      CALL 'public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=kotlin.coroutines.Continuation<kotlin.Unit> origin=null
+                        $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                        value: GET_VAR 'p1: kotlinx.coroutines.CoroutineScope declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=kotlinx.coroutines.CoroutineScope origin=null
+                        $completion: GET_VAR 'p2: kotlin.coroutines.Continuation<kotlin.Unit>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=kotlin.coroutines.Continuation<kotlin.Unit>? origin=null
+                    $result: CALL 'public final fun <unsafe-coerce> <T, R> (v: T of kotlin.jvm.internal.<unsafe-coerce>): R of kotlin.jvm.internal.<unsafe-coerce> declared in kotlin.jvm.internal' type=kotlin.Result<kotlin.Any?> origin=null
+                      <T>: kotlin.Any?
+                      <R>: kotlin.Result<kotlin.Any?>
+                      v: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:kotlin.Unit visibility:public [final,static] declared in kotlin.Unit' type=kotlin.Unit origin=null
+            FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final]
+            FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final]
+            FUN BRIDGE name:invoke visibility:public modality:OPEN <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>, p1:kotlin.Any?, p2:kotlin.Any?) returnType:kotlin.Any?
+              $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+              VALUE_PARAMETER BRIDGE name:p1 index:0 type:kotlin.Any?
+              VALUE_PARAMETER BRIDGE name:p2 index:1 type:kotlin.Any?
+              EXPRESSION_BODY
+                RETURN type=kotlin.Nothing from='public open fun invoke (p1: kotlin.Any?, p2: kotlin.Any?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>'
+                  CALL 'public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=kotlin.Any? origin=BRIDGE_DELEGATION
+                    $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+                    p1: TYPE_OP type=kotlinx.coroutines.CoroutineScope origin=IMPLICIT_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                      GET_VAR 'p1: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=kotlin.Any? origin=null
+                    p2: TYPE_OP type=kotlin.coroutines.Continuation<*> origin=IMPLICIT_CAST typeOperand=kotlin.coroutines.Continuation<*>
+                      GET_VAR 'p2: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invoke' type=kotlin.Any? origin=null
+          CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+            this$0: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment declared in com.square.aircommand.screens.UserGestureFragment.modelReset' type=com.square.aircommand.screens.UserGestureFragment origin=null
+            $callback: GET_VAR 'callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? declared in com.square.aircommand.screens.UserGestureFragment.modelReset' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+            $completion: CONST Null type=kotlin.Nothing? value=null
+        $mask0: CONST Int type=kotlin.Int value=3
+        $handler: CONST Null type=kotlin.Any? value=null
+      COMPOSITE type=kotlin.Unit origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:40)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:406)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:423)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:168)
+	at org.jetbrains.kotlin.backend.jvm.FileCodegen.lower(JvmPhases.kt:39)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseFactoriesKt.createFilePhase$lambda$4(PhaseFactories.kt:71)
+	at org.jetbrains.kotlin.backend.common.phaser.PhaseBuildersKt$createSimpleNamedCompilerPhase$1.phaseBody(PhaseBuilders.kt:69)
+	at org.jetbrains.kotlin.backend.common.phaser.SimpleNamedCompilerPhase.phaseBody(CompilerPhase.kt:226)
+	at org.jetbrains.kotlin.backend.common.phaser.AbstractNamedCompilerPhase.invoke(CompilerPhase.kt:113)
+	at org.jetbrains.kotlin.backend.common.phaser.PerformByIrFilePhase.invokeSequential(performByIrFile.kt:62)
+	... 44 more
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:invokeSuspend visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>, $result:kotlin.Result<kotlin.Any?>) returnType:kotlin.Any?
+  overridden:
+    protected abstract fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in kotlin.coroutines.jvm.internal.SuspendLambda
+  $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>
+  VALUE_PARAMETER name:$result index:0 type:kotlin.Result<kotlin.Any?>
+  BLOCK_BODY
+    VAR name:file type:java.io.File [val]
+      CONSTRUCTOR_CALL 'public constructor <init> (p0: @[FlexibleNullability] java.io.File?, p1: @[FlexibleNullability] kotlin.String?) declared in java.io.File' type=java.io.File origin=null
+        p0: CALL 'public abstract fun getFilesDir (): @[FlexibleNullability] java.io.File? declared in android.content.Context' type=@[FlexibleNullability] java.io.File? origin=GET_PROPERTY
+          $this: CALL 'public final fun requireContext (): @[EnhancedNullability] android.content.Context [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] android.content.Context origin=null
+            $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+              receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+        p1: CONST String type=kotlin.String value="gesture_labels.json"
+    COMPOSITE type=kotlin.Unit origin=null
+      WHEN type=kotlin.Int origin=IF
+        BRANCH
+          if: CALL 'public open fun exists (): kotlin.Boolean declared in java.io.File' type=kotlin.Boolean origin=null
+            $this: GET_VAR 'val file: java.io.File [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=java.io.File origin=null
+          then: BLOCK type=kotlin.Int origin=null
+            VAR name:deleted type:kotlin.Boolean [val]
+              CALL 'public open fun delete (): kotlin.Boolean declared in java.io.File' type=kotlin.Boolean origin=null
+                $this: GET_VAR 'val file: java.io.File [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=java.io.File origin=null
+            CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+              p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+              p1: WHEN type=kotlin.String origin=IF
+                BRANCH
+                  if: GET_VAR 'val deleted: kotlin.Boolean [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=kotlin.Boolean origin=null
+                  then: CONST String type=kotlin.String value="\uD83D\uDDD1\uFE0F gesture_labels.json 삭제 성공"
+                BRANCH
+                  if: CONST Boolean type=kotlin.Boolean value=true
+                  then: CONST String type=kotlin.String value="⚠\uFE0F 파일 삭제 실패"
+        BRANCH
+          if: CONST Boolean type=kotlin.Boolean value=true
+          then: BLOCK type=kotlin.Int origin=null
+            CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+              p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+              p1: CONST String type=kotlin.String value="ℹ\uFE0F 삭제할 gesture_labels.json 없음"
+      COMPOSITE type=kotlin.Unit origin=null
+    CALL 'public final fun withContext <T> (context: kotlin.coroutines.CoroutineContext, block: @[ExtensionFunctionType] kotlin.coroutines.SuspendFunction1<kotlinx.coroutines.CoroutineScope, T of kotlinx.coroutines.BuildersKt.withContext>, $completion: kotlin.coroutines.Continuation<T of kotlinx.coroutines.BuildersKt.withContext>): kotlin.Any? [suspend] declared in kotlinx.coroutines.BuildersKt' type=kotlin.Unit origin=null
+      <T>: kotlin.Unit
+      context: CALL 'public final fun <get-Main> (): kotlinx.coroutines.MainCoroutineDispatcher declared in kotlinx.coroutines.Dispatchers' type=kotlinx.coroutines.MainCoroutineDispatcher origin=GET_PROPERTY
+      block: BLOCK type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+        CLASS SUSPEND_LAMBDA CLASS name:<no name provided> modality:FINAL visibility:public/*package*/ superTypes:[kotlin.coroutines.jvm.internal.SuspendLambda; kotlin.jvm.functions.Function2<kotlinx.coroutines.CoroutineScope, kotlin.coroutines.Continuation<kotlin.Unit>?, kotlin.Any?>]
+          $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+          FIELD name:label type:kotlin.Int visibility:public/*package*/
+          CONSTRUCTOR SUSPEND_LAMBDA visibility:public/*package*/ <> (this$0:com.square.aircommand.screens.UserGestureFragment, $callback:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) returnType:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> [primary]
+            VALUE_PARAMETER BOUND_RECEIVER_PARAMETER name:this$0 index:0 type:com.square.aircommand.screens.UserGestureFragment
+            VALUE_PARAMETER BOUND_VALUE_PARAMETER name:$callback index:1 type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?
+            VALUE_PARAMETER name:$completion index:2 type:kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?
+            BLOCK_BODY
+              SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                value: GET_VAR 'this$0: com.square.aircommand.screens.UserGestureFragment declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+              SET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Unit origin=INITIALIZER_OF_FIELD_FOR_CAPTURED_VALUE
+                receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                value: GET_VAR '$callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+              DELEGATING_CONSTRUCTOR_CALL 'public constructor <init> (arity: kotlin.Int, $completion: kotlin.coroutines.Continuation<kotlin.Any?>?) declared in kotlin.coroutines.jvm.internal.SuspendLambda'
+                arity: CONST Int type=kotlin.Int value=2
+                $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.<init>' type=kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>? origin=null
+              BLOCK type=kotlin.Unit origin=null
+          FUN name:invokeSuspend visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, $result:kotlin.Result<kotlin.Any?>) returnType:kotlin.Any?
+            overridden:
+              protected abstract fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in kotlin.coroutines.jvm.internal.SuspendLambda
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+            VALUE_PARAMETER name:$result index:0 type:kotlin.Result<kotlin.Any?>
+            BLOCK_BODY
+              SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:progress type:kotlin.Int visibility:public [final,static] declared in android.R.id' type=kotlin.Unit superQualifierSymbol=android.R.id origin=EQ
+                value: CONST Int type=kotlin.Int value=0
+              COMPOSITE type=kotlin.Unit origin=null
+                CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+                  p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+                    $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                      receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                  p1: CONST String type=kotlin.String value="\uD83D\uDD04 Progress 초기화 완료"
+                COMPOSITE type=kotlin.Unit origin=null
+              COMPOSITE type=kotlin.Unit origin=null
+                BLOCK type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+                  WHEN type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+                    BRANCH
+                      if: COMPOSITE type=kotlin.Boolean origin=null
+                        VAR IR_TEMPORARY_VARIABLE name:tmp0_safe_receiver type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val]
+                          GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                        CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                          $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                            arg0: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                            arg1: CONST Null type=kotlin.Nothing? value=null
+                      then: CALL 'public abstract fun onResetComplete (): kotlin.Unit declared in com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback' type=kotlin.Unit origin=null
+                        $this: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                    BRANCH
+                      if: CONST Boolean type=kotlin.Boolean value=true
+                      then: CONST Null type=kotlin.Nothing? value=null
+          FUN name:create visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, value:kotlin.Any?, $completion:kotlin.coroutines.Continuation<kotlin.Nothing>) returnType:kotlin.coroutines.Continuation<kotlin.Unit>
+            overridden:
+              public open fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in kotlin.coroutines.jvm.internal.SuspendLambda
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+            VALUE_PARAMETER name:value index:0 type:kotlin.Any?
+            VALUE_PARAMETER name:$completion index:1 type:kotlin.coroutines.Continuation<kotlin.Nothing>
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                  this$0: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+                    receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                  $callback: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                    receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                  $completion: GET_VAR '$completion: kotlin.coroutines.Continuation<kotlin.Nothing> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.create' type=kotlin.coroutines.Continuation<kotlin.Nothing> origin=null
+          FUN name:invoke visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, p1:kotlinx.coroutines.CoroutineScope, p2:kotlin.coroutines.Continuation<kotlin.Unit>?) returnType:kotlin.Any?
+            overridden:
+              public abstract fun invoke (p1: P1 of kotlin.jvm.functions.Function2, p2: P2 of kotlin.jvm.functions.Function2): R of kotlin.jvm.functions.Function2 declared in kotlin.jvm.functions.Function2
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+            VALUE_PARAMETER name:p1 index:0 type:kotlinx.coroutines.CoroutineScope
+            VALUE_PARAMETER name:p2 index:1 type:kotlin.coroutines.Continuation<kotlin.Unit>?
+            BLOCK_BODY
+              RETURN type=kotlin.Nothing from='public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                CALL 'public final fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Any? origin=null
+                  $this: TYPE_OP type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=IMPLICIT_CAST typeOperand=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+                    CALL 'public final fun create (value: kotlin.Any?, $completion: kotlin.coroutines.Continuation<kotlin.Nothing>): kotlin.coroutines.Continuation<kotlin.Unit> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.coroutines.Continuation<kotlin.Unit> origin=null
+                      $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                      value: GET_VAR 'p1: kotlinx.coroutines.CoroutineScope declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlinx.coroutines.CoroutineScope origin=null
+                      $completion: GET_VAR 'p2: kotlin.coroutines.Continuation<kotlin.Unit>? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.coroutines.Continuation<kotlin.Unit>? origin=null
+                  $result: CALL 'public final fun <unsafe-coerce> <T, R> (v: T of kotlin.jvm.internal.<unsafe-coerce>): R of kotlin.jvm.internal.<unsafe-coerce> declared in kotlin.jvm.internal' type=kotlin.Result<kotlin.Any?> origin=null
+                    <T>: kotlin.Any?
+                    <R>: kotlin.Result<kotlin.Any?>
+                    v: GET_FIELD 'FIELD FIELD_FOR_OBJECT_INSTANCE name:INSTANCE type:kotlin.Unit visibility:public [final,static] declared in kotlin.Unit' type=kotlin.Unit origin=null
+          FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final]
+          FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final]
+          FUN BRIDGE name:invoke visibility:public modality:OPEN <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, p1:kotlin.Any?, p2:kotlin.Any?) returnType:kotlin.Any?
+            $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+            VALUE_PARAMETER BRIDGE name:p1 index:0 type:kotlin.Any?
+            VALUE_PARAMETER BRIDGE name:p2 index:1 type:kotlin.Any?
+            EXPRESSION_BODY
+              RETURN type=kotlin.Nothing from='public open fun invoke (p1: kotlin.Any?, p2: kotlin.Any?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>'
+                CALL 'public final fun invoke (p1: kotlinx.coroutines.CoroutineScope, p2: kotlin.coroutines.Continuation<kotlin.Unit>?): kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=kotlin.Any? origin=BRIDGE_DELEGATION
+                  $this: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+                  p1: TYPE_OP type=kotlinx.coroutines.CoroutineScope origin=IMPLICIT_CAST typeOperand=kotlinx.coroutines.CoroutineScope
+                    GET_VAR 'p1: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.Any? origin=null
+                  p2: TYPE_OP type=kotlin.coroutines.Continuation<*> origin=IMPLICIT_CAST typeOperand=kotlin.coroutines.Continuation<*>
+                    GET_VAR 'p2: kotlin.Any? declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invoke' type=kotlin.Any? origin=null
+        CONSTRUCTOR_CALL 'public/*package*/ constructor <init> (this$0: com.square.aircommand.screens.UserGestureFragment, $callback: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback?, $completion: kotlin.coroutines.Continuation<com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>>?) [primary] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+          this$0: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+          $callback: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+          $completion: CONST Null type=kotlin.Nothing? value=null
+      $completion: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided> origin=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:40)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:406)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:423)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:168)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitClass(ExpressionCodegen.kt:1000)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitClass(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.declarations.IrClass.accept(IrClass.kt:72)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:593)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:122)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:413)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrCallGenerator.genValueAndPut(IrCallGenerator.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:593)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitComposite(IrElementVisitor.kt:125)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitComposite(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitComposite(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrComposite.accept(IrComposite.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 54 more
+Caused by: java.lang.RuntimeException: Exception while generating code for:
+FUN name:invokeSuspend visibility:public modality:FINAL <> ($this:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>, $result:kotlin.Result<kotlin.Any?>) returnType:kotlin.Any?
+  overridden:
+    protected abstract fun invokeSuspend ($result: kotlin.Result<kotlin.Any?>): kotlin.Any? declared in kotlin.coroutines.jvm.internal.SuspendLambda
+  $this: VALUE_PARAMETER INSTANCE_RECEIVER name:<this> type:com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>
+  VALUE_PARAMETER name:$result index:0 type:kotlin.Result<kotlin.Any?>
+  BLOCK_BODY
+    SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:progress type:kotlin.Int visibility:public [final,static] declared in android.R.id' type=kotlin.Unit superQualifierSymbol=android.R.id origin=EQ
+      value: CONST Int type=kotlin.Int value=0
+    COMPOSITE type=kotlin.Unit origin=null
+      CALL 'public open fun d (p0: @[EnhancedNullability] kotlin.String?, p1: @[EnhancedNullability] kotlin.String): kotlin.Int declared in android.util.Log' type=kotlin.Int origin=null
+        p0: CALL 'public final fun getTag (): @[EnhancedNullability] kotlin.String? [fake_override] declared in com.square.aircommand.screens.UserGestureFragment' type=@[EnhancedNullability] kotlin.String? origin=GET_PROPERTY
+          $this: GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:this$0 type:com.square.aircommand.screens.UserGestureFragment visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment origin=null
+            receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+        p1: CONST String type=kotlin.String value="\uD83D\uDD04 Progress 초기화 완료"
+      COMPOSITE type=kotlin.Unit origin=null
+    COMPOSITE type=kotlin.Unit origin=null
+      BLOCK type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+        WHEN type=kotlin.Unit? origin=FOLDED_SAFE_CALL
+          BRANCH
+            if: COMPOSITE type=kotlin.Boolean origin=null
+              VAR IR_TEMPORARY_VARIABLE name:tmp0_safe_receiver type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val]
+                GET_FIELD 'FIELD FIELD_FOR_CAPTURED_VALUE name:$callback type:com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? visibility:public/*package*/ [final] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                  receiver: GET_VAR '<this>: com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided> origin=null
+              CALL 'public final fun not (): kotlin.Boolean [operator] declared in kotlin.Boolean' type=kotlin.Boolean origin=null
+                $this: CALL 'public final fun EQEQ (arg0: kotlin.Any?, arg1: kotlin.Any?): kotlin.Boolean declared in kotlin.internal.ir' type=kotlin.Boolean origin=null
+                  arg0: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+                  arg1: CONST Null type=kotlin.Nothing? value=null
+            then: CALL 'public abstract fun onResetComplete (): kotlin.Unit declared in com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback' type=kotlin.Unit origin=null
+              $this: GET_VAR 'val tmp0_safe_receiver: com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? [val] declared in com.square.aircommand.screens.UserGestureFragment.modelReset.<no name provided>.invokeSuspend.<no name provided>.invokeSuspend' type=com.square.aircommand.screens.UserGestureFragment.OnModelResetCallback? origin=null
+          BRANCH
+            if: CONST Boolean type=kotlin.Boolean value=true
+            then: CONST Null type=kotlin.Nothing? value=null
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:47)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate$default(FunctionCodegen.kt:40)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethodNode(ClassCodegen.kt:406)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generateMethod(ClassCodegen.kt:423)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ClassCodegen.generate(ClassCodegen.kt:168)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitClass(ExpressionCodegen.kt:1000)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitClass(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.declarations.IrClass.accept(IrClass.kt:72)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:593)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitContainerExpression(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitBlock(IrElementVisitor.kt:122)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:413)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlock(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlock.accept(IrBlock.kt:18)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.gen(ExpressionCodegen.kt:217)
+	at org.jetbrains.kotlin.backend.jvm.codegen.IrCallGenerator.genValueAndPut(IrCallGenerator.kt:48)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall$handleParameter(ExpressionCodegen.kt:616)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:644)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitCall(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrCall.accept(IrCall.kt:24)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 88 more
+Caused by: java.lang.AssertionError: access of const val: SET_FIELD 'FIELD IR_EXTERNAL_JAVA_DECLARATION_STUB name:progress type:kotlin.Int visibility:public [final,static] declared in android.R.id' type=kotlin.Unit superQualifierSymbol=android.R.id origin=EQ
+  value: CONST Int type=kotlin.Int value=0
+
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:861)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitFieldAccess(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.visitors.IrElementVisitor$DefaultImpls.visitSetField(IrElementVisitor.kt:206)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:908)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitSetField(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrSetField.accept(IrSetField.kt:21)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitStatementContainer(ExpressionCodegen.kt:579)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:584)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.visitBlockBody(ExpressionCodegen.kt:138)
+	at org.jetbrains.kotlin.ir.expressions.IrBlockBody.accept(IrBlockBody.kt:20)
+	at org.jetbrains.kotlin.backend.jvm.codegen.ExpressionCodegen.generate(ExpressionCodegen.kt:240)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.doGenerate(FunctionCodegen.kt:123)
+	at org.jetbrains.kotlin.backend.jvm.codegen.FunctionCodegen.generate(FunctionCodegen.kt:44)
+	... 115 more
+
+

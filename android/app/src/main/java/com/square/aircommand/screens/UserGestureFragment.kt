@@ -1,9 +1,14 @@
 package com.square.aircommand.screens
 
+import android.R.id.progress
 import android.content.Context
 import android.os.Bundle
+
 import android.text.Editable
 import android.text.TextWatcher
+
+import android.util.Log
+
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
@@ -11,6 +16,7 @@ import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -18,6 +24,12 @@ import com.bumptech.glide.Glide
 import com.google.android.material.card.MaterialCardView
 import com.square.aircommand.R
 import com.square.aircommand.databinding.FragmentUserGestureBinding
+import com.square.aircommand.utils.ModelStorageManager
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 
@@ -28,6 +40,8 @@ class UserGestureFragment : Fragment() {
 
     private lateinit var defaultGestures: List<String>  // 기본 제스처 (중복 검사용)
     private lateinit var customGestureList: List<String>  // json 기반 사용자 제스처
+
+    private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -97,6 +111,13 @@ class UserGestureFragment : Fragment() {
             binding.duplicateCheckResultText.visibility = View.VISIBLE
         }
 
+        binding.btnInitGestureShooting.setOnClickListener {
+            modelReset {
+                Log.d(tag, "✅ 모델 리셋 완료 콜백 호출됨")
+                Toast.makeText(requireContext(), "모델이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+            }
+        }
+
         binding.btnStartGestureShooting.setOnClickListener {
             val gestureName = editText.text.toString().trim()
             val bundle = Bundle().apply {
@@ -139,6 +160,37 @@ class UserGestureFragment : Fragment() {
     private fun hideKeyboard() {
         val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(requireView().windowToken, 0)
+    }
+
+    // GestureShootingFragment.kt 파일 상단 또는 하단에 선언
+    fun interface OnModelResetCallback {
+        fun onResetComplete()
+    }
+
+    private fun modelReset(callback: OnModelResetCallback? = null) {
+        serviceScope.launch {
+            val context = requireContext()
+            val filesDir = context.filesDir
+            val files = filesDir.listFiles()
+
+            if (files != null && files.isNotEmpty()) {
+                for (file in files) {
+                    val deleted = file.delete()
+                    Log.d(tag, if (deleted) "🗑️ ${file.name} 삭제 성공" else "⚠️ ${file.name} 삭제 실패")
+                }
+            } else {
+                Log.d(tag, "ℹ️ 삭제할 파일 없음 (filesDir 비어 있음)")
+            }
+
+            // 모델 파일이 없을 경우 Assets 에서 복사
+            ModelStorageManager.initializeModelCodeFromAssetsIfNotExists(context)
+            ModelStorageManager.initializeModelFromAssetsIfNotExists(context)
+
+            // 메인 스레드에서 콜백 실행
+            withContext(Dispatchers.Main) {
+                callback?.onResetComplete()
+            }
+        }
     }
 
     private fun isGestureNameDuplicate(name: String): Boolean {

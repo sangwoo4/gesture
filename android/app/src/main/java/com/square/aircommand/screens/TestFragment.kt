@@ -11,7 +11,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.square.aircommand.camera.CameraScreenTest
+import com.square.aircommand.cameraServies.CameraScreenTest
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentTestBinding
 import com.square.aircommand.handdetector.HandDetector
@@ -72,14 +72,11 @@ class TestFragment : Fragment() {
         landmarkDetector = ModelRepository.getLandmarkDetector()
         gestureClassifier = ModelRepository.getGestureClassifier()
 
-        val lifecycleOwner = viewLifecycleOwner
-
         binding.landmarkOverlay.setContent {
             CameraScreenTest(
                 handDetector = handDetector,
                 landmarkDetector = landmarkDetector,
-                gestureClassifier = gestureClassifier,
-                lifecycleOwner = lifecycleOwner
+                gestureClassifier = gestureClassifier
             )
         }
     }

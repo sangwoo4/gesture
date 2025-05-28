@@ -171,6 +171,17 @@
                 app:backgroundTint="@color/cardview_light_background" />
 
 
+            <Button
+                android:id="@+id/btnInitGestureShooting"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:background="@drawable/rounded_box"
+                android:text="모델 초기화"
+                android:textColor="@color/black"
+                android:textSize="12sp"
+                app:backgroundTint="@null" />
+
             <!-- 등록된 제스처 레이블 -->
             <TextView
                 android:id="@+id/installedLabel"

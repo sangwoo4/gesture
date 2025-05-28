@@ -1,8 +1,7 @@
 package com.square.aircommand.screens
 
 import android.Manifest
-import android.animation.Animator
-import android.animation.AnimatorListenerAdapter
+import android.R.attr.tag
 
 import android.content.Context
 
@@ -11,6 +10,8 @@ import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -22,17 +23,22 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.airbnb.lottie.LottieAnimationView
 import com.square.aircommand.R
-import com.square.aircommand.camera.CameraScreen
+import com.square.aircommand.cameraServies.TrainingCameraScreen
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.databinding.FragmentGestureShootingBinding
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.tflite.ModelRepository
 import com.square.aircommand.utils.GestureStatus
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.json.JSONObject
 import java.io.File
 
@@ -42,6 +48,7 @@ class GestureShootingFragment : Fragment() {
     private val binding get() = _binding!!
 
     private var progress = 0
+    private var toastShown = false
 
     private lateinit var handDetector: HandDetector
     private lateinit var landmarkDetector: HandLandmarkDetector
@@ -49,27 +56,9 @@ class GestureShootingFragment : Fragment() {
 
     private val gestureStatusText = mutableStateOf(GestureStatus.Idle)
 
-    // progress 초기화 함수 분리
-    private fun resetProgress() {
-        requireActivity().runOnUiThread {
-            progress = 0
-            binding.numberProgress.progress = 0
-        }
-    }
-
-    // ✅ 모델 초기화 (HandDetector, HandLandmarkDetector, GestureClassifier)
-    private fun initModels() {
-        ModelRepository.initModels(requireContext())
-        handDetector = ModelRepository.getHandDetector()
-        landmarkDetector = ModelRepository.getLandmarkDetector()
-        gestureClassifier = ModelRepository.getGestureClassifier()
-    }
-
     private val gestureName by lazy {
         arguments?.getString("gesture_name") ?: "unknown"
     }
-
-    private var toastShown = false
 
     companion object {
         private const val CAMERA_PERMISSION_REQUEST_CODE = 10
@@ -85,86 +74,7 @@ class GestureShootingFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
-        binding.numberProgress.progress = 0
-        progress = 0
-
-        binding.saveButton.apply {
-            isEnabled = false
-            alpha = 0.3f
-        }
-
-        // 뒤로가기 버튼
-        binding.backButton.setOnClickListener {
-            parentFragmentManager.popBackStack()
-        }
-
-        // 다시 촬영
-        binding.retakeButton.setOnClickListener {
-
-            updateProgress(0)
-
-            progress = 0
-            binding.numberProgress.progress = 0
-
-            binding.statusMessage.text = " "
-            binding.statusMessage.text = "📷 촬영을 다시 시작합니다! 손을 카메라에 잘 보여주세요"
-
-            binding.lottieLoadingView.cancelAnimation()
-            binding.lottieLoadingView.visibility = View.GONE
-
-            landmarkDetector.resetCollection()
-            showCameraCompose()
-
-            binding.saveButton.apply {
-                isEnabled = false
-                alpha = 0.3f
-            }
-
-        }
-
-        // 저장 버튼
-        binding.saveButton.setOnClickListener {
-            binding.saveButton.apply {
-                isEnabled = false
-                alpha = 0.0f
-            }
-
-            binding.retakeButton.apply {
-                isEnabled = false
-                alpha = 0.0f
-            }
-
-            // 이동 버튼 보이게 설정
-            binding.moveButton.visibility = View.VISIBLE
-
-            binding.moveButton.apply {
-                isEnabled = false
-                alpha = 0.3f
-            }
-
-            // 카메라 중지
-            binding.landmarkOverlay.setContent { }
-
-            // 서버 전송 시작
-            landmarkDetector.sendToServerIfReady(requireContext()) {
-                gestureStatusText.value = GestureStatus.Training
-                // ✅ 저장
-                saveIfDefaultGesture(requireContext(), gestureName)
-
-                Handler(Looper.getMainLooper()).post {
-                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
-                }
-            }
-        }
-
-        // 이동 버튼 클릭 리스너
-        binding.moveButton.setOnClickListener {
-            findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
-        }
-
-
-        // 📷 카메라 권한 확인 후 초기화
+        setupUI()
         if (allPermissionsGranted()) {
             initModels()
             startTraining()
@@ -176,73 +86,68 @@ class GestureShootingFragment : Fragment() {
                 CAMERA_PERMISSION_REQUEST_CODE
             )
         }
-
         observeGestureStatusText()
     }
 
-    private fun observeGestureStatusText() {
-        lifecycleScope.launch {
-            snapshotFlow { gestureStatusText.value }
-                .distinctUntilChanged()
-                .collectLatest { status ->
-                    when (status) {
-                        GestureStatus.Training -> {
-                            binding.lottieLoadingView.visibility = View.VISIBLE
-                            binding.lottieLoadingView.playAnimation()
+    private fun setupUI() {
+        binding.numberProgress.progress = 0
+        progress = 0
 
-                            binding.lottieSuecessView.visibility = View.GONE
-                            binding.lottieSuecessView.pauseAnimation()
+        binding.saveButton.setDisabled()
 
-                            binding.statusMessage.text = "촬영된 제스처 다운로드 중... ⏳"
-                        }
+        binding.backButton.setOnClickListener {
+            parentFragmentManager.popBackStack()
+        }
 
-                        GestureStatus.ModelApplied -> {
-                            binding.lottieLoadingView.visibility = View.GONE
-                            binding.lottieLoadingView.pauseAnimation()
+        binding.retakeButton.setOnClickListener {
+            resetProgress()
+            binding.statusMessage.text = "📷 촬영을 다시 시작합니다! 손을 카메라에 잘 보여주세요"
+            binding.lottieLoadingView.cancelAndHide()
+            landmarkDetector.resetCollection()
+            showCameraCompose()
+            binding.saveButton.setDisabled()
+        }
 
-                            binding.lottieSuecessView.visibility = View.VISIBLE
-                            binding.lottieSuecessView.playAnimation()
+        binding.saveButton.setOnClickListener {
+            binding.saveButton.setDisabled()
+            binding.retakeButton.setDisabled()
+            binding.moveButton.visibility = View.VISIBLE
+            binding.moveButton.setDisabled()
+            binding.landmarkOverlay.setContent { }
 
-                            binding.statusMessage.text = "다운로드 완료! 🎉"
-
-                            binding.moveButton.apply {
-                                isEnabled = true
-                                alpha = 1.0f
-                            }
-                        }
-
-//                        GestureStatus.DownFailed -> {
-//                            binding.lottieLoadingView.visibility = View.GONE
-//                            binding.lottieLoadingView.pauseAnimation()
-//
-//                            binding.lottieSuecessView.visibility = View.GONE
-//                            binding.lottieSuecessView.playAnimation()
-//
-//                            binding.statusMessage.text = "⚠️ 다운로드 실패. 다시 촬영해주세요."
-//
-//                            binding.saveButton.apply {
-//                                isEnabled = false
-//                                alpha = 0.3f
-//                            }
-//
-//                            binding.retakeButton.apply {
-//                                isEnabled = true
-//                                alpha = 1.0f
-//                            }
-//
-//                            // 이동 버튼 보이게 설정
-//                            binding.moveButton.visibility = View.GONE
-//                        }
-
-                        else -> {
-                            binding.lottieLoadingView.visibility = View.GONE
-                            binding.lottieLoadingView.pauseAnimation()
-
-                            binding.lottieSuecessView.visibility = View.GONE
-                            binding.lottieSuecessView.pauseAnimation()
-                        }
-                    }
+            landmarkDetector.sendToServerIfReady(requireContext()) {
+                gestureStatusText.value = GestureStatus.Training
+                saveIfDefaultGesture(requireContext(), gestureName)
+                Handler(Looper.getMainLooper()).post {
+                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
                 }
+            }
+        }
+
+
+
+        binding.moveButton.setOnClickListener {
+            findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
+        }
+    }
+
+    private fun initModels() {
+        ModelRepository.initModels(requireContext())
+        handDetector = ModelRepository.getHandDetector()
+        landmarkDetector = ModelRepository.getLandmarkDetector()
+        gestureClassifier = ModelRepository.getGestureClassifier()
+    }
+
+    private fun allPermissionsGranted(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(), Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun resetProgress() {
+        requireActivity().runOnUiThread {
+            progress = 0
+            binding.numberProgress.progress = 0
         }
     }
 
@@ -253,18 +158,51 @@ class GestureShootingFragment : Fragment() {
 
             if (progress >= 100) {
                 binding.statusMessage.text = "촬영 완료! ✅ 저장하기를 눌러주세요."
-
-                binding.saveButton.apply {
-                    isEnabled = true
-                    alpha = 1.0f
-                }
+                binding.saveButton.setEnabled()
             }
+        }
+    }
+
+
+
+    private fun startTraining() {
+        landmarkDetector.startCollecting()
+    }
+
+    private fun observeGestureStatusText() {
+        lifecycleScope.launch {
+            snapshotFlow { gestureStatusText.value }
+                .distinctUntilChanged()
+                .collectLatest { status ->
+                    with(binding) {
+                        when (status) {
+                            GestureStatus.Training -> {
+                                lottieLoadingView.playAndShow()
+                                lottieSuecessView.cancelAndHide()
+                            }
+
+                            GestureStatus.ModelApplied -> {
+                                lottieLoadingView.cancelAndHide()
+                                lottieSuecessView.playAndShow()
+                                moveButton.setEnabled()
+                            }
+
+                            GestureStatus.Failure -> {
+                            }
+
+                            else -> {
+                                lottieLoadingView.cancelAndHide()
+                                lottieSuecessView.cancelAndHide()
+                            }
+                        }
+                    }
+                }
         }
     }
 
     private fun showCameraCompose() {
         binding.landmarkOverlay.setContent {
-            CameraScreen(
+            TrainingCameraScreen(
                 handDetector = handDetector,
                 landmarkDetector = landmarkDetector,
                 gestureClassifier = gestureClassifier,
@@ -274,42 +212,24 @@ class GestureShootingFragment : Fragment() {
                 onTrainingComplete = {
                     if (!toastShown) {
                         toastShown = true
-                        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
-                        } else {
-                            @Suppress("DEPRECATION")
-                            vibrator?.vibrate(50)
-                        }
+                        vibrateOnce()
                     }
                 },
-                onProgressUpdate = { percent -> updateProgress(percent) }
+                onProgressUpdate = { updateProgress(it) }
             )
         }
     }
 
-    private fun allPermissionsGranted(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(), Manifest.permission.CAMERA
-        ) == PackageManager.PERMISSION_GRANTED
+    private fun vibrateOnce() {
+        val vibrator = ContextCompat.getSystemService(requireContext(), android.os.Vibrator::class.java)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            vibrator?.vibrate(android.os.VibrationEffect.createOneShot(50, android.os.VibrationEffect.DEFAULT_AMPLITUDE))
+        } else {
+            @Suppress("DEPRECATION")
+            vibrator?.vibrate(50)
+        }
     }
 
-    private fun startTraining() {
-        landmarkDetector.startCollecting()
-    }
-
-    override fun onDestroyView() {
-        // ✅ Surface 해제 (Compose 내 Preview 사용 중지)
-        _binding?.landmarkOverlay?.setContent {}
-
-        super.onDestroyView()
-        _binding = null
-        ModelRepository.closeAll()
-    }
-
-    /**
-     * ✅ 기본 제스처(paper, rock, scissors, one)만 저장
-     */
     private fun saveIfDefaultGesture(context: Context, label: String) {
         val allowed = listOf("paper", "rock", "scissors", "one")
         val labelLower = label.lowercase()
@@ -328,5 +248,49 @@ class GestureShootingFragment : Fragment() {
             jsonObject.put(nextIndex.toString(), label)
             file.writeText(jsonObject.toString())
         }
+    }
+
+    override fun onDestroyView() {
+        Log.d(tag, "🛑 onDestroyView() 호출됨 - 리소스 정리 시작")
+
+        // 1. Compose 내 카메라 UI 제거
+        _binding?.landmarkOverlay?.setContent {}
+        Log.d(tag, "📷 Compose 카메라 UI 제거 완료")
+
+        // 2. CameraX 종료 (CameraExecutor, CameraProvider)
+        TrainingCameraManager.releaseCamera() // ← 직접 구현 필요
+        Log.d(tag, "🎥 CameraX 리소스 해제 완료")
+
+        // 3. 모델 해제
+        ModelRepository.closeAll()
+        Log.d(tag, "🧠 모델 리소스 해제 완료")
+
+        // 4. 뷰 바인딩 해제
+        _binding = null
+        Log.d(tag, "🧹 ViewBinding 해제 완료")
+
+        super.onDestroyView()
+        Log.d(tag, "✅ onDestroyView() 종료")
+    }
+
+    // View Extension Helpers
+    private fun View.setEnabled() {
+        isEnabled = true
+        alpha = 1.0f
+    }
+
+    private fun View.setDisabled() {
+        isEnabled = false
+        alpha = 0.3f
+    }
+
+    private fun LottieAnimationView.playAndShow() {
+        visibility = View.VISIBLE
+        playAnimation()
+    }
+
+    private fun LottieAnimationView.cancelAndHide() {
+        cancelAnimation()
+        visibility = View.GONE
     }
 }
