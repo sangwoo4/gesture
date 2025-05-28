@@ -14,6 +14,9 @@
     <!--  미세 진동 권한  -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- 백그라운드 카메라 자동 꺼짐 권한  -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
     <queries>
         <package android:name="com.example.aidlserver" />
     </queries>
@@ -47,6 +50,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 자동 종료 리시버 등록 -->
+        <receiver
+            android:name=".backgroundcamera.CameraStopReceiver"
+            android:exported="true" />
+
 
         <!-- 포그라운드 카메라 서비스 등록 -->
         <service
