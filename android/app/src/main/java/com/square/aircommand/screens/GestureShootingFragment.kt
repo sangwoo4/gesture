@@ -11,6 +11,7 @@ import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -280,12 +281,25 @@ class GestureShootingFragment : Fragment() {
     }
 
     override fun onDestroyView() {
-        // ✅ Surface 해제 (Compose 내 Preview 사용 중지)
+        Log.d(tag, "🛑 onDestroyView() 호출됨 - 리소스 정리 시작")
+
+        // 1. Compose 내 카메라 UI 제거
         _binding?.landmarkOverlay?.setContent {}
+        Log.d(tag, "📷 Compose 카메라 UI 제거 완료")
+
+        // 2. CameraX 종료 (CameraExecutor, CameraProvider)
+        TrainingCameraManager.releaseCamera() // ← 직접 구현 필요
+        Log.d(tag, "🎥 CameraX 리소스 해제 완료")
+        // 3. 모델 해제
+        ModelRepository.closeAll()
+        Log.d(tag, "🧠 모델 리소스 해제 완료")
+
+        // 4. 뷰 바인딩 해제
+        _binding = null
+        Log.d(tag, "🧹 ViewBinding 해제 완료")
 
         super.onDestroyView()
-        _binding = null
-        ModelRepository.closeAll()
+        Log.d(tag, "✅ onDestroyView() 종료")
     }
 
     /**
@@ -302,7 +316,7 @@ class GestureShootingFragment : Fragment() {
         val alreadyExists = jsonObject.keys().asSequence()
             .any { key -> jsonObject.optString(key) == label }
 
-        if (!alreadyExists) {
+        if (!alreadyExists) {1
             val nextIndex = jsonObject.keys().asSequence()
                 .mapNotNull { it.toIntOrNull() }
                 .maxOrNull()?.plus(1) ?: 0
