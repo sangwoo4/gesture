@@ -207,12 +207,20 @@ class AirCommandFragment : Fragment() {
 
         if (!cameraGranted) {
             ActivityCompat.requestPermissions(requireActivity(), CAMERA_PERMISSIONS, REQUEST_CAMERA_PERMISSIONS)
+            return
         }
 
-        if (autoStartEnabled && !binding.switchUse.isChecked && accessibility && cameraGranted) {
-            Log.d("AirCommandFragment", "✅ 조건 만족 → CameraService 자동 시작")
-            ContextCompat.startForegroundService(context, Intent(context, CameraService::class.java))
+        if (autoStartEnabled && accessibility && cameraGranted) {
+            Log.d("AirCommandFragment", "✅ 접근성 + 권한 + 자동시작 설정 만족 → CameraService 실행")
+            val serviceIntent = Intent(context, CameraService::class.java)
+            ContextCompat.startForegroundService(context, serviceIntent)
+
+            // UI 상태 일치시킴
             binding.switchUse.isChecked = true
+            binding.tvUseStatus.text = "사용 중"
+        } else {
+            binding.switchUse.isChecked = false
+            binding.tvUseStatus.text = "사용 안 함"
         }
     }
 
