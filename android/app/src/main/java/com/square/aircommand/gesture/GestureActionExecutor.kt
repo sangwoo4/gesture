@@ -1,9 +1,14 @@
 package com.square.aircommand.gesture
 
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.provider.Settings
 import android.util.Log
 import com.square.aircommand.utils.ThrottledLogger
 
@@ -26,6 +31,8 @@ object GestureActionExecutor {
 
         GestureAction.VOLUME_UP to 1500L,
         GestureAction.VOLUME_DOWN to 1500L,
+
+        GestureAction.PLAY_PAUSE_MUSIC to 1500L
 
         )
 
@@ -56,6 +63,8 @@ object GestureActionExecutor {
 
             GestureAction.SWIPE_LEFT -> swipeLeft()
             GestureAction.SWIPE_UP -> swipeUp()
+
+            GestureAction.PLAY_PAUSE_MUSIC -> playOrPauseMusic(context)
 
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
@@ -166,6 +175,57 @@ object GestureActionExecutor {
         )
         ThrottledLogger.log("GestureAction", "👆 위로 스와이프 실행 요청")
     }
+
+    /*
+    * 음악 재생 / 일시정지
+    * */
+    private fun playOrPauseMusic(context: Context) {
+        try {
+            val mediaSessionManager =
+                context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+
+            if (!hasNotificationAccess(context)) {
+                Log.w("GestureActionExecutor", "🔒 알림 접근 권한 없음 - 음악 제어 불가")
+                return
+            }
+
+            // ✅ 앱의 NotificationListenerService 이름 지정
+            val componentName = ComponentName(context, NotificationListener::class.java)
+
+            val controllers: List<MediaController> =
+                mediaSessionManager.getActiveSessions(componentName)
+
+            for (controller in controllers) {
+                val playbackState = controller.playbackState
+                if (playbackState != null) {
+                    val transportControls = controller.transportControls
+                    if (playbackState.state == android.media.session.PlaybackState.STATE_PLAYING) {
+                        transportControls.pause()
+                    } else {
+                        transportControls.play()
+                    }
+                    Log.d("GestureActionExecutor", "🎵 음악 재생 상태 토글 성공")
+                    return
+                }
+            }
+
+            Log.d("GestureActionExecutor", "🎵 제어 가능한 미디어 세션 없음")
+
+        } catch (e: SecurityException) {
+            Log.e("GestureActionExecutor", "❌ 보안 예외 발생: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 음악 제어 중 예외 발생: ${e.message}", e)
+        }
+    }
+
+    fun hasNotificationAccess(context: Context): Boolean {
+        val enabledListeners = Settings.Secure.getString(
+            context.contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+        return enabledListeners.contains(context.packageName)
+    }
+
 }
 
 //    /**

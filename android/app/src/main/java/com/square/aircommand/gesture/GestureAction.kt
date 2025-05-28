@@ -15,5 +15,7 @@ enum class GestureAction(val displayName: String) {
 
     // TODO: 왼쪽으로, 오른쪽으로 스와이프 기능 추가할 것
     SWIPE_LEFT("왼쪽으로 스와이프"),
-    SWIPE_UP("위쪽으로 스와이프")
+    SWIPE_UP("위쪽으로 스와이프"),
+
+    PLAY_PAUSE_MUSIC("음악 재생/정지")
 }
