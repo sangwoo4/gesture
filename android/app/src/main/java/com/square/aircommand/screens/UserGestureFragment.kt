@@ -1,6 +1,7 @@
 package com.square.aircommand.screens
 
 import android.R.id.progress
+import android.app.AlertDialog
 import android.content.Context
 import android.os.Bundle
 
@@ -8,6 +9,7 @@ import android.text.Editable
 import android.text.TextWatcher
 
 import android.util.Log
+import android.view.Gravity
 
 import android.view.LayoutInflater
 import android.view.MotionEvent
@@ -15,14 +17,17 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.bumptech.glide.Glide
+import com.google.android.material.button.MaterialButton
 import com.google.android.material.card.MaterialCardView
 import com.square.aircommand.R
+import com.square.aircommand.databinding.DialogGestureGuideBinding
 import com.square.aircommand.databinding.FragmentUserGestureBinding
 import com.square.aircommand.utils.ModelStorageManager
 import kotlinx.coroutines.CoroutineScope
@@ -105,6 +110,33 @@ class UserGestureFragment : Fragment() {
                         .load(R.raw.checkgif)
                         .into(binding.checkPassedGif)
                     binding.checkPassedGif.visibility = View.VISIBLE
+
+                    // 제스처 촬영 버튼 클릭 시 다이얼로그 표시
+                    binding.btnStartGestureShooting.setOnClickListener {
+                        val dialogBinding = DialogGestureGuideBinding.inflate(LayoutInflater.from(requireContext()))
+
+                        val dialog = AlertDialog.Builder(requireContext())
+                            .setView(dialogBinding.root)
+                            .create()
+
+                        val window = dialog.window
+                        window?.setLayout(ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+                        window?.setGravity(Gravity.CENTER)
+                        dialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+                        dialogBinding.btnOpenSettings.setOnClickListener {
+                            dialog.dismiss()
+                            val bundle = Bundle().apply {
+                                putString("gesture_name", gestureName)
+                            }
+                            findNavController().navigate(
+                                R.id.action_userGestureFragment_to_gestureShootingFragment,
+                                bundle
+                            )
+                        }
+
+                        dialog.show()
+                    }
                 }
             }
 
@@ -112,11 +144,61 @@ class UserGestureFragment : Fragment() {
         }
 
         binding.btnInitGestureShooting.setOnClickListener {
-            modelReset {
-                Log.d(tag, "✅ 모델 리셋 완료 콜백 호출됨")
-                Toast.makeText(requireContext(), "모델이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+            val guideView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reset_guide, null)
+            val guideDialog = AlertDialog.Builder(requireContext())
+                .setView(guideView)
+                .setCancelable(false)
+                .create()
+
+            guideDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+            val cancelButton = guideView.findViewById<Button>(R.id.btn_gesture_cancel)
+            val removeButton = guideView.findViewById<Button>(R.id.btn_gesture_remove)
+
+            cancelButton.setOnClickListener {
+                guideDialog.dismiss()
             }
+
+            removeButton.setOnClickListener {
+                guideDialog.dismiss()
+
+                modelReset {
+                    Log.d(tag, "✅ 모델 리셋 완료 콜백 호출됨")
+
+                    // 초기화 완료 다이얼로그 표시
+                    val completeView = LayoutInflater.from(requireContext()).inflate(R.layout.dialog_reset_complete, null)
+                    val completeDialog = AlertDialog.Builder(requireContext())
+                        .setView(completeView)
+                        .setCancelable(false)
+                        .create()
+
+                    completeDialog.window?.setBackgroundDrawableResource(android.R.color.transparent)
+
+                    val goMainButton = completeView.findViewById<Button>(R.id.btn_go_main)
+                    goMainButton.setOnClickListener {
+                        completeDialog.dismiss()
+
+                        // 네비게이션 그래프에 정의된 action ID와 번들 사용 가능
+                        findNavController().navigate(R.id.action_userGestureFragment_to_airCommandFragment)
+                    }
+
+                    completeDialog.show()
+
+                    // 토스트 메시지도 원한다면 여기에
+                    Toast.makeText(requireContext(), "모델이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            guideDialog.show()
         }
+
+
+//        binding.btnInitGestureShooting.setOnClickListener {
+//            modelReset {
+//                Log.d(tag, "✅ 모델 리셋 완료 콜백 호출됨")
+//                Toast.makeText(requireContext(), "모델이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
+//            }
+//        }
 
         binding.btnStartGestureShooting.setOnClickListener {
             val gestureName = editText.text.toString().trim()

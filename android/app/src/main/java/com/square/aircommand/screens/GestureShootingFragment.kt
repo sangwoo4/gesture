@@ -109,8 +109,8 @@ class GestureShootingFragment : Fragment() {
         }
 
         binding.saveButton.setOnClickListener {
-            binding.saveButton.setDisabled()
-            binding.retakeButton.setDisabled()
+            binding.saveButton.setFalsed()
+            binding.retakeButton.setFalsed()
             binding.moveButton.visibility = View.VISIBLE
             binding.moveButton.setDisabled()
             binding.landmarkOverlay.setContent { }
@@ -123,7 +123,6 @@ class GestureShootingFragment : Fragment() {
                 }
             }
         }
-
 
 
         binding.moveButton.setOnClickListener {
@@ -179,20 +178,36 @@ class GestureShootingFragment : Fragment() {
                             GestureStatus.Training -> {
                                 lottieLoadingView.playAndShow()
                                 lottieSuecessView.cancelAndHide()
+                                lottieFailView.cancelAndHide()
+                                binding.statusMessage.text = "촬영된 제스처 학습 중... ⏳"
                             }
 
                             GestureStatus.ModelApplied -> {
                                 lottieLoadingView.cancelAndHide()
                                 lottieSuecessView.playAndShow()
+                                lottieFailView.cancelAndHide()
                                 moveButton.setEnabled()
+                                binding.statusMessage.text = "학습 및 다운로드 완료! 🎉"
                             }
 
                             GestureStatus.Failure -> {
+                                lottieFailView.playAndShow()
+                                lottieLoadingView.cancelAndHide()
+                                lottieSuecessView.cancelAndHide()
+                                binding.statusMessage.text = "⚠️ 다운로드 실패. 저장 버튼을 다시 눌러주세요."
+
+                                saveButton.setEnabled()
+                                retakeButton.setDisabled()
+                                moveButton.setFalsed()
+
+                                // ✅ 전송 재시도 가능하도록 상태 복구
+//                                landmarkDetector.retryLastSend(gestureName)
                             }
 
                             else -> {
                                 lottieLoadingView.cancelAndHide()
                                 lottieSuecessView.cancelAndHide()
+                                lottieFailView.cancelAndHide()
                             }
                         }
                     }
@@ -282,6 +297,11 @@ class GestureShootingFragment : Fragment() {
     private fun View.setDisabled() {
         isEnabled = false
         alpha = 0.3f
+    }
+
+    private fun View.setFalsed() {
+        isEnabled = false
+        alpha = 0.0f
     }
 
     private fun LottieAnimationView.playAndShow() {

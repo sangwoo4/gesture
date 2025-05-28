@@ -146,6 +146,19 @@ class HandLandmarkDetector(
         }
     }
 
+//    fun retryLastSend(name: String) {
+//        if (_landmarkSequence.size == 100) {
+//            savedGestureName = name
+//            isReadyToSend = true
+//            Log.d("HandLandmarkDetector", "✅ 재시도 준비 완료")
+//        } else {
+//            Log.w("HandLandmarkDetector", "⚠️ 재시도 불가: landmarkSequence 부족")
+//        }
+//    }
+
+
+
+
     fun resetCollection() {
         _landmarkSequence.clear()
         frameCounter = 0

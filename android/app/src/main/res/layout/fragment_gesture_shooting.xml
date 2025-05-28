@@ -145,14 +145,14 @@
                     app:lottie_loop="true"
                     app:lottie_rawRes="@raw/success2" />
 
-<!--                <com.airbnb.lottie.LottieAnimationView-->
-<!--                    android:id="@+id/lottieFailView"-->
-<!--                    android:layout_width="300dp"-->
-<!--                    android:layout_height="300dp"-->
-<!--                    android:layout_gravity="center"-->
-<!--                    app:lottie_autoPlay="false"-->
-<!--                    app:lottie_loop="true"-->
-<!--                    app:lottie_rawRes="@raw/loadingfail" />-->
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/lottieFailView"
+                    android:layout_width="250dp"
+                    android:layout_height="250dp"
+                    android:layout_gravity="center"
+                    app:lottie_autoPlay="false"
+                    app:lottie_loop="true"
+                    app:lottie_rawRes="@raw/loadingfail" />
             </FrameLayout>
 
             <!-- 버튼 영역 -->
@@ -168,42 +168,88 @@
                     android:layout_height="wrap_content"
                     android:orientation="horizontal">
 
-                    <Button
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/retakeButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="55dp"
                         android:layout_weight="1"
                         android:text="다시촬영"
                         android:textSize="15sp"
-                        android:background="@drawable/rounded_box"
                         android:textColor="@android:color/black"
-                        app:backgroundTint="@null"
-                        android:layout_marginEnd="8dp" />
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="7dp"
+                        app:backgroundTint="@color/cardview_light_background"
+                        app:cornerRadius="16dp"
+                        app:strokeColor="@color/black"
+                        app:strokeWidth="1dp"/>
 
-                    <Button
+<!--                    <Button-->
+<!--                        android:id="@+id/retakeButton"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="48dp"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:text="다시촬영"-->
+<!--                        android:textSize="15sp"-->
+<!--                        android:background="@drawable/rounded_box"-->
+<!--                        android:textColor="@android:color/black"-->
+<!--                        app:backgroundTint="@null"-->
+<!--                        android:layout_marginEnd="8dp" />-->
+
+<!--                    <Button-->
+<!--                        android:id="@+id/saveButton"-->
+<!--                        android:layout_width="0dp"-->
+<!--                        android:layout_height="48dp"-->
+<!--                        android:layout_weight="1"-->
+<!--                        android:text="저장하기"-->
+<!--                        android:textSize="15sp"-->
+<!--                        android:background="@drawable/rounded_box"-->
+<!--                        android:textColor="@android:color/black"-->
+<!--                        app:backgroundTint="@null"-->
+<!--                        android:layout_marginStart="8dp" />-->
+
+                    <com.google.android.material.button.MaterialButton
                         android:id="@+id/saveButton"
                         android:layout_width="0dp"
-                        android:layout_height="48dp"
+                        android:layout_height="55dp"
                         android:layout_weight="1"
                         android:text="저장하기"
                         android:textSize="15sp"
-                        android:background="@drawable/rounded_box"
                         android:textColor="@android:color/black"
-                        app:backgroundTint="@null"
-                        android:layout_marginStart="8dp" />
+                        android:layout_marginEnd="8dp"
+                        android:layout_marginTop="7dp"
+                        app:backgroundTint="@color/cardview_light_background"
+                        app:cornerRadius="16dp"
+                        app:strokeColor="@color/black"
+                        app:strokeWidth="1dp"/>
                 </LinearLayout>
 
                 <!-- 메인화면으로 이동 버튼 (처음엔 숨김) -->
-                <Button
+<!--                <Button-->
+<!--                    android:id="@+id/moveButton"-->
+<!--                    android:layout_width="match_parent"-->
+<!--                    android:layout_height="48dp"-->
+<!--                    android:text="메인화면으로 이동하기"-->
+<!--                    android:textSize="15sp"-->
+<!--                    android:background="@drawable/rounded_box"-->
+<!--                    android:textColor="@android:color/black"-->
+<!--                    app:backgroundTint="@null"-->
+<!--                    android:visibility="gone" />-->
+
+                <com.google.android.material.button.MaterialButton
                     android:id="@+id/moveButton"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="50dp"
+                    android:layout_weight="1"
                     android:text="메인화면으로 이동하기"
+                    android:visibility="gone"
                     android:textSize="15sp"
-                    android:background="@drawable/rounded_box"
                     android:textColor="@android:color/black"
-                    app:backgroundTint="@null"
-                    android:visibility="gone" />
+                    android:layout_marginEnd="8dp"
+                    android:layout_marginTop="7dp"
+                    app:backgroundTint="@color/cardview_light_background"
+                    app:cornerRadius="16dp"
+                    app:strokeColor="@color/black"
+                    app:strokeWidth="1dp"/>
             </FrameLayout>
 
 

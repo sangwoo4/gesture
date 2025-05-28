@@ -60,6 +60,8 @@
 
     <!-- 아래 내용 영역 -->
     <ScrollView
+        android:fitsSystemWindows="true"
+
         android:id="@+id/bodyScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
@@ -170,17 +172,19 @@
                 app:strokeWidth="1dp"
                 app:backgroundTint="@color/cardview_light_background" />
 
-
-            <Button
-                android:id="@+id/btnInitGestureShooting"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:background="@drawable/rounded_box"
-                android:text="모델 초기화"
-                android:textColor="@color/black"
-                android:textSize="12sp"
-                app:backgroundTint="@null" />
+<!--            <com.google.android.material.button.MaterialButton-->
+<!--                android:id="@+id/btnInitGestureShooting"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:text="모델 초기화"-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textColor="@color/white"-->
+<!--                app:cornerRadius="16dp"-->
+<!--                app:strokeColor="@color/black"-->
+<!--                app:strokeWidth="1dp"-->
+<!--                app:backgroundTint="@color/init_btn" />-->
 
             <!-- 등록된 제스처 레이블 -->
             <TextView
@@ -200,6 +204,20 @@
                 android:layout_height="wrap_content"
                 android:orientation="vertical"
                 android:layout_marginTop="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInitGestureShooting"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:text="제스처 초기화"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/init_btn" />
         </LinearLayout>
     </ScrollView>
 </androidx.constraintlayout.widget.ConstraintLayout>
