@@ -89,23 +89,6 @@ class UserGestureFragment : Fragment() {
             )
         }
 
-        // EditText 외의 영역 터치 시 키보드 및 포커스 제거
-        binding.root.setOnTouchListener { v, event ->
-            if (event.action == android.view.MotionEvent.ACTION_DOWN) {
-                val imm = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as android.view.inputmethod.InputMethodManager
-                val currentFocusView = requireActivity().currentFocus
-                if (currentFocusView != null) {
-                    currentFocusView.clearFocus()
-                    imm.hideSoftInputFromWindow(currentFocusView.windowToken, 0)
-
-                    // 포커스를 root로 옮겨서 EditText에서 포커스 완전히 제거
-                    binding.root.requestFocus()
-                }
-            }
-            false // ← 중요! false로 변경해서 하위 뷰가 터치 이벤트 받을 수 있게
-        }
-
-
     }
 
     private fun isGestureNameDuplicate(name: String): Boolean {

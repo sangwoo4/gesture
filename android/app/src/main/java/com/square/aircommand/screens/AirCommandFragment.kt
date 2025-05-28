@@ -27,11 +27,17 @@ import com.square.aircommand.databinding.FragmentAirCommandBinding
 
 // TapTargetView import
 import android.graphics.Typeface
+import android.view.Menu
 import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.PopupWindow
+import android.widget.RelativeLayout
 import android.widget.Toast
 import com.getkeepsafe.taptargetview.TapTarget
 import com.getkeepsafe.taptargetview.TapTargetView
 import android.widget.TextView
+import androidx.compose.ui.graphics.Color
+
 
 
 
@@ -40,7 +46,7 @@ class AirCommandFragment : Fragment() {
     private var _binding: FragmentAirCommandBinding? = null
     private val binding get() = _binding!!
 
-    private val timeOptions = listOf("설정 안 함", "1시간", "2시간", "4시간", "끄지 않음")
+    private val timeOptions = listOf("설정 안 함", "1시간", "2시간", "4시간")
 
     private val CAMERA_PERMISSIONS = arrayOf(
         Manifest.permission.CAMERA,
@@ -65,24 +71,56 @@ class AirCommandFragment : Fragment() {
 
         val prefs = requireContext().getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
         val savedTime = prefs.getString("selected_time", "설정 안 함")
-        binding.btnSelectTime.text = savedTime
 
-        // 백그라운드 자동 종료 시간 선택 팝업
-        binding.btnSelectTime.setOnClickListener {
-            val popup = PopupMenu(requireContext(), binding.btnSelectTime)
-            timeOptions.forEachIndexed { index, option ->
-                popup.menu.add(0, index, index, option)
+        binding.tvSelectedTime.text = savedTime
+
+        val lottieSettings = binding.lottieSettings
+
+        lottieSettings.setOnClickListener {
+            val popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_menu_layout, null)
+
+            val popupWindow = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_popup))
+            popupWindow.isOutsideTouchable = true
+            popupWindow.isFocusable = true
+
+            val container = popupView.findViewById<LinearLayout>(R.id.containerOptions)
+            container.removeAllViews()
+
+            timeOptions.forEach { option ->
+                val itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_popup_option, container, false) as TextView
+                itemView.text = option
+                itemView.setOnClickListener {
+                    binding.tvSelectedTime.text = option
+                    prefs.edit().putString("selected_time", option).apply()
+                    popupWindow.dismiss()
+                }
+                container.addView(itemView)
             }
 
-            popup.setOnMenuItemClickListener { item ->
-                val selectedTime = timeOptions[item.itemId]
-                binding.btnSelectTime.text = selectedTime
-                prefs.edit { putString("selected_time", selectedTime) }
-                true
-            }
-
-            popup.show()
+            popupWindow.showAsDropDown(lottieSettings)
         }
+
+
+        // 클릭 시 드롭다운 메뉴 표시
+//        lottieSettings.setOnClickListener {
+//            val popupMenu = PopupMenu(requireContext(), lottieSettings)
+//
+//            timeOptions.forEachIndexed { index, option ->
+//                popupMenu.menu.add(Menu.NONE, index, index, option)
+//            }
+//
+//            popupMenu.setOnMenuItemClickListener { item ->
+//                val selectedTime = timeOptions[item.itemId]
+//                binding.tvSelectedTime.text = selectedTime
+//                prefs.edit().putString("selected_time", selectedTime).apply()
+//
+//                true
+//            }
+//
+//            popupMenu.show()
+//        }
+
 
         binding.switchUse.setOnCheckedChangeListener { _, isChecked ->
 
