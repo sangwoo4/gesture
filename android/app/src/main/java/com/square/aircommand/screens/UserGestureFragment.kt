@@ -207,34 +207,6 @@ class UserGestureFragment : Fragment() {
         }
     }
 
-
-//    private fun showCustomGestures() {
-//        val container = binding.customGestureContainer
-//        container.removeAllViews()
-//
-//        for (gesture in customGestureList) {
-//            val displayName = getDisplayLabel(gesture)
-//            if (displayName.isBlank()) continue
-//
-//            val textView = TextView(requireContext()).apply {
-//                text = displayName
-//                textSize = 12f
-//                setTextColor(ContextCompat.getColor(context, android.R.color.black))
-//                setPadding(16, 12, 16, 12)
-//                background = ContextCompat.getDrawable(context, R.drawable.rounded_box)
-//            }
-//
-//            val layoutParams = ViewGroup.MarginLayoutParams(
-//                ViewGroup.LayoutParams.MATCH_PARENT,
-//                ViewGroup.LayoutParams.WRAP_CONTENT
-//            ).apply {
-//                setMargins(0, 8, 0, 0)
-//            }
-//
-//            container.addView(textView, layoutParams)
-//        }
-//    }
-
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null

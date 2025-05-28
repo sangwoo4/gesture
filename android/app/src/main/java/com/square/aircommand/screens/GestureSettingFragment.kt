@@ -10,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.PopupWindowCompat.showAsDropDown
 import androidx.fragment.app.Fragment
 import com.bumptech.glide.load.model.ByteArrayLoader
@@ -98,6 +99,8 @@ class GestureSettingFragment : Fragment() {
             powerMenus[label]?.dismiss()
             val currentText = targetView.text.toString()
 
+            val typeface = ResourcesCompat.getFont(requireContext(), R.font.binggrae1)
+
             val powerMenu = PowerMenu.Builder(requireContext())
                 .addItemList(options.map { PowerMenuItem(it, it == currentText) })
                 .setAnimation(MenuAnimation.SHOW_UP_CENTER)
@@ -106,7 +109,7 @@ class GestureSettingFragment : Fragment() {
                 .setCircularEffect(CircularEffect.BODY)
                 .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
                 .setTextGravity(Gravity.CENTER)
-                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
+                .setTextTypeface(typeface)
                 .setSelectedTextColor(0xFFFFFFFF.toInt())
                 .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
                 .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
