@@ -33,26 +33,27 @@ object GestureActionExecutor {
 
     // 마지막 실행 시간 기록용 맵
     private val lastActionTimeMap = mutableMapOf<GestureAction, Long>()
+    private const val DEFAULT_COOLDOWN = 3000L
 
     // 제스처별 쿨다운 시간 (ms) - 없으면 기본값 사용
     private val cooldownPerAction = mapOf(
-        GestureAction.TOGGLE_FLASH to 1500L,
-        GestureAction.SWIPE_RIGHT to 1500L,
-        GestureAction.SWIPE_DOWN to 1500L,
+        GestureAction.TOGGLE_FLASH to DEFAULT_COOLDOWN,
+        GestureAction.SWIPE_RIGHT to DEFAULT_COOLDOWN,
+        GestureAction.SWIPE_DOWN to DEFAULT_COOLDOWN,
 
-        GestureAction.SWIPE_LEFT to 1500L,
-        GestureAction.SWIPE_UP to 1500L,
+        GestureAction.SWIPE_LEFT to DEFAULT_COOLDOWN,
+        GestureAction.SWIPE_UP to DEFAULT_COOLDOWN,
 
-        GestureAction.VOLUME_UP to 1500L,
-        GestureAction.VOLUME_DOWN to 1500L,
-        GestureAction.GO_HOME to 3000L,
-        GestureAction.GO_OFFICE to 3000L,
+        GestureAction.VOLUME_UP to DEFAULT_COOLDOWN,
+        GestureAction.VOLUME_DOWN to DEFAULT_COOLDOWN,
+        GestureAction.GO_HOME to DEFAULT_COOLDOWN,
+        GestureAction.GO_OFFICE to DEFAULT_COOLDOWN,
 
-        GestureAction.PLAY_PAUSE_MUSIC to 1500L,
+        GestureAction.PLAY_PAUSE_MUSIC to DEFAULT_COOLDOWN,
 
-        GestureAction.OPEN_NOTES to 1500L,
+        GestureAction.OPEN_NOTES to DEFAULT_COOLDOWN,
 
-        GestureAction.OPEN_CALCULATOR to 1500L
+        GestureAction.OPEN_CALCULATOR to DEFAULT_COOLDOWN
         )
 
 

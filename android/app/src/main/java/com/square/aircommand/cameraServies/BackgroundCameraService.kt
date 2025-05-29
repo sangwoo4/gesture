@@ -19,6 +19,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
+import com.bumptech.glide.Glide.isInitialized
 import com.square.aircommand.cameraUtil.DummyLifecycleOwner
 import com.square.aircommand.cameraUtil.HandAnalyzer
 import com.square.aircommand.classifier.GestureClassifier
@@ -47,6 +48,8 @@ class BackgroundCameraService : Service() {
     private var gestureClassifier: GestureClassifier? = null
     private var handAnalyzer: ImageAnalysis.Analyzer? = null
 
+    private var isInitialized = false
+
     @RequiresApi(Build.VERSION_CODES.O)
     override fun onCreate() {
         super.onCreate()
@@ -64,10 +67,23 @@ class BackgroundCameraService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.d(tag, "📦 onStartCommand 호출됨 (flags=$flags, startId=$startId)")
 
-        // ✅ 이전 리소스 정리
-        stopResources()
-        // ✅ 모델 강제 재초기화
+        // ✅ startForeground 가장 먼저 호출
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val notification = createNotification()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+                startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA)
+            } else {
+                startForeground(1, notification)
+            }
+        }
 
+        if (isInitialized) {
+            Log.d(tag, "✅ 이미 초기화됨 - 재초기화 생략")
+            return START_STICKY
+        }
+
+        isInitialized = true
+        stopResources() // 이전 리소스 해제
         initModels()
         initAnalyzer()
         startCamera()
