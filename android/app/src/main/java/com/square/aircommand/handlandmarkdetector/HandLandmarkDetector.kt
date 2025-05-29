@@ -345,7 +345,7 @@ class HandLandmarkDetector(
         )
 
         val request = Request.Builder()
-            .url("13.125.161.99:8000/train_model/")
+            .url("http://13.125.161.99:8000/train_model/")
             .post(body)
             .build()
 

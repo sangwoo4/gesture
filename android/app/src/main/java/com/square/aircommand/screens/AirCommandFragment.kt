@@ -1,5 +1,7 @@
 package com.square.aircommand.screens
 
+//import android.widget.TextView
+
 import android.Manifest
 import android.app.AlertDialog
 import android.content.Context
@@ -18,11 +20,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.PopupMenu
-//import android.widget.TextView
+import android.widget.PopupWindow
+import android.widget.TextView
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.content.res.ResourcesCompat
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.getkeepsafe.taptargetview.TapTarget
@@ -31,12 +36,6 @@ import com.shashank.sony.fancytoastlib.FancyToast
 import com.square.aircommand.R
 import com.square.aircommand.cameraServies.BackgroundCameraService
 import com.square.aircommand.databinding.FragmentAirCommandBinding
-
-import android.widget.LinearLayout
-import android.widget.PopupWindow
-import android.widget.TextView
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.res.ResourcesCompat
 
 class AirCommandFragment : Fragment() {
 
@@ -324,20 +323,11 @@ class AirCommandFragment : Fragment() {
             ContextCompat.startForegroundService(context, serviceIntent)
 
             // UI 상태 일치시킴
-            // ✅ 백그라운드 카메라 서비스 자동 시작 조건 확인
-            if (autoStartEnabled && !binding.switchUse.isChecked && accessibility && cameraGranted) {
-                Log.d("AirCommandFragment", "✅ 조건 만족 → CameraService 자동 시작")
-                ContextCompat.startForegroundService(
-                    context,
-                    Intent(context, BackgroundCameraService::class.java)
-                )
-
-                binding.switchUse.isChecked = true
-                binding.tvUseStatus.text = "사용 중"
-            } else {
-                binding.switchUse.isChecked = false
-                binding.tvUseStatus.text = "사용 안 함"
-            }
+            binding.switchUse.isChecked = true
+            binding.tvUseStatus.text = "사용 중"
+        } else {
+            binding.switchUse.isChecked = false
+            binding.tvUseStatus.text = "사용 안 함"
         }
     }
 

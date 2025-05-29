@@ -67,6 +67,7 @@ class BackgroundCameraService : Service() {
         // ✅ 이전 리소스 정리
         stopResources()
         // ✅ 모델 강제 재초기화
+
         initModels()
         initAnalyzer()
         startCamera()
@@ -74,10 +75,8 @@ class BackgroundCameraService : Service() {
         return START_STICKY
     }
 
-
-
     private fun initModels() {
-        ModelRepository.initModels(applicationContext)
+        ModelRepository.resetModels(applicationContext)
         handDetector = ModelRepository.getHandDetector()
         landmarkDetector = ModelRepository.getLandmarkDetector()
         gestureClassifier = ModelRepository.getGestureClassifier()
@@ -97,7 +96,7 @@ class BackgroundCameraService : Service() {
             gestureText = gestureText,
             detectionFrameCount = detectionFrameCount,
             landmarksState = landmarksState,
-            validDetectionThreshold = 20,
+            validDetectionThreshold = 50,
             onGestureDetected = { gestureName ->
                 if (gestureName != "NONE") {
                     val action = GestureActionMapper.getSavedGestureAction(this, gestureName)
