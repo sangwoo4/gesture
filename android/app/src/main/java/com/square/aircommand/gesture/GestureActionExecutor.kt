@@ -34,7 +34,9 @@ object GestureActionExecutor {
 
         GestureAction.PLAY_PAUSE_MUSIC to 1500L,
 
-        GestureAction.OPEN_NOTES to 1500L
+        GestureAction.OPEN_NOTES to 1500L,
+
+        GestureAction.OPEN_CALCULATOR to 1500L
         )
 
     // 기본 쿨다운 시간
@@ -68,6 +70,8 @@ object GestureActionExecutor {
             GestureAction.PLAY_PAUSE_MUSIC -> playOrPauseMusic(context)
 
             GestureAction.OPEN_NOTES -> launchNoteApp(context)
+
+            GestureAction.OPEN_CALCULATOR -> launchCalculatorApp(context)
 
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
@@ -244,6 +248,24 @@ object GestureActionExecutor {
 
         } catch (e: Exception) {
             Log.e("GestureActionExecutor", "❌ 삼성 노트 앱 실행 실패: ${e.message}", e)
+        }
+    }
+
+    private fun launchCalculatorApp(context: Context) {
+        try {
+            val intent = Intent().apply {
+                // 삼성 기본 계산기 앱 기준
+                component = ComponentName(
+                    "com.sec.android.app.popupcalculator",
+                    "com.sec.android.app.popupcalculator.Calculator"
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            Log.d("GestureActionExecutor", "🧮 계산기 앱 실행 성공")
+
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 계산기 앱 실행 실패: ${e.message}", e)
         }
     }
 

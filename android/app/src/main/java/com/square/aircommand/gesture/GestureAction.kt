@@ -19,5 +19,7 @@ enum class GestureAction(val displayName: String) {
 
     PLAY_PAUSE_MUSIC("음악 재생/정지"),
 
-    OPEN_NOTES("메모장 실행")
+    OPEN_NOTES("메모장 실행"),
+
+    OPEN_CALCULATOR("계산기 실행")
 }

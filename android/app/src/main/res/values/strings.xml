@@ -25,6 +25,7 @@
         <item>위쪽으로 스와이프</item>
         <item>음악 재생/정지</item>
         <item>메모장 실행</item>
+        <item>계산기 실행</item>
     </string-array>
 
     <!-- 제스처 이름 목록 -->
