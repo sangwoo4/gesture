@@ -108,23 +108,69 @@ class GestureShootingFragment : Fragment() {
             binding.saveButton.setDisabled()
         }
 
-        binding.saveButton.setOnClickListener {
-            binding.saveButton.setFalsed()
-            binding.retakeButton.setFalsed()
-            binding.moveButton.visibility = View.VISIBLE
-            binding.moveButton.setDisabled()
-            binding.landmarkOverlay.setContent { }
+//        binding.saveButton.setOnClickListener {
+//            binding.saveButton.setFalsed()
+//            binding.retakeButton.setFalsed()
+//            binding.moveButton.visibility = View.VISIBLE
+//            binding.moveButton.setDisabled()
+//            binding.landmarkOverlay.setContent { }
+//
+//            landmarkDetector.sendToServerIfReady(requireContext()) {
+//                gestureStatusText.value = GestureStatus.Training
+//                saveIfDefaultGesture(requireContext(), gestureName)
+//                Handler(Looper.getMainLooper()).post {
+//                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+//                }
+//            }
+//        }
 
-            landmarkDetector.sendToServerIfReady(requireContext()) {
-                gestureStatusText.value = GestureStatus.Training
-                saveIfDefaultGesture(requireContext(), gestureName)
+//        binding.saveButton.setOnClickListener {
+//            binding.landmarkOverlay.setContent { }
+//
+//            landmarkDetector.sendToServerIfReady(requireContext()) { isSuccess ->
+//                Handler(Looper.getMainLooper()).post {
+//                    if (isSuccess) {
+//
+//                        gestureStatusText.value = GestureStatus.Training
+//                        saveIfDefaultGesture(requireContext(), gestureName)
+//                        gestureStatusText.value = GestureStatus.ModelApplied
+//
+//                    } else {
+//                        gestureStatusText.value = GestureStatus.Failure
+//                        binding.saveButton.setEnabled()
+//                        binding.retakeButton.setEnabled()
+//                    }
+//                }
+//            }
+//        }
+
+        binding.saveButton.setOnClickListener {
+            binding.landmarkOverlay.setContent { }
+            // 2. 전송 시작
+            landmarkDetector.sendToServerIfReady(requireContext()) { isSuccess ->
                 Handler(Looper.getMainLooper()).post {
-                    findNavController().navigate(R.id.action_gestureShooting_to_userGesture)
+                    if (isSuccess) {
+//                        binding.saveButton.setFalsed()
+//                        binding.retakeButton.setFalsed()
+                        binding.moveButton.visibility = View.VISIBLE
+                        //binding.moveButton.setDisabled()
+                        gestureStatusText.value = GestureStatus.Training
+                        saveIfDefaultGesture(requireContext(), gestureName)
+                        gestureStatusText.value = GestureStatus.ModelApplied
+                    } else {
+                        gestureStatusText.value = GestureStatus.Failure
+                        binding.saveButton.setEnabled()
+                        binding.retakeButton.setEnabled()
+                    }
                 }
             }
         }
 
+        binding.moveButton.setOnClickListener {
+            findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
+        }
 
+// ✅ moveButton 클릭 시 이동
         binding.moveButton.setOnClickListener {
             findNavController().navigate(R.id.action_gestureShooting_to_airCommand)
         }
@@ -179,6 +225,8 @@ class GestureShootingFragment : Fragment() {
                                 lottieLoadingView.playAndShow()
                                 lottieSuecessView.cancelAndHide()
                                 lottieFailView.cancelAndHide()
+                                binding.saveButton.setFalsed()
+                                binding.retakeButton.setFalsed()
                                 binding.statusMessage.text = "촬영된 제스처 학습 중... ⏳"
                             }
 

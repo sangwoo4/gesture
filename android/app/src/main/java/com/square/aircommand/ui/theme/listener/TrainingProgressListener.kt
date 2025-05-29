@@ -5,5 +5,5 @@ interface TrainingProgressListener {
     fun onTrainingStarted() {}
     fun onModelDownloadStarted() {}
     fun onModelDownloadComplete() {}
-    fun fail() {}
+    fun onTrainingFailed() {}
 }
