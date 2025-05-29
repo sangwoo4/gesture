@@ -114,7 +114,9 @@ dependencies {
     implementation(libs.androidx.navigation.fragment.ktx)
     implementation(libs.androidx.constraintlayout)
     implementation(libs.androidx.appcompat)
-//    implementation(libs.car.ui.lib)
+    implementation(files("src/libs/com.skt.Tmap_1.76.jar"))
+    implementation(files("src/libs/samsungpay_2.22.00.jar"))
+//    implementation(libs.car.ui.libs)
 
     debugImplementation(libs.androidx.ui.test.manifest)
     debugImplementation(libs.androidx.ui.tooling)
@@ -175,4 +177,5 @@ dependencies {
 
     // lottie
     implementation ("com.airbnb.android:lottie:6.0.0")
+
 }

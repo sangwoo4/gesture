@@ -9,13 +9,19 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-feature android:name="android.hardware.camera" />
 
     <!--  미세 진동 권한  -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- queries 추가 -->
     <queries>
         <package android:name="com.example.aidlserver" />
+        <package android:name="com.skt.tmap.ku"/>
+        <package android:name="com.skt.Tmap"/>
+        <package android:name="com.skt.skaf.l001mtm091" />
     </queries>
 
     <application
@@ -34,8 +40,6 @@
         <uses-native-library android:name="libcdsprpc.so" android:required="false" />
         <uses-native-library android:name="mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite" android:required="false" />
         <uses-native-library android:name="mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite" android:required="false" />
-
-
         <!-- 메인 액티비티 -->
         <activity
             android:name=".MainActivity"
@@ -73,12 +77,10 @@
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
+
+        <!-- 메타 데이터 추가 -->
         <meta-data
             android:name="com.skt.tmap"
             android:value="@string/tmap_api_key"/>
-        <queries>
-            <package android:name="com.skt.tmap.ku"/>
-        </queries>
     </application>
-
 </manifest>

@@ -16,6 +16,7 @@ enum class GestureAction(val displayName: String) {
     // TODO: 왼쪽으로, 오른쪽으로 스와이프 기능 추가할 것
     SWIPE_LEFT("왼쪽으로 스와이프"),
     SWIPE_UP("위쪽으로 스와이프"),
+    // 티맵 제스처를 목록에 추가
     GO_HOME("집으로"),
-    GO_OFFICE("회사로")
+    GO_OFFICE("회사로"),
 }

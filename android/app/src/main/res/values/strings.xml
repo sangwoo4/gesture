@@ -23,6 +23,9 @@
         <item>아래쪽으로 스와이프</item>
         <item>왼쪽으로 스와이프</item>
         <item>위쪽으로 스와이프</item>
+        <!-- 티맵 추가 동작 -->
+        <item>집으로</item>
+        <item>회사로</item>
     </string-array>
 
     <!-- 제스처 이름 목록 -->
