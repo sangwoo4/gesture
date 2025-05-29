@@ -17,5 +17,7 @@ enum class GestureAction(val displayName: String) {
     SWIPE_LEFT("왼쪽으로 스와이프"),
     SWIPE_UP("위쪽으로 스와이프"),
 
-    PLAY_PAUSE_MUSIC("음악 재생/정지")
+    PLAY_PAUSE_MUSIC("음악 재생/정지"),
+
+    OPEN_NOTES("메모장 실행")
 }

@@ -32,8 +32,9 @@ object GestureActionExecutor {
         GestureAction.VOLUME_UP to 1500L,
         GestureAction.VOLUME_DOWN to 1500L,
 
-        GestureAction.PLAY_PAUSE_MUSIC to 1500L
+        GestureAction.PLAY_PAUSE_MUSIC to 1500L,
 
+        GestureAction.OPEN_NOTES to 1500L
         )
 
     // 기본 쿨다운 시간
@@ -65,6 +66,8 @@ object GestureActionExecutor {
             GestureAction.SWIPE_UP -> swipeUp()
 
             GestureAction.PLAY_PAUSE_MUSIC -> playOrPauseMusic(context)
+
+            GestureAction.OPEN_NOTES -> launchNoteApp(context)
 
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
@@ -224,6 +227,24 @@ object GestureActionExecutor {
             "enabled_notification_listeners"
         ) ?: return false
         return enabledListeners.contains(context.packageName)
+    }
+
+    private fun launchNoteApp(context: Context) {
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(
+                    "com.samsung.android.app.notes",
+                    "com.samsung.android.app.notes.memolist.MemoListActivity"
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            context.startActivity(intent)
+            Log.d("GestureActionExecutor", "📓 삼성 노트 앱 실행 성공")
+
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 삼성 노트 앱 실행 실패: ${e.message}", e)
+        }
     }
 
 }
