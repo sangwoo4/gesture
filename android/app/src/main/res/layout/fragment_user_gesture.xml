@@ -1,0 +1,223 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#FFFFFF">
+
+    <!-- 헤더 영역 -->
+    <LinearLayout
+        android:id="@+id/header"
+        android:layout_width="0dp"
+        android:layout_height="150dp"
+        android:background="@drawable/header_background"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:padding="16dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="20dp">
+
+            <!-- 뒤로가기 버튼 -->
+            <ImageButton
+                android:id="@+id/backButton"
+                android:layout_width="29dp"
+                android:layout_height="26dp"
+                android:layout_gravity="start"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:src="@drawable/backicon"
+                android:contentDescription="뒤로가기" />
+
+            <!-- 제목 -->
+            <TextView
+                android:id="@+id/titleText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:text="사용자 제스처 등록"
+                android:textSize="17sp"
+                android:textStyle="bold"
+                android:textColor="@color/white" />
+        </FrameLayout>
+
+        <!-- 설명 문구 -->
+        <TextView
+            android:id="@+id/descriptionText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="새롭게 등록할 제스처의 이름을 설정해주세요."
+            android:textSize="10sp"
+            android:textColor="#777777"
+            android:layout_marginTop="8dp"/>
+    </LinearLayout>
+
+    <!-- 아래 내용 영역 -->
+    <ScrollView
+        android:fitsSystemWindows="true"
+
+        android:id="@+id/bodyScroll"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:layout_marginTop="15dp"
+        app:layout_constraintTop_toBottomOf="@id/header"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:paddingHorizontal="16dp">
+
+            <!-- 제스처 이름 설정 박스 (EditText + 버튼) -->
+            <LinearLayout
+                android:id="@+id/gestureNameContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:padding="12dp"
+                android:background="@drawable/rounded_box"
+                android:layout_marginTop="12dp"
+                android:gravity="center_vertical">
+
+                <!-- 제스처 이름 입력 -->
+                <com.google.android.material.textfield.TextInputLayout
+                    android:id="@+id/gestureNameEditText"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textColorHint="@color/hintcolor"
+                    android:imeOptions="actionDone"
+                    android:layout_marginEnd="8dp">
+
+                    <EditText
+                        android:id="@+id/Edit_ID"
+                        android:layout_width="match_parent"
+                        android:layout_height="60dp"
+                        android:inputType="text"
+                        android:hint="제스처 이름을 적어주세요"
+                        android:background="@android:color/transparent"
+                        android:layout_gravity="center"
+                        android:textSize="12sp"
+                        android:textColor="@color/black"/>
+                </com.google.android.material.textfield.TextInputLayout>
+
+                <!-- 체크 표시용 버튼 -->
+                <FrameLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginEnd="4dp">
+
+                    <at.markushi.ui.CircleButton
+                        android:id="@+id/checkPassedGif"
+                        android:layout_width="40dp"
+                        android:layout_height="40dp"
+                        android:src="@raw/checkgif"
+                        android:visibility="gone"
+                        app:cb_color="#99CC00"
+                        app:cb_pressedRingWidth="6dp" />
+                </FrameLayout>
+
+                <!-- 중복검사 버튼 -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnCheckDuplicate"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"
+                    android:minWidth="60dp"
+                    android:layout_gravity="center_vertical"
+                    android:text="중복검사"
+                    android:textSize="12sp"
+                    android:textColor="@color/black"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+                    app:cornerRadius="12dp"
+                    app:iconPadding="8dp"
+                    app:strokeColor="@color/colorPrimary"
+                    app:strokeWidth="1dp"
+                    app:backgroundTint="@color/cardview_light_background" />
+
+            </LinearLayout>
+
+
+            <!-- 중복검사 결과 -->
+            <TextView
+                android:id="@+id/duplicateCheckResultText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textSize="10sp"
+                android:textStyle="bold"
+                android:textColor="#D08855"
+                android:visibility="gone"
+                android:layout_marginTop="8dp" />
+
+            <!-- 제스처 촬영 버튼 -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnStartGestureShooting"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:text="제스처 촬영"
+                android:textSize="14sp"
+                android:textColor="@color/colorPrimary"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/cardview_light_background" />
+
+<!--            <com.google.android.material.button.MaterialButton-->
+<!--                android:id="@+id/btnInitGestureShooting"-->
+<!--                android:layout_width="match_parent"-->
+<!--                android:layout_height="60dp"-->
+<!--                android:layout_marginTop="20dp"-->
+<!--                android:text="모델 초기화"-->
+<!--                android:textSize="15sp"-->
+<!--                android:textStyle="bold"-->
+<!--                android:textColor="@color/white"-->
+<!--                app:cornerRadius="16dp"-->
+<!--                app:strokeColor="@color/black"-->
+<!--                app:strokeWidth="1dp"-->
+<!--                app:backgroundTint="@color/init_btn" />-->
+
+            <!-- 등록된 제스처 레이블 -->
+            <TextView
+                android:id="@+id/installedLabel"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="등록된 제스처 목록"
+                android:textStyle="bold"
+                android:textColor="@android:color/black"
+                android:textSize="12sp"
+                android:layout_marginTop="20dp" />
+
+            <!-- 동적 제스처 목록을 표시할 컨테이너 -->
+            <LinearLayout
+                android:id="@+id/customGestureContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:layout_marginTop="8dp" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnInitGestureShooting"
+                android:layout_width="match_parent"
+                android:layout_height="60dp"
+                android:layout_marginTop="20dp"
+                android:text="제스처 초기화"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="@color/white"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/init_btn" />
+        </LinearLayout>
+    </ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="300dp"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="0dp"
+    android:background="@drawable/bg_alert_dialog"
+    android:gravity="center_horizontal">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp"
+        android:background="@drawable/bg_rounded_dialog"
+        android:gravity="center"
+        android:orientation="vertical">
+
+        <com.airbnb.lottie.LottieAnimationView
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:layout_gravity="center"
+            app:lottie_rawRes="@raw/setting_alert"
+            app:lottie_autoPlay="true"
+            app:lottie_loop="true" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:padding="16dp">
+
+        <TextView
+            android:id="@+id/dialog_message"
+            android:layout_width="match_parent"
+            android:layout_height="60dp"
+            android:text="1단계: 🚀 &quot;이동하기&quot; 버튼을 눌러주세요&#10;2단계: 📋 목록에서 &apos;AirCommand&apos; 선택&#10;3단계: 🔛 스위치를 &apos;사용 중&apos;으로 켜고 확인"
+            android:textSize="12sp"
+            android:lineSpacingExtra="6dp"
+            android:textColor="#333333"
+            android:gravity="center"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="12dp">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_cancel"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="취소"
+                android:layout_marginTop="7dp"
+                android:textSize="12sp"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="@color/colorPrimary"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/cardview_light_background"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btn_open_settings"
+                android:layout_width="0dp"
+                android:layout_height="48dp"
+                android:layout_weight="1"
+                android:text="이동하기"
+                android:layout_marginTop="7dp"
+                android:textSize="12sp"
+                android:backgroundTint="#FFFFFF"
+                android:textColor="@color/colorPrimary"
+                android:layout_marginStart="12dp"
+                app:cornerRadius="16dp"
+                app:strokeColor="@color/black"
+                app:strokeWidth="1dp"
+                app:backgroundTint="@color/cardview_light_background"/>
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>
