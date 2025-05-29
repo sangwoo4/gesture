@@ -64,7 +64,7 @@
 
         <!-- 포그라운드 카메라 서비스 등록 -->
         <service
-            android:name=".backgroundcamera.CameraService"
+            android:name=".cameraServies.BackgroundCameraService"
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="camera" />
