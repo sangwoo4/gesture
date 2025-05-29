@@ -66,7 +66,7 @@ fun CameraScreenTest(
             gestureText = gestureText,
             detectionFrameCount = detectionFrameCount,
             landmarksState = landmarksState,
-            validDetectionThreshold = 20,
+            validDetectionThreshold = 15,
             isTrainingMode = isTrainingMode,
             onGestureDetected = {}
         )

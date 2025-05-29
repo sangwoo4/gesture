@@ -112,7 +112,7 @@ class BackgroundCameraService : Service() {
             gestureText = gestureText,
             detectionFrameCount = detectionFrameCount,
             landmarksState = landmarksState,
-            validDetectionThreshold = 50,
+            validDetectionThreshold = 15,
             onGestureDetected = { gestureName ->
                 if (gestureName != "NONE") {
                     val action = GestureActionMapper.getSavedGestureAction(this, gestureName)
