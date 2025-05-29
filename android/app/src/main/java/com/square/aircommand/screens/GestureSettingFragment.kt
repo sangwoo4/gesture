@@ -1,5 +1,6 @@
 package com.square.aircommand.screens
 
+import android.content.Context
 import android.os.Bundle
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -9,7 +10,10 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import android.graphics.Typeface
 import androidx.core.content.ContextCompat
+import androidx.core.content.res.ResourcesCompat
+import androidx.core.widget.PopupWindowCompat.showAsDropDown
 import androidx.fragment.app.Fragment
+import com.bumptech.glide.load.model.ByteArrayLoader
 import com.skydoves.powermenu.CircularEffect
 import com.skydoves.powermenu.MenuAnimation
 import com.skydoves.powermenu.PowerMenu
@@ -19,10 +23,6 @@ import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
 
-/**
- * 제스처 기능 설정 화면 (GestureSettingFragment)
- * - gesture_labels.json 파일에서 제스처 목록을 불러와 설정 UI를 동적으로 생성
- */
 class GestureSettingFragment : Fragment() {
 
     private var _binding: FragmentGestureSettingBinding? = null
@@ -33,6 +33,12 @@ class GestureSettingFragment : Fragment() {
     private val powerMenus = mutableMapOf<String, PowerMenu>()
 
     private lateinit var gestureLabelMapper: GestureLabelMapper
+
+    object Converter {
+        fun dpToPx(context: Context, dp: Int): Int {
+            return (dp * context.resources.displayMetrics.density).toInt()
+        }
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -93,23 +99,31 @@ class GestureSettingFragment : Fragment() {
             powerMenus[label]?.dismiss()
             val currentText = targetView.text.toString()
 
+            val typeface = ResourcesCompat.getFont(requireContext(), R.font.binggrae1)
+
             val powerMenu = PowerMenu.Builder(requireContext())
                 .addItemList(options.map { PowerMenuItem(it, it == currentText) })
-                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
+                .setAnimation(MenuAnimation.SHOW_UP_CENTER)
                 .setMenuRadius(50f)
                 .setMenuShadow(15f)
                 .setCircularEffect(CircularEffect.BODY)
                 .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
                 .setTextGravity(Gravity.CENTER)
-                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
+                .setTextTypeface(typeface)
                 .setSelectedTextColor(0xFFFFFFFF.toInt())
                 .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
-                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+                .setSelectedMenuColor(
+                    ContextCompat.getColor(
+                        requireContext(),
+                        R.color.colorPrimary
+                    )
+                )
                 .setOnMenuItemClickListener { _, item ->
                     targetView.text = item.title
                     prefs.edit().putString(prefsKey, item.title.toString()).apply()
-                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
-                        ?: GestureAction.NONE
+                    val selectedAction =
+                        GestureAction.entries.firstOrNull { it.displayName == item.title }
+                            ?: GestureAction.NONE
                     if (selectedAction == GestureAction.NONE) {
                         selectedActions.remove(label)
                     } else {
@@ -117,10 +131,11 @@ class GestureSettingFragment : Fragment() {
                     }
                     powerMenus[label]?.dismiss()
                 }
+                .setWidth(Converter.dpToPx(requireContext(), 200))
                 .build()
 
             powerMenus[label] = powerMenu
-            powerMenu.showAsAnchorLeftBottom(targetView)
+            powerMenu.showAtCenter(targetView)
         }
     }
 
@@ -180,77 +195,3 @@ class GestureSettingFragment : Fragment() {
         powerMenus.clear()
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-/**
-<<<<<<< HEAD
- * TextView를 클릭하면 PowerMenu가 나오고, 선택 시 텍스트 변경 및 SharedPreferences 저장
- */
-//    private fun setupGestureDropdown(
-//        targetView: TextView,
-//        label: GestureLabel,
-//        initialValue: String,
-//        prefsKey: String,
-//        options: Array<String>
-//    ) {
-//        val prefs = requireContext().getSharedPreferences(prefsName, 0)
-//
-//        // 초기 텍스트 셋팅
-//        targetView.text = initialValue
-//
-//        // 기존에 저장된 PowerMenu 있으면 제거
-//        powerMenus[label]?.dismiss()
-//
-//        targetView.setOnClickListener {
-//            // 클릭 시마다 이전 메뉴 닫기
-//            powerMenus[label]?.dismiss()
-//
-//            val currentText = targetView.text.toString()
-//
-//            // 클릭 시점의 현재 텍스트 기준으로 선택 상태 표시하며 PowerMenu 생성
-//            val powerMenu = PowerMenu.Builder(requireContext())
-//                .addItemList(options.map { PowerMenuItem(it, it == currentText) })
-//                .setAnimation(MenuAnimation.SHOWUP_TOP_LEFT)
-//                .setMenuRadius(50f)
-//                .setMenuShadow(15f)
-//                .setCircularEffect(CircularEffect.BODY)
-//                .setTextColor(ContextCompat.getColor(requireContext(), R.color.menu_text_color))
-//                .setTextGravity(Gravity.CENTER)
-//                .setTextTypeface(Typeface.create("sans-serif-medium", Typeface.BOLD))
-//                .setSelectedTextColor(0xFFFFFFFF.toInt())  // 흰색
-//                .setMenuColor(ContextCompat.getColor(requireContext(), R.color.menu_color))
-//
-//                .setSelectedMenuColor(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-//                .setOnMenuItemClickListener { position, item ->
-//                    targetView.text = item.title
-//                    prefs.edit().putString(prefsKey, item.title.toString()).apply()
-//
-//                    val selectedAction = GestureAction.entries.firstOrNull { it.displayName == item.title }
-//                        ?: GestureAction.NONE
-//
-//                    if (selectedAction == GestureAction.NONE) {
-//                        selectedActions.remove(label)
-//                    } else {
-//                        selectedActions[label] = selectedAction
-//                    }
-//
-//                    powerMenus[label]?.dismiss()
-//                }
-//                .build()
-//
-//            powerMenus[label] = powerMenu
-//            powerMenu.showAsAnchorLeftBottom(it)  // 메뉴 표시
-//        }
-//    }
-

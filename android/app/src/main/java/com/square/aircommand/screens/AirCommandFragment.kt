@@ -22,25 +22,27 @@ import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
 import com.shashank.sony.fancytoastlib.FancyToast
 import com.square.aircommand.R
-import com.square.aircommand.backgroundcamera.CameraService
+import com.square.aircommand.cameraServies.BackgroundCameraService
 import com.square.aircommand.databinding.FragmentAirCommandBinding
 
 // TapTargetView import
 import android.graphics.Typeface
+import android.view.Menu
 import android.widget.ImageView
-import android.widget.Toast
+import android.widget.LinearLayout
+import android.widget.PopupWindow
+
 import com.getkeepsafe.taptargetview.TapTarget
 import com.getkeepsafe.taptargetview.TapTargetView
 import android.widget.TextView
-
-
+import androidx.core.content.res.ResourcesCompat
 
 class AirCommandFragment : Fragment() {
 
     private var _binding: FragmentAirCommandBinding? = null
     private val binding get() = _binding!!
 
-    private val timeOptions = listOf("설정 안 함", "1시간", "2시간", "4시간", "끄지 않음")
+    private val timeOptions = listOf("설정 안 함", "1시간", "2시간", "4시간")
 
     private val CAMERA_PERMISSIONS = arrayOf(
         Manifest.permission.CAMERA,
@@ -65,42 +67,52 @@ class AirCommandFragment : Fragment() {
 
         val prefs = requireContext().getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
         val savedTime = prefs.getString("selected_time", "설정 안 함")
-        binding.btnSelectTime.text = savedTime
 
-        // 백그라운드 자동 종료 시간 선택 팝업
-        binding.btnSelectTime.setOnClickListener {
-            val popup = PopupMenu(requireContext(), binding.btnSelectTime)
-            timeOptions.forEachIndexed { index, option ->
-                popup.menu.add(0, index, index, option)
+        binding.tvSelectedTime.text = savedTime
+
+        val lottieSettings = binding.lottieSettings
+
+        lottieSettings.setOnClickListener {
+            val popupView = LayoutInflater.from(requireContext()).inflate(R.layout.popup_menu_layout, null)
+
+            val popupWindow = PopupWindow(popupView, LinearLayout.LayoutParams.WRAP_CONTENT, LinearLayout.LayoutParams.WRAP_CONTENT, true)
+            popupWindow.setBackgroundDrawable(ContextCompat.getDrawable(requireContext(), R.drawable.rounded_popup))
+            popupWindow.isOutsideTouchable = true
+            popupWindow.isFocusable = true
+
+            val container = popupView.findViewById<LinearLayout>(R.id.containerOptions)
+            container.removeAllViews()
+
+            timeOptions.forEach { option ->
+                val itemView = LayoutInflater.from(requireContext()).inflate(R.layout.item_popup_option, container, false) as TextView
+                itemView.text = option
+                itemView.setOnClickListener {
+                    binding.tvSelectedTime.text = option
+                    prefs.edit().putString("selected_time", option).apply()
+                    popupWindow.dismiss()
+                }
+                container.addView(itemView)
             }
-
-            popup.setOnMenuItemClickListener { item ->
-                val selectedTime = timeOptions[item.itemId]
-                binding.btnSelectTime.text = selectedTime
-                prefs.edit { putString("selected_time", selectedTime) }
-                true
-            }
-
-            popup.show()
+            popupWindow.showAsDropDown(lottieSettings)
         }
+
 
         binding.switchUse.setOnCheckedChangeListener { _, isChecked ->
 
             val context = requireContext()
             val prefs = context.getSharedPreferences("air_command_prefs", Context.MODE_PRIVATE)
-            val intent = Intent(context, CameraService::class.java)
+            val intent = Intent(context, BackgroundCameraService::class.java)
 
             if (isChecked) {
                 // 스위치 ON → 권한 체크 및 서비스 시작
-
                 if (!isAccessibilityServiceEnabled(context)) {
-                    FancyToast.makeText(
-                        context,
-                        "접근성 권한이 필요합니다!",
-                        FancyToast.LENGTH_SHORT,
-                        FancyToast.WARNING,
-                        true
-                    ).show()
+//                    FancyToast.makeText(
+//                        context,
+//                        "접근성 권한이 필요합니다!",
+//                        FancyToast.LENGTH_SHORT,
+//                        FancyToast.WARNING,
+//                        true
+//                    ).show()
 
                     val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_accessibility, null)
 
@@ -175,26 +187,30 @@ class AirCommandFragment : Fragment() {
 
         val devTargetView = binding.root.findViewById<ImageView>(R.id.developer_circle)
         val infoTargetView = binding.root.findViewById<TextView>(R.id.description_circle)
-
+        val typeface = ResourcesCompat.getFont(requireContext(), R.font.binggrae1)
 
         infoTargetView.setOnClickListener {
             TapTargetView.showFor(
                 requireActivity(),
                 TapTarget.forView(
                     infoTargetView,
-                    "제스처 제어 앱 서비스",
-                    "터치 없이 나만의 제스처를 등록해 사용"
+                    "🖐️ 제스처 제어 앱 서비스",
+                    "손짓 하나로 기능을 제어하고\n" +
+                            "나만의 제스처도 등록해보세요!\n\n" +
+                            "📱 온디바이스로 언제 어디서든\n" +
+                            "🌐 네트워크 없이 사용 가능!"
                 )
+
                     .outerCircleColor(R.color.white)
                     .outerCircleAlpha(0.90f)
                     .targetCircleColor(R.color.white)
                     .titleTextColor(R.color.black)
-                    .descriptionTextSize(13)
+                    .descriptionTextSize(15)
                     .descriptionTextColor(R.color.black)
-                    .textTypeface(Typeface.SANS_SERIF)
+                    .textTypeface(typeface)
                     .dimColor(R.color.black)
                     .drawShadow(true)
-                    .cancelable(false)
+                    .cancelable(true)
                     .tintTarget(true)
                     .transparentTarget(true)
                     .targetRadius(50),
@@ -212,18 +228,27 @@ class AirCommandFragment : Fragment() {
                 requireActivity(),
                 TapTarget.forView(
                     devTargetView,
-                    "Hansung University",
-                    "2025 Computer Engineering \n Capstone Design" +
-                            "\n\n 박상우, 박흥준, 장도윤, 최현혜"
-                )
+                    "🏫 Hansung University",
+                    """
+                    🖥️ 2025 Computer Engineering
+                            Capstone Design
+                    🤝 with Qualcomm
+                
+                    👨‍💻 박상우   👨‍💻 박흥준
+                    🧑‍💻 장도윤   👩‍💻 최현혜
+                    """.trimIndent()
+                                )
+
                     .outerCircleColor(R.color.white)
                     .outerCircleAlpha(0.90f)
+                    .textTypeface(typeface)
+                    .descriptionTextSize(15)
                     .targetCircleColor(R.color.white)
                     .titleTextColor(R.color.black)
                     .descriptionTextColor(R.color.black)
                     .dimColor(R.color.black)
                     .drawShadow(true)
-                    .cancelable(false)
+                    .cancelable(true)
                     .tintTarget(true)
                     .transparentTarget(true)
                     .targetRadius(50),
@@ -264,7 +289,7 @@ class AirCommandFragment : Fragment() {
         // ✅ 백그라운드 카메라 서비스 자동 시작 조건 확인
         if (autoStartEnabled && !binding.switchUse.isChecked && accessibility && cameraGranted) {
             Log.d("AirCommandFragment", "✅ 조건 만족 → CameraService 자동 시작")
-            ContextCompat.startForegroundService(context, Intent(context, CameraService::class.java))
+            ContextCompat.startForegroundService(context, Intent(context, BackgroundCameraService::class.java))
             binding.switchUse.isChecked = true
         }
     }
@@ -280,7 +305,7 @@ class AirCommandFragment : Fragment() {
         if (requestCode == REQUEST_CAMERA_PERMISSIONS) {
             if (grantResults.all { it == PackageManager.PERMISSION_GRANTED }) {
                 Log.d("AirCommandFragment", "📸 카메라 권한 승인됨")
-                val intent = Intent(requireContext(), CameraService::class.java)
+                val intent = Intent(requireContext(), BackgroundCameraService::class.java)
                 ContextCompat.startForegroundService(requireContext(), intent)
             } else {
                 Log.w("AirCommandFragment", "❌ 카메라 권한 거부됨")

@@ -71,6 +71,14 @@
             app:exitAnim="@anim/fade_out"
             app:popEnterAnim="@anim/fade_in"
             app:popExitAnim="@anim/fade_out"/>
+
+        <action
+            android:id="@+id/action_userGestureFragment_to_airCommandFragment"
+            app:destination="@id/airCommandFragment"
+            app:enterAnim="@anim/fade_in"
+            app:exitAnim="@anim/fade_out"
+            app:popEnterAnim="@anim/fade_in"
+            app:popExitAnim="@anim/fade_out"/>
     </fragment>
 
     <!-- 제스처 촬영 화면 -->
@@ -103,5 +111,6 @@
         android:name="com.square.aircommand.screens.TestFragment"
         android:label="테스트"
         tools:layout="@layout/fragment_test" />
+
 
 </navigation>

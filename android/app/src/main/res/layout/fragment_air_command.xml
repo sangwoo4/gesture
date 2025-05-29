@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/fragment_ui_test"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -256,20 +257,32 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
-            <Button
-                android:id="@+id/btnSelectTime"
+            <!-- container를 LinearLayout으로 바꾸고 패딩 제거 -->
+            <LinearLayout
+                android:id="@+id/container"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:backgroundTint="@android:color/transparent"
-                android:drawableEnd="@drawable/ic_arrow_drop_down"
-                android:elevation="0dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="8dp"
-                android:stateListAnimator="@null"
-                android:text="설정 안 함"
-                android:textColor="#000000"
-                android:textSize="12sp" />
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:id="@+id/tvSelectedTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="설정 안 함"
+                    android:textColor="#000"
+                    android:textSize="14sp"
+                    android:layout_marginEnd="12dp" />
+
+                <com.airbnb.lottie.LottieAnimationView
+                    android:id="@+id/lottieSettings"
+                    android:layout_width="25dp"
+                    android:layout_height="25dp"
+                    app:lottie_rawRes="@raw/ic_setting"
+                    app:lottie_autoPlay="true"
+                    app:lottie_loop="true"
+                    android:background="@android:color/transparent" />
+            </LinearLayout>
         </LinearLayout>
 
         <Button

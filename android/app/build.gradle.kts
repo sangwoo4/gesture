@@ -30,7 +30,7 @@ android {
 
     defaultConfig {
         applicationId = "com.square.aircommand"
-        minSdk = 25
+        minSdk = 30
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
@@ -175,4 +175,15 @@ dependencies {
 
     // lottie
     implementation ("com.airbnb.android:lottie:6.0.0")
+
+    // text box edit
+    // user gesture contents
+    implementation ("com.google.android.material:material:1.11.0")
+
+    implementation ("com.google.android.material:material:1.12.0")
+
+    // background toggle
+    implementation ("com.oguzdev:CircularFloatingActionMenu:1.0.2")
+
+
 }
