@@ -1,5 +1,9 @@
 package com.square.aircommand.screens
 
+
+import android.app.AlertDialog
+import android.content.Intent
+
 import android.content.Context
 import android.os.Bundle
 import android.view.Gravity
@@ -9,6 +13,7 @@ import android.view.ViewGroup
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.graphics.Typeface
+import android.provider.Settings
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.widget.PopupWindowCompat.showAsDropDown
@@ -22,6 +27,7 @@ import com.square.aircommand.R
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.databinding.FragmentGestureSettingBinding
 import com.square.aircommand.gesture.GestureAction
+import com.square.aircommand.gesture.GestureActionExecutor
 
 class GestureSettingFragment : Fragment() {
 
@@ -129,6 +135,22 @@ class GestureSettingFragment : Fragment() {
                     } else {
                         selectedActions[label] = selectedAction
                     }
+
+                    // 🎵 [추가]: 음악 제어 기능을 선택한 경우 권한 안내
+                    if (selectedAction == GestureAction.PLAY_PAUSE_MUSIC &&
+                        !GestureActionExecutor.hasNotificationAccess(requireContext())
+                    ) {
+                        AlertDialog.Builder(requireContext())
+                            .setTitle("알림 접근 권한 필요")
+                            .setMessage("음악 제어 기능을 사용하려면 알림 접근 권한이 필요합니다.")
+                            .setPositiveButton("설정으로 이동") { _, _ ->
+                                val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                startActivity(intent)
+                            }
+                            .setNegativeButton("취소", null)
+                            .show()
+                    }
+
                     powerMenus[label]?.dismiss()
                 }
                 .setWidth(Converter.dpToPx(requireContext(), 200))

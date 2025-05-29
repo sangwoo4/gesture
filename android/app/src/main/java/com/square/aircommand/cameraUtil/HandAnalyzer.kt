@@ -43,7 +43,7 @@ class HandAnalyzer(
                 imageProxy.close()
                 return
             }
-
+            Log.d("validDetectionThreshold", validDetectionThreshold.toString())
             val bitmap = imageProxy.toBitmapCompat()
             val orientation = getBackCameraSensorOrientation(context)
             val detectionResult = handDetector.detectHandAndGetInfo(bitmap, orientation)
