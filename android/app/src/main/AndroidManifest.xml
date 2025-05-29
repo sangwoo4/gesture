@@ -9,13 +9,28 @@
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
     <uses-feature android:name="android.hardware.camera" />
+
+    <!-- 카메라 기능 명시 (전면 카메라 포함) -->
+    <uses-feature android:name="android.hardware.camera.any" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.autofocus" android:required="false" />
 
     <!--  미세 진동 권한  -->
     <uses-permission android:name="android.permission.VIBRATE" />
 
+    <!-- queries 추가 -->
+    <!-- 백그라운드 카메라 자동 꺼짐 권한  -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM"/>
+
+
     <queries>
         <package android:name="com.example.aidlserver" />
+        <package android:name="com.skt.tmap.ku"/>
+        <package android:name="com.skt.Tmap"/>
+        <package android:name="com.skt.skaf.l001mtm091" />
     </queries>
 
     <application
@@ -34,8 +49,6 @@
         <uses-native-library android:name="libcdsprpc.so" android:required="false" />
         <uses-native-library android:name="mediapipe_hand-handdetector-qualcomm_snapdragon_8_elite" android:required="false" />
         <uses-native-library android:name="mediapipe_hand-handlandmarkdetector-qualcomm_snapdragon_8_elite" android:required="false" />
-
-
         <!-- 메인 액티비티 -->
         <activity
             android:name=".MainActivity"
@@ -47,6 +60,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- 자동 종료 리시버 등록 -->
+        <receiver
+            android:name=".backgroundcamera.CameraStopReceiver"
+            android:exported="true" />
+
 
         <!-- 포그라운드 카메라 서비스 등록 -->
         <service
@@ -69,11 +88,25 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <service
+            android:name=".gesture.NotificationListener"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
         <!-- 폰트 설정 -->
         <meta-data
             android:name="preloaded_fonts"
             android:resource="@array/preloaded_fonts" />
 
-    </application>
+        <!-- 메타 데이터 추가 -->
+        <meta-data
+            android:name="com.skt.tmap"
+            android:value="@string/tmap_api_key"/>
 
+    </application>
 </manifest>

@@ -257,6 +257,22 @@
                 android:textSize="12sp"
                 android:textStyle="bold" />
 
+<!--            <Button-->
+<!--                android:id="@+id/btnSelectTime"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:backgroundTint="@android:color/transparent"-->
+<!--                android:drawableEnd="@drawable/ic_arrow_drop_down"-->
+<!--                android:elevation="0dp"-->
+<!--                android:minWidth="0dp"-->
+<!--                android:minHeight="0dp"-->
+<!--                android:padding="8dp"-->
+<!--                android:stateListAnimator="@null"-->
+<!--                android:text="설정 안 함"-->
+<!--                android:textColor="#000000"-->
+<!--                android:textSize="12sp" />-->
+
+
             <!-- container를 LinearLayout으로 바꾸고 패딩 제거 -->
             <LinearLayout
                 android:id="@+id/container"
