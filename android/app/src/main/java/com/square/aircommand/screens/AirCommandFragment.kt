@@ -99,21 +99,21 @@ class AirCommandFragment : Fragment() {
             popupWindow.showAsDropDown(lottieSettings)
         }
 
-        binding.tvSelectedTime.setOnClickListener {
-            val popup = PopupMenu(requireContext(), binding.tvSelectedTime)
-            timeOptions.forEachIndexed { index, option ->
-                popup.menu.add(0, index, index, option)
-            }
-
-            popup.setOnMenuItemClickListener { item ->
-                val selectedTime = timeOptions[item.itemId]
-                binding.tvSelectedTime.text = selectedTime
-                prefs.edit { putString("selected_time", selectedTime) }
-                true
-            }
-
-            popup.show()
-        }
+//        binding.tvSelectedTime.setOnClickListener {
+//            val popup = PopupMenu(requireContext(), binding.tvSelectedTime)
+//            timeOptions.forEachIndexed { index, option ->
+//                popup.menu.add(0, index, index, option)
+//            }
+//
+//            popup.setOnMenuItemClickListener { item ->
+//                val selectedTime = timeOptions[item.itemId]
+//                binding.tvSelectedTime.text = selectedTime
+//                prefs.edit { putString("selected_time", selectedTime) }
+//                true
+//            }
+//
+//            popup.show()
+//        }
 
         binding.switchUse.setOnCheckedChangeListener { _, isChecked ->
             val intent = Intent(context, BackgroundCameraService::class.java)
