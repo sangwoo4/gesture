@@ -16,7 +16,8 @@
   - [📌 핵심 기능](#-핵심-기능)
   - [🏭 시스템 아키텍처](#-시스템-아키텍처)
   - [🧱 기술 스택](#-기술-스택)
-- [💻 어플 설명 영상](#-어플-설명-영상)
+- [📦 설치 파일](#-설치-파일)
+- [💻 어플 소개 영상](#-어플-소개-영상)
   - [🖥 화면 구성](#-화면-구성)
 - [📁 디렉터리 구조](#-디렉터리-구조)
 - [📊 기대 효과](#-기대-효과)
@@ -35,7 +36,8 @@
 
 ## ✋ 프로젝트 개요
 
-**Air Command**는 스마트폰 카메라를 활용하여 **정적 손 제스처**를 인식하고, 비접촉 방식으로 기기 내 기능을 제어하는 **온디바이스 손 제스처 인식 시스템**입니다.
+**Air Command**는 스마트폰 카메라를 활용하여 **정적 손 제스처**를 인식하고,<br> 
+비접촉 방식으로 기기 내 기능을 제어하는 **온디바이스 손 제스처 인식 시스템**입니다.
 
 ---
 
@@ -93,9 +95,16 @@
   <img src="https://img.shields.io/badge/FIGMA-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/>
 </details>
 
+## 📦 설치 파일  
+앱을 설치하고 사용해보세요! 아래의 APK 파일을 다운로드하여 직접 설치할 수 있습니다.
+
+- 🔗 [APK 다운로드 (Google Drive)](https://drive.google.com/uc?export=download&id=1kegQSoEbVf7Xq4FttxS1Zal7kuNyf06A)<br><br>
+⚠️ 설치 전, **설정 > 보안 > 알 수 없는 소스 허용**을 활성화해야 할 수 있습니다.
+
+
 ## 💻 어플 소개 영상
 
-https://github.com/user-attachments/assets/647baf5c-83e5-4703-a592-8b1ccc8a51af
+https://github.com/user-attachments/assets/33743354-e747-46ce-9c1c-38bdc80572b9
 
 ---
 
