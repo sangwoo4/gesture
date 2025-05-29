@@ -1,4 +1,4 @@
-package com.square.aircommand.backgroundcamera
+package com.square.aircommand.cameraUtil
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner

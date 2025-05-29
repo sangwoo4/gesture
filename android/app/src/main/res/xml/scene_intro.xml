@@ -11,7 +11,7 @@
         app:constraintSetStart="@+id/start"
         app:constraintSetEnd="@+id/end" />
 
-    <!-- ② START 상태 – 제목은 위쪽, ‘터치’ 문구는 투명 -->
+    <!-- ② START 상태 – 제목은 위쪽 -->
     <ConstraintSet android:id="@+id/start">
 
         <Constraint
@@ -24,17 +24,9 @@
             android:translationY="-100dp"
             android:alpha="0" />
 
-<!--        <Constraint-->
-<!--            android:id="@+id/tvTouch"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            android:alpha="0"/>-->
     </ConstraintSet>
 
-    <!-- ③ END 상태 – 제목 중앙에, ‘터치’ 문구는 아래쪽에 등장 -->
+    <!-- ③ END 상태 – 제목 중앙 -->
     <ConstraintSet android:id="@+id/end">
 
         <Constraint
@@ -45,16 +37,8 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            android:translationY="100dp"
+            android:translationY="80dp"
             android:alpha="1"/>
 
-<!--        <Constraint-->
-<!--            android:id="@+id/tvTouch"-->
-<!--            android:layout_width="wrap_content"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            app:layout_constraintBottom_toBottomOf="parent"-->
-<!--            app:layout_constraintStart_toStartOf="parent"-->
-<!--            app:layout_constraintEnd_toEndOf="parent"-->
-<!--            android:alpha="1"/>-->
     </ConstraintSet>
 </MotionScene>

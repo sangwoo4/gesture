@@ -108,9 +108,11 @@ class HandLandmarkDetector(
         return convertMatToBitmap(image)
     }
 
-    fun sendToServerIfReady(context: Context, onFinished: () -> Unit) {
+    fun sendToServerIfReady(context: Context, onFinished: (Boolean) -> Unit) {
+
         if (!isReadyToSend || savedGestureName == null || _landmarkSequence.size != 100) {
             Log.w("HandLandmarkDetector", "❗ 저장 조건 불충분 - 서버에 전송하지 않음")
+            onFinished(false) // 조건 불충분도 실패로 처리
             return
         }
 
@@ -120,31 +122,48 @@ class HandLandmarkDetector(
         sendTrainData(
             modelCode = modelCode,
             gesture = savedGestureName!!,
-            landmarkSequence = _landmarkSequence
-        ) { newModelCode, modelUrl ->
-            // 1) 모델 코드 저장
-            saveModelCode(context, newModelCode)
+            landmarkSequence = _landmarkSequence,
 
-            // 2) 라벨 저장
-            updateLabelMap(context, savedGestureName!!)
+            onSuccess = { newModelCode, modelUrl ->
+                try {
+                    // 1) 모델 코드 저장
+                    saveModelCode(context, newModelCode)
 
-            // 3) model_url.json 생성
-            val modelUrlFile = File(context.filesDir, "model_url.json")
-            modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
+                    // 2) 라벨 저장
+                    updateLabelMap(context, savedGestureName!!)
 
-            // 4) 모델 다운로드 및 교체
-            progressListener?.onModelDownloadStarted()
-            ModelStorageManager.downloadAndReplaceModel(context)
-            progressListener?.onModelDownloadComplete()
+                    // 3) model_url.json 생성
+                    val modelUrlFile = File(context.filesDir, "model_url.json")
+                    modelUrlFile.writeText(JSONObject().put("model_url", modelUrl).toString())
 
-            Log.d("HandLandmarkDetector", "✅ 서버 전송 및 모델 업데이트 완료")
+                    // 4) 모델 다운로드 및 교체
+                    progressListener?.onModelDownloadStarted()
+                    ModelStorageManager.downloadAndReplaceModel(context)
+                    progressListener?.onModelDownloadComplete()
 
-            // 상태 초기화
-            isReadyToSend = false
-            savedGestureName = null
-            _landmarkSequence.clear()
-        }
+                    Log.d("HandLandmarkDetector", "✅ 서버 전송 및 모델 업데이트 완료")
+
+                    // ✅ 성공 시 상태 초기화
+                    isReadyToSend = false
+                    savedGestureName = null
+                    _landmarkSequence.clear()
+
+                    onFinished(true) // ✅ 성공 콜백
+                } catch (e: Exception) {
+                    Log.e("HandLandmarkDetector", "❌ 처리 중 오류: ${e.message}", e)
+                    progressListener?.onTrainingFailed()
+                    onFinished(false) // ❌ 실패 콜백
+                }
+            },
+            onFailure = { errorMessage ->
+                Log.e("HandLandmarkDetector", "❌ 서버 전송 실패: $errorMessage")
+                progressListener?.onTrainingFailed()
+                onFinished(false) // ❌ 실패 콜백
+            }
+        )
     }
+
+
 
     fun resetCollection() {
         _landmarkSequence.clear()
@@ -292,6 +311,7 @@ class HandLandmarkDetector(
             Utils.matToBitmap(inputMatAbgr, outputBitmap)
             outputBitmap
         } catch (e: CvException) {
+
             Log.e("LandmarkDetector", "matToBitmap 실패: ${e.message}", e)
             original
         }
@@ -301,7 +321,8 @@ class HandLandmarkDetector(
         modelCode: String,
         gesture: String,
         landmarkSequence: MutableList<List<Triple<Double, Double, Double>>>,
-        onSuccess: (newModelCode: String, modelUrl: String) -> Unit
+        onSuccess: (newModelCode: String, modelUrl: String) -> Unit,
+        onFailure: (errorMessage: String) -> Unit
     ) {
         val landmarksJsonArray = JSONArray()
         for (frame in landmarkSequence) {
@@ -330,7 +351,7 @@ class HandLandmarkDetector(
 
         client.newCall(request).enqueue(object : Callback {
             override fun onFailure(call: Call, e: IOException) {
-                println("서버 전송 실패: ${e.message}")
+                onFailure(e.message ?: "네트워크 오류 발생")
             }
 
             override fun onResponse(call: Call, response: Response) {
@@ -345,6 +366,7 @@ class HandLandmarkDetector(
                     onSuccess(modelCode, modelUrl)
                 } else {
                     println("응답 오류 코드: ${response.code}")
+                    onFailure("응답 오류: ${response.code}")
                 }
             }
         })

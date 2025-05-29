@@ -33,7 +33,8 @@ class HandDetector(
     companion object {
         private const val NUM_ANCHORS = 2944
         private const val NUM_COORDS = 18
-        private const val DETECTION_THRESHOLD = 0.9f    // 0.9로 변경
+        private const val DETECTION_THRESHOLD = 0.6f
+
         private const val X_SCALE = 128.0f
         private const val Y_SCALE = 128.0f
         private const val H_SCALE = 128.0f

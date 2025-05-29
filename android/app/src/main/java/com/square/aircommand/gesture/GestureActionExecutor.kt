@@ -1,15 +1,22 @@
 package com.square.aircommand.gesture
 
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
 import android.media.AudioManager
+
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
 import android.provider.Settings.Global.putString
+
+import android.media.session.MediaController
+import android.media.session.MediaSessionManager
+import android.provider.Settings
+
 import android.util.Log
 import android.widget.Toast
 import com.samsung.android.sdk.samsungpay.v2.PartnerInfo
@@ -41,7 +48,13 @@ object GestureActionExecutor {
         GestureAction.GO_HOME to 3000L,
         GestureAction.GO_OFFICE to 3000L,
 
-    )
+        GestureAction.PLAY_PAUSE_MUSIC to 1500L,
+
+        GestureAction.OPEN_NOTES to 1500L,
+
+        GestureAction.OPEN_CALCULATOR to 1500L
+        )
+
 
     // 기본 쿨다운 시간
     private const val DEFAULT_COOLDOWN_MS = 1000L
@@ -76,6 +89,12 @@ object GestureActionExecutor {
 
             GestureAction.GO_HOME -> invokeTmapGoHome(context)
             GestureAction.GO_OFFICE -> invokeTmapGoCompany(context)
+
+            GestureAction.PLAY_PAUSE_MUSIC -> playOrPauseMusic(context)
+
+            GestureAction.OPEN_NOTES -> launchNoteApp(context)
+
+            GestureAction.OPEN_CALCULATOR -> launchCalculatorApp(context)
 
             GestureAction.NONE -> ThrottledLogger.log("GestureAction", "🛑제스처에 아무 기능도 할당되지 않음")
         }
@@ -189,6 +208,95 @@ object GestureActionExecutor {
         ThrottledLogger.log("GestureAction", "👆 위로 스와이프 실행 요청")
     }
 
+
+    /*
+    * 음악 재생 / 일시정지
+    * */
+    private fun playOrPauseMusic(context: Context) {
+        try {
+            val mediaSessionManager =
+                context.getSystemService(Context.MEDIA_SESSION_SERVICE) as MediaSessionManager
+
+            if (!hasNotificationAccess(context)) {
+                Log.w("GestureActionExecutor", "🔒 알림 접근 권한 없음 - 음악 제어 불가")
+                return
+            }
+
+            // ✅ 앱의 NotificationListenerService 이름 지정
+            val componentName = ComponentName(context, NotificationListener::class.java)
+
+            val controllers: List<MediaController> =
+                mediaSessionManager.getActiveSessions(componentName)
+
+            for (controller in controllers) {
+                val playbackState = controller.playbackState
+                if (playbackState != null) {
+                    val transportControls = controller.transportControls
+                    if (playbackState.state == android.media.session.PlaybackState.STATE_PLAYING) {
+                        transportControls.pause()
+                    } else {
+                        transportControls.play()
+                    }
+                    Log.d("GestureActionExecutor", "🎵 음악 재생 상태 토글 성공")
+                    return
+                }
+            }
+
+            Log.d("GestureActionExecutor", "🎵 제어 가능한 미디어 세션 없음")
+
+        } catch (e: SecurityException) {
+            Log.e("GestureActionExecutor", "❌ 보안 예외 발생: ${e.message}", e)
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 음악 제어 중 예외 발생: ${e.message}", e)
+        }
+    }
+
+    fun hasNotificationAccess(context: Context): Boolean {
+        val enabledListeners = Settings.Secure.getString(
+            context.contentResolver,
+            "enabled_notification_listeners"
+        ) ?: return false
+        return enabledListeners.contains(context.packageName)
+    }
+
+    private fun launchNoteApp(context: Context) {
+        try {
+            val intent = Intent().apply {
+                component = ComponentName(
+                    "com.samsung.android.app.notes",
+                    "com.samsung.android.app.notes.memolist.MemoListActivity"
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+
+            context.startActivity(intent)
+            Log.d("GestureActionExecutor", "📓 삼성 노트 앱 실행 성공")
+
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 삼성 노트 앱 실행 실패: ${e.message}", e)
+        }
+    }
+
+    private fun launchCalculatorApp(context: Context) {
+        try {
+            val intent = Intent().apply {
+                // 삼성 기본 계산기 앱 기준
+                component = ComponentName(
+                    "com.sec.android.app.popupcalculator",
+                    "com.sec.android.app.popupcalculator.Calculator"
+                )
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+            }
+            context.startActivity(intent)
+            Log.d("GestureActionExecutor", "🧮 계산기 앱 실행 성공")
+
+        } catch (e: Exception) {
+            Log.e("GestureActionExecutor", "❌ 계산기 앱 실행 실패: ${e.message}", e)
+        }
+    }
+
+}
+
     // T맵 설치 여부
     private fun isTmapInstalled(context: Context): Boolean {
         val pm = context.packageManager
@@ -246,7 +354,7 @@ object GestureActionExecutor {
     private fun showToast(context: Context, msg: String) =
         runOnUiThread { Toast.makeText(context, msg, Toast.LENGTH_SHORT).show() }
 
-}
+
 //    /**
 //     * 사진 촬영 기능 (추후 구현)
 //     */

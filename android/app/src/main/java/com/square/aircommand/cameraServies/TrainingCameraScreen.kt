@@ -1,56 +1,46 @@
-
-package com.square.aircommand.camera
+package com.square.aircommand.cameraServies
 
 import android.content.Context
 import android.graphics.PointF
 import android.hardware.camera2.CameraCharacteristics
 import android.hardware.camera2.CameraManager
-import android.util.Log
+import android.util.Size
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
-import androidx.camera.core.ImageProxy
 import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.snapshots.SnapshotStateList
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalLifecycleOwner
-import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.LifecycleOwner
+import com.square.aircommand.cameraUtil.HandAnalyzer
 import com.square.aircommand.classifier.GestureClassifier
 import com.square.aircommand.classifier.GestureLabelMapper
 import com.square.aircommand.handdetector.HandDetector
 import com.square.aircommand.handlandmarkdetector.HandLandmarkDetector
 import com.square.aircommand.ui.theme.listener.TrainingProgressListener
 import com.square.aircommand.utils.GestureStatus
-import com.square.aircommand.utils.ThrottledLogger
-import com.square.aircommand.utils.toBitmapCompat
 import java.util.concurrent.Executor
 import java.util.concurrent.Executors
 
 @Composable
-fun CameraScreen(
+fun TrainingCameraScreen(
     handDetector: HandDetector,
     landmarkDetector: HandLandmarkDetector,
     gestureClassifier: GestureClassifier,
-    isTrainingMode: Boolean = false,
+    isTrainingMode: Boolean = true,
     trainingGestureName: String = "",
     gestureStatusText: MutableState<GestureStatus>? = null,
     onTrainingComplete: (() -> Unit)? = null,
@@ -58,7 +48,8 @@ fun CameraScreen(
     // 상태바 초기화
     onProgressUpdate: ((Int) -> Unit)? = null,
     onModelDownloadStarted: (() -> Unit)? = null, // ⬅️ 추가
-    onModelDownloadComplete: (() -> Unit)? = null  // ⬅️ 추가
+    onModelDownloadComplete: (() -> Unit)? = null,  // ⬅️ 추가
+    onTrainingFail: (() -> Unit)? = null
 
 ) {
     val context = LocalContext.current
@@ -92,6 +83,11 @@ fun CameraScreen(
                 gestureStatusText?.value = GestureStatus.ModelApplied
                 onModelDownloadComplete?.invoke() // ✅ 완료 신호
             }
+
+            override fun onTrainingFailed() {
+                gestureStatusText?.value = GestureStatus.Failure
+                onTrainingFail?.invoke()
+            }
         }
     }
 
@@ -108,7 +104,6 @@ fun CameraScreen(
             gestureLabelMapper = gestureLabelMapper,
             gestureText = gestureText,
             detectionFrameCount = detectionFrameCount,
-            latestPoints = latestPoints,
             landmarksState = landmarksState,
             validDetectionThreshold = 20,
             isTrainingMode = isTrainingMode,
@@ -137,6 +132,18 @@ fun CameraScreen(
             modifier = Modifier.fillMaxSize()
         )
     }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            analysisExecutor.shutdown()
+            try {
+                val cameraProvider = ProcessCameraProvider.getInstance(context).get()
+                cameraProvider.unbindAll()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+    }
 }
 
 
@@ -158,6 +165,7 @@ object CameraInitializer {
             }
 
             val analysis = ImageAnalysis.Builder()
+                .setTargetResolution(Size(256, 256))
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
@@ -172,78 +180,6 @@ object CameraInitializer {
                 analysis
             )
         }, ContextCompat.getMainExecutor(context))
-    }
-}
-
-class HandAnalyzer(
-    private val context: Context,
-    private val handDetector: HandDetector,
-    private val landmarkDetector: HandLandmarkDetector,
-    private val gestureClassifier: GestureClassifier,
-    private val gestureLabelMapper: GestureLabelMapper,
-    private val gestureText: MutableState<String>,
-    private val detectionFrameCount: MutableState<Int>,
-    private val latestPoints: SnapshotStateList<PointF>,
-    private val landmarksState: MutableState<List<Triple<Double, Double, Double>>>,
-    private val validDetectionThreshold: Int,
-    private val isTrainingMode: Boolean,
-    private val trainingGestureName: String,
-    private val onGestureDetected: ((String) -> Unit)? = null,
-    private val onTrainingComplete: (() -> Unit)? = null, // ✅ 추가됨
-    private val trainingProgressListener: TrainingProgressListener? = null
-) : ImageAnalysis.Analyzer {
-    override fun analyze(imageProxy: ImageProxy) {
-        try {
-            val bitmap = imageProxy.toBitmapCompat()
-            val orientation = getBackCameraSensorOrientation(context)
-
-            // 1. detectHandAndGetInfo 사용(탑-1 손, crop/회전 포함)
-            val detectionResult = handDetector.detectHandAndGetInfo(bitmap, orientation)
-            if (detectionResult != null) {
-                detectionFrameCount.value += 1
-                if (detectionFrameCount.value >= validDetectionThreshold) {
-                    ThrottledLogger.log("HandAnalyzer", "손 감지 성공")
-
-                    // 2. crop된 손 이미지만 사용
-                    val croppedHand = detectionResult.croppedHand
-
-                    Log.d("HandAnalyzer", "[analyze] [학습 모드] transfer 호출")
-
-                    landmarkDetector.transfer(croppedHand, 0, trainingGestureName, trainingProgressListener)
-                    if (!landmarkDetector.isCollecting) {
-                        Log.d("HandAnalyzer", "[analyze] [학습모드] landmarkDetector.isCollecting = false → onTrainingComplete()")
-                        onTrainingComplete?.invoke()
-                    }
-
-                    // 3. landmark 결과 활용
-                    val landmarks = landmarkDetector.lastLandmarks
-                    Log.d("HandAnalyzer", "[analyze] Landmarks 개수: ${landmarks.size}")
-
-                    if (!isTrainingMode && landmarks.size == 21) {
-                        landmarksState.value = landmarks.toList()
-                        val (gestureIndex, confidence) = gestureClassifier.classify(
-                            landmarks,
-                            landmarkDetector.lastHandedness
-                        )
-                        val gestureName = gestureLabelMapper.getLabel(gestureIndex)
-                        gestureText.value = "$gestureName (${(confidence * 100).toInt()}%)"
-                        ThrottledLogger.log("HandAnalyzer", "$gestureName ($gestureIndex, $confidence)")
-
-                        onGestureDetected?.invoke(gestureName)
-                    }
-                } else {
-                    ThrottledLogger.log("HandAnalyzer", "감지 누적 중 (${detectionFrameCount.value})")
-                }
-            } else {
-                detectionFrameCount.value = 0
-                landmarksState.value = emptyList()
-                ThrottledLogger.log("HandAnalyzer", "손 감지 안됨")
-            }
-        } catch (e: Exception) {
-            Log.e("HandAnalyzer", "분석 실패: ${e.message}", e)
-        } finally {
-            imageProxy.close()
-        }
     }
 }
 

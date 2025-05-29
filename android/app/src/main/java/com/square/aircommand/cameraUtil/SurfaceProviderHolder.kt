@@ -1,4 +1,4 @@
-package com.square.aircommand.backgroundcamera
+package com.square.aircommand.cameraUtil
 
 import android.content.Context
 import android.graphics.SurfaceTexture

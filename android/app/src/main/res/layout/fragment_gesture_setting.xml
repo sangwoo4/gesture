@@ -56,6 +56,8 @@
 
     <!-- 아래 제스처 설정 영역 -->
     <ScrollView
+        android:fitsSystemWindows="true"
+
         android:id="@+id/bodyScroll"
         android:layout_width="0dp"
         android:layout_height="0dp"
