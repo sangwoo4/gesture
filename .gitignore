@@ -1,1 +1,12 @@
-model-upload-server-firebase-adminsdk-fbsvc-60bfb2f2fd.json
+# server 내부 불필요한 파일/폴더 무시
+/server/.idea/
+/server/__pycache__/
+/server/.env
+
+# Android studio config & cache
+/android/build/
+/android/app/build/
+
+.idea/
+
+/server/model-upload-server-firebase-adminsdk-fbsvc-60bfb2f2fd.json
