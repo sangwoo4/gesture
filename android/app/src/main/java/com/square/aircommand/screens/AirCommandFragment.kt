@@ -180,9 +180,9 @@ class AirCommandFragment : Fragment() {
             findNavController().navigate(R.id.action_airCommand_to_userGesture)
         }
 
-//        binding.btnTest.setOnClickListener {
-//            findNavController().navigate(R.id.action_airCommand_to_testFragment)
-//        }
+        binding.btnTest.setOnClickListener {
+            findNavController().navigate(R.id.action_airCommand_to_testFragment)
+        }
 
 
         val devTargetView = binding.root.findViewById<ImageView>(R.id.developer_circle)
