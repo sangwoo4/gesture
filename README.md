@@ -128,7 +128,7 @@ https://github.com/user-attachments/assets/647baf5c-83e5-4703-a592-8b1ccc8a51af
 
 </details>
 
-## 디렉터리 구조
+## 📁 디렉터리 구조
 
 <details>
 <summary>디렉터리 구조</summary>
