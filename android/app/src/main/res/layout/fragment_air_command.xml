@@ -301,18 +301,18 @@
             </LinearLayout>
         </LinearLayout>
 
-        <Button
-            android:id="@+id/btnTest"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="테스트"
-            android:layout_marginTop="8dp"
-            android:layout_marginBottom="30dp"
-            android:backgroundTint="#BBE4BA"
-            android:textColor="#000000"
-            android:padding="12dp"
-            android:textSize="16sp"
-            android:textStyle="bold"/>
+<!--        <Button-->
+<!--            android:id="@+id/btnTest"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="wrap_content"-->
+<!--            android:text="테스트"-->
+<!--            android:layout_marginTop="8dp"-->
+<!--            android:layout_marginBottom="30dp"-->
+<!--            android:backgroundTint="#BBE4BA"-->
+<!--            android:textColor="#000000"-->
+<!--            android:padding="12dp"-->
+<!--            android:textSize="16sp"-->
+<!--            android:textStyle="bold"/>-->
 
     </LinearLayout>
 
