@@ -44,7 +44,7 @@
             android:id="@+id/dialog_message"
             android:layout_width="match_parent"
             android:layout_height="90dp"
-            android:text="💡빛  반사가 없는 곳에서 진행해주세요. ❌&#10;✋ 프레임 가운데 손이 위치하도록 해주세요.🎯 &#10;📸 촬영 중 움직이면 정확도가 떨어질 수 있습니다. 🏃&#10;📶 네트워크를 연결했는지 확인해주세요. 🔌"
+            android:text="💡 빛  반사가 없는 곳에서 진행해주세요. ❌&#10;✋ 프레임 가운데 손이 위치하도록 해주세요.🎯 &#10;📸 촬영 중 움직이면 정확도가 떨어질 수 있습니다. 🏃&#10;📶 네트워크를 연결했는지 확인해주세요. 🔌"
             android:textSize="12sp"
             android:lineSpacingExtra="6dp"
             android:textColor="#3C3C3C"
