@@ -106,13 +106,13 @@ class AirCommandFragment : Fragment() {
             if (isChecked) {
                 // 스위치 ON → 권한 체크 및 서비스 시작
                 if (!isAccessibilityServiceEnabled(context)) {
-                    FancyToast.makeText(
-                        context,
-                        "접근성 권한이 필요합니다!",
-                        FancyToast.LENGTH_SHORT,
-                        FancyToast.WARNING,
-                        true
-                    ).show()
+//                    FancyToast.makeText(
+//                        context,
+//                        "접근성 권한이 필요합니다!",
+//                        FancyToast.LENGTH_SHORT,
+//                        FancyToast.WARNING,
+//                        true
+//                    ).show()
 
                     val dialogView = LayoutInflater.from(context).inflate(R.layout.dialog_accessibility, null)
 

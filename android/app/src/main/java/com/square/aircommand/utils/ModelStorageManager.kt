@@ -84,9 +84,9 @@ object ModelStorageManager {
                         Log.d("ModelDebug", "🗂️ ${it.name} (${it.length()} bytes)")
                     }
 
-                    Handler(Looper.getMainLooper()).post {
-                        Toast.makeText(context, "✅ 새 제스처 모델 적용 완료!", Toast.LENGTH_SHORT).show()
-                    }
+//                    Handler(Looper.getMainLooper()).post {
+//                        Toast.makeText(context, "✅ 새 제스처 모델 적용 완료!", Toast.LENGTH_SHORT).show()
+//                    }
                 }
             })
         } catch (e: Exception) {

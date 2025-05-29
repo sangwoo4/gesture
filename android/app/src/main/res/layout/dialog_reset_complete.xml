@@ -34,7 +34,7 @@
             android:id="@+id/dialog_message"
             android:layout_width="match_parent"
             android:layout_height="30dp"
-            android:text="제스처 초기화가 완료되었습니다."
+            android:text="🥺 제스처 초기화가 완료되었습니다. 😭"
             android:textSize="13sp"
             android:lineSpacingExtra="6dp"
             android:textColor="#3C3C3C"

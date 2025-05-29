@@ -183,9 +183,6 @@ class UserGestureFragment : Fragment() {
                     }
 
                     completeDialog.show()
-
-                    // 토스트 메시지도 원한다면 여기에
-                    Toast.makeText(requireContext(), "모델이 초기화되었습니다.", Toast.LENGTH_SHORT).show()
                 }
             }
 
