@@ -8,6 +8,7 @@
     </a>
 
   </div>
+<br>
 
 ## 📚 목차
 
@@ -21,6 +22,8 @@
   - [🖥 화면 구성](#-화면-구성)
 - [📁 디렉터리 구조](#-디렉터리-구조)
 - [📊 기대 효과](#-기대-효과)
+- [📄 저작권 및 출처](#-저작권-및-출처)
+<br><br>
 
 ## 👥 팀원 정보
 
@@ -33,13 +36,13 @@
 |                     UI·UX 설계 및 사용자 테스트                     |                            시스템 설계                             |                            Android 앱 개발                             |                       AI 모델 학습 및 최적화                       |
 
 </div>
+<br>
 
 ## ✋ 프로젝트 개요
 
 **Air Command**는 스마트폰 카메라를 활용하여 **정적 손 제스처**를 인식하고,<br> 
 비접촉 방식으로 기기 내 기능을 제어하는 **온디바이스 손 제스처 인식 시스템**입니다.
-
----
+<br><br>
 
 ### 📌 핵심 기능
 
@@ -48,12 +51,13 @@
 3️⃣ Qualcomm QNN Delegate 설정을 통한 모바일 최적화  
 4️⃣ 온디바이스 AI 모델 기반 제스처 추론  
 5️⃣ 제스처 기반 스마트폰 내부 기능 제어
+<br><br>
 
 ---
-
 ### 🏭 시스템 아키텍처
 
 <img src="https://github.com/user-attachments/assets/69642044-8495-4a5b-9dbb-303515d89430" width="1000"/>
+<br><br>
 
 ## 🧱 기술 스택
 
@@ -94,19 +98,19 @@
   <img src="https://img.shields.io/badge/SLACK-4A154B?style=for-the-badge&logo=slack&logoColor=white"/>
   <img src="https://img.shields.io/badge/FIGMA-F24E1E?style=for-the-badge&logo=figma&logoColor=white"/>
 </details>
+<br><br>
 
 ## 📦 설치 파일  
 앱을 설치하고 사용해보세요! 아래의 APK 파일을 다운로드하여 직접 설치할 수 있습니다.
 
 - 🔗 [APK 다운로드 (Google Drive)](https://drive.google.com/uc?export=download&id=1kegQSoEbVf7Xq4FttxS1Zal7kuNyf06A)<br><br>
 ⚠️ 설치 전, **설정 > 보안 > 알 수 없는 소스 허용**을 활성화해야 할 수 있습니다.
-
+<br><br>
 
 ## 💻 어플 소개 영상
 
 https://github.com/user-attachments/assets/33743354-e747-46ce-9c1c-38bdc80572b9
-
----
+<br>
 
 ### 🖥 화면 구성
 
@@ -136,6 +140,7 @@ https://github.com/user-attachments/assets/33743354-e747-46ce-9c1c-38bdc80572b9
 <img src="https://github.com/user-attachments/assets/5628d5fa-d65b-45ac-a7c3-bdb1bd30524f" width="300"><br><br>
 
 </details>
+<br>
 
 ## 📁 디렉터리 구조
 
@@ -153,11 +158,26 @@ https://github.com/user-attachments/assets/33743354-e747-46ce-9c1c-38bdc80572b9
 ```
 
 </details>
+<br><br>
 
 ## 📊 기대 효과
 
 ✔ **모바일 디바이스 단독 실행**: 네트워크 환경에 상관없이 안정적인 사용자 경험 제공  
 ✔ **NPU 가속 기반 추론 최적화**: 빠른 반응 속도와 배터리 효율 극대화  
 ✔ **커스텀 제스처 기능**: 사용자가 원하는 제스처 추가 및 제어 매핑 가능
+<br><br>
+
+## 📄 저작권 및 출처
+
+본 프로젝트는 다음 퀄컴(Qualcomm) 공식 자료 및 리소스를 참조하여 작성되었습니다:
+
+1. [Qualcomm AI Hub](https://aihub.qualcomm.com/)  
+2. [Qualcomm on Hugging Face](https://huggingface.co/qualcomm)  
+3. [ai-hub-models GitHub Repository](https://github.com/quic/ai-hub-models)  
+4. [ai-hub-apps GitHub Repository](https://github.com/quic/ai-hub-apps)  
+
+이 프로젝트에 포함된 일부 모델, 코드, 데이터 또는 문서 내용은 위 출처를 기반으로 하며, **해당 저작권은 모두 퀄컴(Qualcomm)에 있습니다.**
+
+해당 리소스들은 퀄컴의 사용 조건에 따라 참고 및 활용되었으며, 원 저작물의 소유권은 퀄컴에 있음을 명확히 밝힙니다.
 
 <img src="https://capsule-render.vercel.app/api?type=rect&color=0:E34C26,10:DA5B0B,30:C6538C,75:3572A5,100:A371F7&height=40&section=footer&text=&fontSize=0" width="100%"/>
