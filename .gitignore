@@ -10,3 +10,7 @@
 .idea/
 
 /server/model-upload-server-firebase-adminsdk-fbsvc-60bfb2f2fd.json
+
+# Tmap, SamsungPay jar 파일
+/android/app/src/libs/com.skt.Tmap_1.76.jar
+/android/app/src/libs/samsungpay_2.22.00.jar
